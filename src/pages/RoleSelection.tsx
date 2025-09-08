@@ -30,7 +30,7 @@ const RoleSelection = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         <button
           onClick={() => navigate('/register', { state: { role: 'user' } })}
           className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
@@ -58,21 +58,6 @@ const RoleSelection = () => {
             <span className="status-badge status-featured mb-4">مميز</span>
             <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">خبير</h2>
             <p className="text-[#6B7280] text-base leading-relaxed">شارك خبراتك المتخصصة وقدم استشارات قيمة للمجتمع</p>
-          </div>
-        </button>
-
-        <button
-          onClick={() => navigate('/register', { state: { role: 'admin' } })}
-          className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#F59E0B]/20 to-transparent rounded-full blur-2xl"></div>
-          <div className="relative">
-            <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
-              <Shield className="w-12 h-12 text-white" />
-            </div>
-            <span className="status-badge status-popular mb-4">إدارة</span>
-            <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">مشرف</h2>
-            <p className="text-[#6B7280] text-base leading-relaxed">أدر المحتوى والمستخدمين وأشرف على جودة المنصة</p>
           </div>
         </button>
       </div>
