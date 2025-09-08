@@ -125,13 +125,6 @@ const Dashboard = () => {
                 <p className="text-[#6B7280] text-sm">محتوى تعليمي</p>
               </div>
               <div className="content-card text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">89%</h3>
-                <p className="text-[#6B7280] text-sm">معدل الرضا</p>
-              </div>
-              <div className="content-card text-center">
                 <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
                   <Star className="w-6 h-6 text-white" />
                 </div>
