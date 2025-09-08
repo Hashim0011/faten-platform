@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, TrendingUp, Star, Clock, Filter } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('books');
   const [showDiscussion, setShowDiscussion] = useState(false);
@@ -48,6 +50,10 @@ const Dashboard = () => {
     setShowDiscussion(true);
   };
 
+  const handleLogout = () => {
+    // يمكن إضافة منطق تنظيف البيانات هنا (localStorage, sessionStorage, etc.)
+    navigate('/');
+  };
   return (
     <div className="min-h-screen bg-pattern">
       {/* Header */}
@@ -78,7 +84,10 @@ const Dashboard = () => {
             <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors">
               <Settings className="w-5 h-5 text-[#8B7355]" />
             </button>
-            <button className="btn-secondary text-sm flex items-center gap-2">
+            <button 
+              onClick={handleLogout}
+              className="btn-secondary text-sm flex items-center gap-2"
+            >
               <LogOut className="w-4 h-4" />
               <span>تسجيل خروج</span>
             </button>
