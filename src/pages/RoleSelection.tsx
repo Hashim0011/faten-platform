@@ -14,7 +14,6 @@ const RoleSelection = () => {
       <div className="text-center mb-16 animate-float px-6">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Sparkles className="w-8 h-1 text-[#D4AF37] animate-pulse" />
-          <h1 className="text-7xl font-bold gradient-text text-shadow -translate-y-2">فطن</h1>
           <h1 className="text-7xl font-bold gradient-text text-shadow -translate-y-2 leading-relaxed">فطن</h1>
           <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
         </div>
