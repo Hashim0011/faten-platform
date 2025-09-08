@@ -24,7 +24,7 @@ const Login = () => {
             <Brain className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold gradient-text mb-3">مرحباً بعودتك</h1>
-          <p className="text-[#6B7280]">سجل دخولك للوصول إلى حسابك في فطن</p>
+          <p className="text-[#6B7280] -mt-1">سجل دخولك للوصول إلى حسابك في فطن</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-8">
