@@ -11,7 +11,9 @@ const Login = () => {
     e.preventDefault();
     // Check if it's an admin email (you can customize this logic)
     const email = (e.target as HTMLFormElement).email.value;
-    if (email === 'admin@faten.com' || email === 'expert@faten.com') {
+    if (email === 'admin@faten.com') {
+      navigate('/admin-dashboard');
+    } else if (email === 'expert@faten.com') {
       navigate('/expert-dashboard');
     } else {
       navigate('/dashboard');

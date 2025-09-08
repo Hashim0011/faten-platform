@@ -18,7 +18,9 @@ const HomePage = () => {
     // تحديد دور المستخدم بناءً على البريد الإلكتروني
     const email = formData.email.toLowerCase();
     
-    if (email === 'admin@faten.com' || email === 'expert@faten.com') {
+    if (email === 'admin@faten.com') {
+      navigate('/admin-dashboard');
+    } else if (email === 'expert@faten.com') {
       navigate('/expert-dashboard');
     } else {
       navigate('/dashboard');
