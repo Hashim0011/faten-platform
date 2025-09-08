@@ -43,34 +43,34 @@ const HomePage = () => {
       {/* Header Section - Logo and Title */}
       <div className="text-center mb-12 animate-float">
         <div className="flex items-center justify-center gap-4 mb-6">
-          <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" />
-          <h1 className="text-5xl lg:text-6xl font-bold gradient-text text-shadow">فطن</h1>
-          <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-[#D4AF37] animate-pulse" />
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold gradient-text text-shadow">فطن</h1>
+          <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
         </div>
         
-        <div className="logo-container mx-auto animate-float mb-6" style={{animationDelay: '0.5s'}}>
+        <div className="logo-container mx-auto animate-float mb-4 sm:mb-6" style={{animationDelay: '0.5s'}}>
           <div className="logo-shield"></div>
           <Brain className="logo-brain" />
         </div>
         
-        <p className="text-lg text-[#6B7280] leading-relaxed font-medium max-w-2xl mx-auto">
+        <p className="text-base sm:text-lg text-[#6B7280] leading-relaxed font-medium max-w-2xl mx-auto px-4">
           منصة فطن هي بوابتك للتعلم والنمو في مجال الأمن الفكري
         </p>
       </div>
 
       {/* Main Login Form */}
-      <div className="w-full max-w-md mx-auto mb-12">
-        <div className="glass-effect p-8 lg:p-10 rounded-3xl card-hover">
+      <div className="w-full max-w-md mx-auto mb-8 sm:mb-12 px-4">
+        <div className="glass-effect p-6 sm:p-8 lg:p-10 rounded-3xl card-hover">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-[#2D2D2D] mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#2D2D2D] mb-3">
               {isLogin ? 'مرحباً بعودتك' : 'انضم إلى فطن'}
             </h2>
-            <p className="text-[#6B7280]">
+            <p className="text-sm sm:text-base text-[#6B7280]">
               {isLogin ? 'سجل دخولك للوصول إلى حسابك' : 'أنشئ حساباً جديداً وابدأ رحلتك التعليمية'}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {!isLogin && (
               <div>
                 <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
@@ -138,7 +138,7 @@ const HomePage = () => {
             </div>
 
             {isLogin && (
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="w-4 h-4 text-[#8B7355] border-2 border-[#8B7355]/30 rounded focus:ring-[#8B7355]" />
                   <span className="text-[#6B7280] text-sm">تذكرني</span>
@@ -154,7 +154,7 @@ const HomePage = () => {
 
             <button
               type="submit"
-              className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
+              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center gap-3"
             >
               <span>{isLogin ? 'تسجيل الدخول' : 'إنشاء الحساب'}</span>
               <ArrowRight className="w-5 h-5" />
@@ -163,7 +163,7 @@ const HomePage = () => {
 
           <div className="section-divider"></div>
 
-          <p className="text-center text-[#6B7280]">
+          <p className="text-center text-sm sm:text-base text-[#6B7280]">
             {isLogin ? 'ليس لديك حساب؟' : 'لديك حساب بالفعل؟'}{' '}
             <button
               onClick={() => setIsLogin(!isLogin)}
@@ -176,26 +176,26 @@ const HomePage = () => {
       </div>
 
       {/* Features Section - Bottom */}
-      <div className="flex items-center justify-center gap-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-center gap-4 sm:gap-8 max-w-4xl mx-auto px-4">
         <div className="flex flex-col items-center gap-3 group">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-            <BookOpen className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+            <BookOpen className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <span className="text-sm text-[#6B7280] font-medium text-center">محتوى تعليمي<br/>موثوق</span>
+          <span className="text-xs sm:text-sm text-[#6B7280] font-medium text-center">محتوى تعليمي<br/>موثوق</span>
         </div>
         
         <div className="flex flex-col items-center gap-3 group">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-            <Users className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+            <Users className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <span className="text-sm text-[#6B7280] font-medium text-center">مجتمع<br/>تفاعلي</span>
+          <span className="text-xs sm:text-sm text-[#6B7280] font-medium text-center">مجتمع<br/>تفاعلي</span>
         </div>
         
         <div className="flex flex-col items-center gap-3 group">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-            <Shield className="w-8 h-8 text-white" />
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+            <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
-          <span className="text-sm text-[#6B7280] font-medium text-center">أمن<br/>فكري</span>
+          <span className="text-xs sm:text-sm text-[#6B7280] font-medium text-center">أمن<br/>فكري</span>
         </div>
       </div>
     </div>

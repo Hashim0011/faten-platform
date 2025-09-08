@@ -56,21 +56,21 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-24 left-8 w-96 glass-effect rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20">
+    <div className="fixed bottom-20 sm:bottom-24 left-4 right-4 sm:left-8 sm:right-auto w-auto sm:w-96 glass-effect rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20">
       <div className="p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative">
             <Brain className="w-5 h-5 text-white" />
             <Sparkles className="w-3 h-3 text-[#D4AF37] absolute -top-1 -right-1" />
           </div>
-          <h3 className="font-bold text-[#2D2D2D]">المساعد الذكي</h3>
+          <h3 className="font-bold text-sm sm:text-base text-[#2D2D2D]">المساعد الذكي</h3>
         </div>
         <button onClick={onClose} className="p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors">
           <X className="w-5 h-5 text-[#8B7355]" />
         </button>
       </div>
       
-      <div className="h-96 overflow-y-auto p-4 scrollbar-hide">
+      <div className="h-64 sm:h-96 overflow-y-auto p-4 scrollbar-hide">
         <div className="space-y-4">
           {messages.map((message) => (
             <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
@@ -79,7 +79,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
                   ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20' 
                   : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
               }`}>
-                <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
+                <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
                 <span className={`text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
                   {message.timestamp}
                 </span>
