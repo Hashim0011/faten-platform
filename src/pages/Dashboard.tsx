@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle } from 'lucide-react';
+import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, TrendingUp, Star, Clock, Filter } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
 
@@ -49,27 +49,36 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4EFE9]">
+    <div className="min-h-screen bg-pattern">
       {/* Header */}
-      <div className="bg-[#8B7355] text-white py-2">
-        <div className="container mx-auto px-6 flex items-center justify-between">
+      <div className="glass-effect border-b border-[#8B7355]/10 sticky top-0 z-40">
+        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <div className="logo-container w-8 h-8">
-              <div className="logo-shield"></div>
-              <Brain className="logo-brain" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold gradient-text">فطن</h1>
             </div>
-            <div className="bg-white/10 rounded-lg py-1.5 px-4 max-w-xl overflow-hidden">
-              <p className="animate-marquee whitespace-nowrap text-sm">
+            <div className="bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 rounded-xl py-2 px-4 max-w-xl overflow-hidden border border-[#8B7355]/20">
+              <p className="animate-marquee whitespace-nowrap text-sm text-[#654321] font-medium">
                 🎓 ورشة عمل: "تعزيز الأمن الفكري" - السبت القادم | 📚 دورة: "مهارات التفكير النقدي" - التسجيل مفتوح | 🌟 محاضرة: "الهوية الوطنية" - الأربعاء القادم
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="text-sm px-3 py-1.5 border border-white/20 rounded hover:bg-white/10 transition flex items-center gap-1">
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
+              <Bell className="w-5 h-5 text-[#8B7355]" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
+            </button>
+            <button className="btn-secondary text-sm flex items-center gap-2">
               <Mail className="w-4 h-4" />
               <span>تواصل معنا</span>
             </button>
-            <button className="text-sm px-3 py-1.5 border border-white/20 rounded hover:bg-white/10 transition flex items-center gap-1">
+            <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors">
+              <Settings className="w-5 h-5 text-[#8B7355]" />
+            </button>
+            <button className="btn-secondary text-sm flex items-center gap-2">
               <LogOut className="w-4 h-4" />
               <span>تسجيل خروج</span>
             </button>
@@ -77,16 +86,222 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-10">
         <div className="flex gap-8">
           {/* Main Content */}
           <div className="flex-1">
             {/* Search Bar */}
-            <div className="flex gap-4 mb-8">
-              <button className="px-6 py-2 rounded-lg bg-[#8B7355] text-white text-sm">
-                جميع المحتويات
-              </button>
-              <div className="flex-1 relative">
+            <div className="content-card mb-8">
+              <div className="flex gap-4 items-center">
+                <div className="flex gap-2">
+                  <button className="btn-primary text-sm px-4 py-2">
+                    جميع المحتويات
+                  </button>
+                  <button className="btn-secondary text-sm px-4 py-2 flex items-center gap-2">
+                    <Filter className="w-4 h-4" />
+                    تصفية
+                  </button>
+                </div>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="ابحث في المكتبة..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="input-modern w-full pr-12"
+                  />
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                </div>
+              </div>
+            </div>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-4 mb-8">
+              <div className="content-card text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
+                  <Book className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">1,247</h3>
+                <p className="text-[#6B7280] text-sm">محتوى تعليمي</p>
+              </div>
+              <div className="content-card text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">89%</h3>
+                <p className="text-[#6B7280] text-sm">معدل الرضا</p>
+              </div>
+              <div className="content-card text-center">
+                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                  <Star className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">4.8</h3>
+                <p className="text-[#6B7280] text-sm">تقييم المحتوى</p>
+              </div>
+            </div>
+
+            {/* Content Tabs */}
+            <div className="content-card mb-6">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setActiveTab('books')}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                    activeTab === 'books' 
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                      : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+                  }`}
+                >
+                  <Book className="w-4 h-4" />
+                  <span>الكتب</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">24</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('videos')}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                    activeTab === 'videos' 
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                      : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+                  }`}
+                >
+                  <Video className="w-4 h-4" />
+                  <span>مقاطع الفيديو</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">18</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('articles')}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-medium transition-all ${
+                    activeTab === 'articles' 
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                      : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+                  }`}
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>المقالات</span>
+                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">32</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Content Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {libraryContent[activeTab].map(item => (
+                <div key={item.id} className="content-card card-hover group overflow-hidden">
+                  <div className="relative h-48 mb-4 rounded-xl overflow-hidden">
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute top-3 right-3">
+                      <span className="status-badge status-new">جديد</span>
+                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-[#2D2D2D] font-bold text-lg leading-tight group-hover:text-[#8B7355] transition-colors">{item.title}</h3>
+                    <p className="text-[#6B7280] text-sm leading-relaxed line-clamp-2">{item.desc}</p>
+                    <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
+                      <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                        <Clock className="w-4 h-4" />
+                        <span>{item.date}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-[#8B7355] font-semibold">{item.likes}</span>
+                        <span className="text-red-500">❤️</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="w-80 space-y-6">
+            {/* Discussion Topics */}
+            <div className="content-card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
+                <MessageCircle className="w-5 h-5 text-[#8B7355]" />
+              </div>
+              <div className="space-y-3">
+                {discussionTopics.map(topic => (
+                  <button
+                    key={topic.id}
+                    onClick={() => handleTopicClick(topic)}
+                    className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
+                  >
+                    <h4 className="font-semibold text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-[#6B7280]">{topic.date}</span>
+                      <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">نشط</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Upcoming Events */}
+            <div className="content-card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
+                <Bell className="w-5 h-5 text-[#8B7355]" />
+              </div>
+              <div className="space-y-4">
+                {upcomingEvents.map(event => (
+                  <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`status-badge ${
+                        event.type === 'ورشة' ? 'status-new' : 
+                        event.type === 'دورة' ? 'status-featured' : 'status-popular'
+                      }`}>
+                        {event.type}
+                      </span>
+                      <span className="text-sm text-[#6B7280] flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {event.date}
+                      </span>
+                    </div>
+                    <h4 className="text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Chat Button */}
+      <button
+        onClick={() => setShowAiChat(true)}
+        className="fixed bottom-8 left-8 p-4 glass-effect rounded-2xl shadow-xl hover:shadow-2xl transition-all group"
+      >
+        <div className="relative">
+          <MessageCircle className="w-7 h-7 text-[#8B7355] group-hover:scale-110 transition-transform" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center">
+            <Brain className="w-2 h-2 text-white" />
+          </div>
+        </div>
+      </button>
+
+      {/* Modals */}
+      {selectedTopic && (
+        <DiscussionModal
+          isOpen={showDiscussion}
+          onClose={() => setShowDiscussion(false)}
+          topic={selectedTopic}
+        />
+      )}
+      
+      <AiChatModal
+        isOpen={showAiChat}
+        onClose={() => setShowAiChat(false)}
+      />
+    </div>
+  );
+};
+
+export default Dashboard;
                 <input
                   type="text"
                   placeholder="ابحث في المكتبة..."

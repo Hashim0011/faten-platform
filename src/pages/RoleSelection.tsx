@@ -1,56 +1,92 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Shield, Users, UserCog } from 'lucide-react';
+import { Brain, Shield, Users, UserCog, Sparkles, ArrowLeft } from 'lucide-react';
 
 const RoleSelection = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#D2B48C]/30 via-[#F4EFE9] to-[#8B7355]/20 flex flex-col items-center justify-center p-4">
-      <div className="text-center mb-16">
-        <h1 className="text-6xl font-bold text-[#654321] mb-4">فطن</h1>
-        <div className="logo-container mb-8">
+    <div className="min-h-screen bg-pattern flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/20 to-[#8B7355]/20 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-br from-[#8B7355]/20 to-[#654321]/20 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
+      
+      <div className="text-center mb-20 animate-float">
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" />
+          <h1 className="text-7xl font-bold gradient-text text-shadow">فطن</h1>
+          <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
+        </div>
+        <div className="logo-container mb-8 animate-float" style={{animationDelay: '0.5s'}}>
           <div className="logo-shield"></div>
           <Brain className="logo-brain" />
         </div>
-        <p className="text-[#8B7355] text-xl max-w-2xl mx-auto leading-relaxed">
+        <p className="text-[#6B7280] text-xl max-w-2xl mx-auto leading-relaxed font-medium">
           منصة فطن هي بوابتك للتعلم والنمو في مجال الأمن الفكري. اكتشف المحتوى التعليمي، شارك في النقاشات، وتواصل مع الخبراء.
         </p>
+        <div className="mt-8 flex items-center justify-center gap-2 text-[#8B7355]">
+          <span className="text-sm font-medium">اختر دورك للبدء</span>
+          <ArrowLeft className="w-4 h-4 animate-bounce" style={{animationDelay: '1s'}} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-8 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
         <button
           onClick={() => navigate('/register', { state: { role: 'user' } })}
-          className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-[#8B7355]/20 hover:border-[#8B7355]/40 transition-all group"
+          className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-            <Users className="w-10 h-10 text-white" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#D4AF37]/20 to-transparent rounded-full blur-2xl"></div>
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+              <Users className="w-12 h-12 text-white" />
+            </div>
+            <span className="status-badge status-new mb-4">الأكثر شيوعاً</span>
+            <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">مستخدم</h2>
+            <p className="text-[#6B7280] text-base leading-relaxed">تصفح المحتوى التعليمي الموثوق وشارك في النقاشات التفاعلية مع المجتمع</p>
           </div>
-          <h2 className="text-2xl font-bold text-[#654321] mb-3">مستخدم</h2>
-          <p className="text-[#8B7355] text-sm">تصفح المحتوى وشارك في النقاشات</p>
         </button>
 
         <button
           onClick={() => navigate('/register', { state: { role: 'expert' } })}
-          className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-[#8B7355]/20 hover:border-[#8B7355]/40 transition-all group"
+          className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-            <UserCog className="w-10 h-10 text-white" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#8B5CF6]/20 to-transparent rounded-full blur-2xl"></div>
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+              <UserCog className="w-12 h-12 text-white" />
+            </div>
+            <span className="status-badge status-featured mb-4">مميز</span>
+            <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">خبير</h2>
+            <p className="text-[#6B7280] text-base leading-relaxed">شارك خبراتك المتخصصة وقدم استشارات قيمة للمجتمع</p>
           </div>
-          <h2 className="text-2xl font-bold text-[#654321] mb-3">خبير</h2>
-          <p className="text-[#8B7355] text-sm">قدم استشارات وشارك خبراتك</p>
         </button>
 
         <button
           onClick={() => navigate('/register', { state: { role: 'admin' } })}
-          className="bg-white bg-opacity-90 backdrop-blur-sm p-8 rounded-2xl shadow-sm border border-[#8B7355]/20 hover:border-[#8B7355]/40 transition-all group"
+          className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
         >
-          <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center transform group-hover:rotate-12 transition-transform">
-            <Shield className="w-10 h-10 text-white" />
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#F59E0B]/20 to-transparent rounded-full blur-2xl"></div>
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+              <Shield className="w-12 h-12 text-white" />
+            </div>
+            <span className="status-badge status-popular mb-4">إدارة</span>
+            <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">مشرف</h2>
+            <p className="text-[#6B7280] text-base leading-relaxed">أدر المحتوى والمستخدمين وأشرف على جودة المنصة</p>
           </div>
-          <h2 className="text-2xl font-bold text-[#654321] mb-3">مشرف</h2>
-          <p className="text-[#8B7355] text-sm">إدارة المحتوى والمستخدمين</p>
         </button>
+      </div>
+      
+      <div className="mt-16 text-center">
+        <p className="text-[#8B7355] text-sm">
+          لديك حساب بالفعل؟{' '}
+          <button
+            onClick={() => navigate('/login')}
+            className="text-[#654321] hover:text-[#D4AF37] font-semibold transition-colors underline decoration-2 underline-offset-4"
+          >
+            تسجيل الدخول
+          </button>
+        </p>
       </div>
     </div>
   );
