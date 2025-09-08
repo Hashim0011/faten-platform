@@ -43,18 +43,18 @@ const HomePage = () => {
         <div className="text-center lg:text-right space-y-8">
           {/* Logo and Title */}
           <div className="space-y-6">
-            <div className="flex items-center justify-center lg:justify-start gap-3">
+            <div className="flex items-center justify-center lg:justify-start gap-4 mb-8">
               <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" />
-              <h1 className="text-6xl lg:text-7xl font-bold gradient-text text-shadow">فطن</h1>
+              <h1 className="text-5xl lg:text-6xl font-bold gradient-text text-shadow">فطن</h1>
               <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
             </div>
             
-            <div className="logo-container mx-auto lg:mx-0 animate-float">
+            <div className="logo-container mx-auto lg:mx-0 animate-float mb-6">
               <div className="logo-shield"></div>
               <Brain className="logo-brain" />
             </div>
             
-            <p className="text-xl text-[#6B7280] leading-relaxed font-medium max-w-lg mx-auto lg:mx-0">
+            <p className="text-lg lg:text-xl text-[#6B7280] leading-relaxed font-medium max-w-lg mx-auto lg:mx-0 mt-4">
               منصة فطن هي بوابتك للتعلم والنمو في مجال الأمن الفكري
             </p>
           </div>
