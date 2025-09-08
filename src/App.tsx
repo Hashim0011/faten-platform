@@ -4,6 +4,7 @@ import RoleSelection from './pages/RoleSelection';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ExpertDashboard from './pages/ExpertDashboard';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/expert-dashboard" element={<ExpertDashboard />} />
         </Routes>
       </div>
     </Router>

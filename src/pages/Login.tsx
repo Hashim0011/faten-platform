@@ -9,7 +9,13 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/dashboard');
+    // Check if it's an admin email (you can customize this logic)
+    const email = (e.target as HTMLFormElement).email.value;
+    if (email === 'admin@faten.com' || email === 'expert@faten.com') {
+      navigate('/expert-dashboard');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -36,6 +42,7 @@ const Login = () => {
             <div className="relative">
               <input
                 type="email"
+                name="email"
                 className="input-modern w-full pr-12"
                 placeholder="example@domain.com"
                 required
