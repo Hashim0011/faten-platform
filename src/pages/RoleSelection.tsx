@@ -11,20 +11,20 @@ const RoleSelection = () => {
       <div className="absolute top-20 right-20 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/20 to-[#8B7355]/20 rounded-full blur-3xl animate-pulse-slow"></div>
       <div className="absolute bottom-20 left-20 w-40 h-40 bg-gradient-to-br from-[#8B7355]/20 to-[#654321]/20 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
       
-      <div className="text-center mb-20 animate-float">
+      <div className="text-center mb-16 animate-float px-6">
         <div className="flex items-center justify-center gap-3 mb-6">
           <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" />
           <h1 className="text-7xl font-bold gradient-text text-shadow">فطن</h1>
           <Sparkles className="w-8 h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
         </div>
-        <div className="logo-container mb-8 animate-float" style={{animationDelay: '0.5s'}}>
+        <div className="logo-container mb-6 animate-float" style={{animationDelay: '0.5s'}}>
           <div className="logo-shield"></div>
           <Brain className="logo-brain" />
         </div>
-        <p className="text-[#6B7280] text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+        <p className="text-[#6B7280] text-lg max-w-xl mx-auto leading-relaxed font-medium px-4">
           منصة فطن هي بوابتك للتعلم والنمو في مجال الأمن الفكري. اكتشف المحتوى التعليمي، شارك في النقاشات، وتواصل مع الخبراء.
         </p>
-        <div className="mt-8 flex items-center justify-center gap-2 text-[#8B7355]">
+        <div className="mt-6 flex items-center justify-center gap-2 text-[#8B7355]">
           <span className="text-sm font-medium">اختر دورك للبدء</span>
           <ArrowLeft className="w-4 h-4 animate-bounce" style={{animationDelay: '1s'}} />
         </div>
