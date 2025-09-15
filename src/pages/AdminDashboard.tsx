@@ -540,11 +540,11 @@ const AdminDashboard = () => {
                   <input
                     type="text"
                     placeholder="البحث في المحتوى..."
-                    className="input-modern w-full pr-12"
+                    className="input-modern w-full has-right-icon"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
-                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 </div>
                 <button className="btn-secondary flex items-center gap-2">
                   <Filter className="w-4 h-4" />
@@ -619,11 +619,11 @@ const AdminDashboard = () => {
                     <input
                       type="text"
                       placeholder="البحث عن خبير..."
-                      className="input-modern pr-10"
+                     className="input-modern has-right-icon"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4" />
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4 pointer-events-none" />
                   </div>
                   <button className="btn-secondary flex items-center gap-2">
                     <Filter className="w-4 h-4" />
@@ -695,11 +695,11 @@ const AdminDashboard = () => {
                     <input
                       type="text"
                       placeholder="البحث عن مستخدم..."
-                      className="input-modern pr-10"
+                     className="input-modern has-right-icon"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4" />
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4 pointer-events-none" />
                   </div>
                   <button className="btn-secondary flex items-center gap-2">
                     <Filter className="w-4 h-4" />

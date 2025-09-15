@@ -117,9 +117,9 @@ const Dashboard = () => {
                     placeholder="ابحث في المكتبة..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-modern w-full pr-12"
+                    className="input-modern w-full has-right-icon"
                   />
-                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 </div>
               </div>
             </div>

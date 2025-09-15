@@ -39,11 +39,11 @@ const Register = () => {
             <div className="relative">
               <input
                 type="text"
-                className="input-modern w-full pr-12"
+                className="input-modern w-full has-right-icon"
                 placeholder="أدخل اسمك الكامل"
                 required
               />
-              <User className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+              <User className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
             </div>
           </div>
           
@@ -55,11 +55,11 @@ const Register = () => {
             <div className="relative">
               <input
                 type="email"
-                className="input-modern w-full pr-12"
+                className="input-modern w-full has-right-icon"
                 placeholder="example@domain.com"
                 required
               />
-              <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+              <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
             </div>
           </div>
           
@@ -71,15 +71,15 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                className="input-modern w-full pr-12 pl-12"
+                className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة مرور قوية"
                 required
               />
-              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -94,15 +94,15 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                className="input-modern w-full pr-12 pl-12"
+                className="input-modern w-full has-both-icons"
                 placeholder="أعد إدخال كلمة المرور"
                 required
               />
-              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
               >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>

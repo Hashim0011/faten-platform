@@ -83,11 +83,11 @@ const HomePage = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className="input-modern w-full pr-12"
+                    className="input-modern w-full has-right-icon"
                     placeholder="أدخل اسمك الكامل"
                     required={!isLogin}
                   />
-                  <Brain className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                  <Brain className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 </div>
               </div>
             )}
@@ -103,11 +103,11 @@ const HomePage = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="input-modern w-full pr-12"
+                  className="input-modern w-full has-right-icon"
                   placeholder="example@domain.com"
                   required
                 />
-                <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
               </div>
             </div>
 
@@ -122,15 +122,15 @@ const HomePage = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="input-modern w-full pr-12 pl-12"
+                  className="input-modern w-full has-both-icons"
                   placeholder={isLogin ? "أدخل كلمة المرور" : "أدخل كلمة مرور قوية"}
                   required
                 />
-                <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5" />
+                <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors"
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>

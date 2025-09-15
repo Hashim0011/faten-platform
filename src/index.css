@@ -182,11 +182,23 @@ body {
   background: rgba(255, 255, 255, 0.9);
   border: 2px solid rgba(139, 115, 85, 0.1);
   border-radius: 12px;
-  padding: 14px 16px;
+  padding: 14px 20px 14px 50px;
   transition: all 0.3s ease;
   font-size: 16px;
 }
 
+.input-modern.has-left-icon {
+  padding-left: 50px;
+}
+
+.input-modern.has-right-icon {
+  padding-right: 50px;
+}
+
+.input-modern.has-both-icons {
+  padding-left: 50px;
+  padding-right: 50px;
+}
 .input-modern:focus {
   outline: none;
   border-color: var(--primary-brown);
