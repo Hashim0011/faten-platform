@@ -44,7 +44,7 @@ const HomePage = () => {
       <div className="text-center mb-12 animate-float">
         <div className="flex items-center justify-center gap-4 mb-6">
           <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-[#D4AF37] animate-pulse" />
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold gradient-text text-shadow">فطن</h1>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold gradient-text text-shadow leading-relaxed py-2">فطن</h1>
           <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
         </div>
         
