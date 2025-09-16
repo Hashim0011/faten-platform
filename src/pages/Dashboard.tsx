@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, TrendingUp, Star, Clock, Filter } from 'lucide-react';
+import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, TrendingUp, Star, Clock, Filter, Users } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
 
