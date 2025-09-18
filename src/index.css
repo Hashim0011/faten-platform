@@ -23,6 +23,8 @@ body {
   background: linear-gradient(135deg, #F8F6F3 0%, #F4EFE9 100%);
   color: var(--text-primary);
   line-height: 1.6;
+  font-feature-settings: "liga" 1, "calt" 1;
+  text-rendering: optimizeLegibility;
 }
 
 .animate-marquee {

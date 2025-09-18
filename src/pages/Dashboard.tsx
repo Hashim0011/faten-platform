@@ -64,7 +64,7 @@ const Dashboard = () => {
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
                 <Brain className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold gradient-text">فطن</h1>
+              <h1 className="text-2xl font-bold gradient-text" style={{fontFeatureSettings: '"liga" 1, "calt" 1'}}>فطن</h1>
             </div>
             <div className="bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 rounded-xl py-2 px-4 max-w-xl overflow-hidden border border-[#8B7355]/20 hidden sm:block">
               <p className="animate-marquee whitespace-nowrap text-sm text-[#654321] font-medium">
