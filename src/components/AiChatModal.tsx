@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, Brain, Sparkles } from 'lucide-react';
+import { X, Send, Brain, Sparkles, Minimize2 } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -14,6 +14,7 @@ interface AiChatModalProps {
 }
 
 const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -23,6 +24,13 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
+
+  // إغلاق الشات عند النقر خارج المساحة
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,57 +64,93 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-20 sm:bottom-24 left-4 right-4 sm:left-8 sm:right-auto w-auto sm:w-96 glass-effect rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20">
-      <div className="p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative">
-            <Brain className="w-5 h-5 text-white" />
-            <Sparkles className="w-3 h-3 text-[#D4AF37] absolute -top-1 -right-1" />
-          </div>
-          <h3 className="font-bold text-sm sm:text-base text-[#2D2D2D]">المساعد الذكي</h3>
-        </div>
-        <button onClick={onClose} className="p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors">
-          <X className="w-5 h-5 text-[#8B7355]" />
-        </button>
-      </div>
+    <>
+      {/* Backdrop للإغلاق عند النقر خارج المساحة */}
+      <div 
+        className="fixed inset-0 z-40" 
+        onClick={handleBackdropClick}
+      />
       
-      <div className="h-64 sm:h-96 overflow-y-auto p-4 scrollbar-hide">
-        <div className="space-y-4">
-          {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[80%] rounded-2xl p-4 ${
-                message.role === 'assistant' 
-                  ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20' 
-                  : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
-              }`}>
-                <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
-                <span className={`text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
-                  {message.timestamp}
-                </span>
+      <div className={`fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-6 sm:right-auto w-auto sm:w-[420px] z-50 transition-all duration-300 ${
+        isMinimized ? 'h-16' : 'h-auto'
+      }`}>
+        <div className="glass-effect rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20 backdrop-blur-xl">
+          {/* Header */}
+          <div className="p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative shadow-lg">
+                <Brain className="w-5 h-5 text-white" />
+                <Sparkles className="w-3 h-3 text-[#D4AF37] absolute -top-1 -right-1 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base text-[#2D2D2D]">المساعد الذكي</h3>
+                <p className="text-xs text-[#6B7280]">متاح الآن للمساعدة</p>
               </div>
             </div>
-          ))}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setIsMinimized(!isMinimized)}
+                className="p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors"
+                title={isMinimized ? "توسيع" : "تصغير"}
+              >
+                <Minimize2 className="w-4 h-4 text-[#8B7355]" />
+              </button>
+              <button 
+                onClick={onClose} 
+                className="p-2 hover:bg-red-100 hover:text-red-600 rounded-xl transition-colors"
+                title="إغلاق"
+              >
+                <X className="w-4 h-4 text-[#8B7355]" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Messages Area - يظهر فقط عندما لا يكون مصغراً */}
+          {!isMinimized && (
+            <>
+              <div className="h-80 sm:h-96 overflow-y-auto p-4 scrollbar-hide bg-gradient-to-b from-white/50 to-white/30">
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
+                      <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                        message.role === 'assistant' 
+                          ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20' 
+                          : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
+                      }`}>
+                        <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
+                        <span className={`text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
+                          {message.timestamp}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Input Form */}
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-[#8B7355]/10 bg-white/80">
+                <div className="flex gap-3">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    placeholder="اكتب سؤالك هنا..."
+                    className="input-modern flex-1 text-sm"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!newMessage.trim()}
+                    className="btn-primary px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
-
-      <form onSubmit={handleSendMessage} className="p-4 border-t border-[#8B7355]/10">
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="اكتب سؤالك هنا..."
-            className="input-modern flex-1"
-          />
-          <button
-            type="submit"
-            className="btn-primary px-4 py-2 flex items-center justify-center"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
-      </form>
-    </div>
+    </>
   );
 };
 
