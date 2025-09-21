@@ -15,15 +15,20 @@ const HomePage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // تحديد دور المستخدم بناءً على البريد الإلكتروني
-    const email = formData.email.toLowerCase();
-    
-    if (email === 'admin@faten.com') {
-      navigate('/admin-dashboard');
-    } else if (email === 'expert@faten.com') {
-      navigate('/expert-dashboard');
+    if (isLogin) {
+      // تسجيل الدخول - الانتقال مباشرة للوحة التحكم
+      const email = formData.email.toLowerCase();
+      
+      if (email === 'admin@faten.com') {
+        navigate('/admin-dashboard');
+      } else if (email === 'expert@faten.com') {
+        navigate('/expert-dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } else {
-      navigate('/dashboard');
+      // التسجيل الجديد - الانتقال لصفحة التحقق بخطوتين
+      navigate('/two-factor-verification');
     }
   };
 
