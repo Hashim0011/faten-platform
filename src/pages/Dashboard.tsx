@@ -14,9 +14,7 @@ const Dashboard = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
-  // ===== Helpers =====
   const parseDate = (d: string) => {
-    // Expecting "YYYY/MM/DD"
     const [y, m, day] = d.split('/').map(Number);
     return new Date(y, m - 1, day);
   };
@@ -29,7 +27,6 @@ const Dashboard = () => {
 
   const formatInt = (n: number) => n.toLocaleString('en-US');
 
-  // ===== Static data (as provided) =====
   const discussionTopics: Topic[] = [
     { id: 1, title: "دور الأسرة في تعزيز الأمن الفكري", date: "2026/03/15" },
     { id: 2, title: "التحديات المعاصرة للشباب", date: "2026/03/14" },
@@ -63,18 +60,15 @@ const Dashboard = () => {
     ]
   };
 
-  // ===== Derived, consistent numbers =====
   const counts = useMemo(() => {
     const books = libraryContent.books.length;
     const videos = libraryContent.videos.length;
     const articles = libraryContent.articles.length;
     const total = books + videos + articles;
 
-    // Active users derived from content count with a realistic multiplier.
-    // Feel free to tune multiplier if your real data exists.
-    const activeUsers = Math.max(300, total * 75); // minimum floor for realism
+    
+    const activeUsers = Math.max(300, total * 75);
 
-    // Content rating (keep as a realistic fixed for now)
     const rating = 4.6;
 
     return { books, videos, articles, total, activeUsers, rating };
@@ -84,7 +78,6 @@ const Dashboard = () => {
     const q = searchQuery.trim();
     if (!q) return libraryContent[activeTab];
 
-    // Simple local search by title/desc
     return libraryContent[activeTab].filter((item: any) =>
       [item.title, item.desc].some((t: string) => t.toLowerCase().includes(q.toLowerCase()))
     );
