@@ -112,6 +112,7 @@ const HomePage = () => {
                     onChange={handleInputChange}
                     className="input-modern w-full has-right-icon"
                     placeholder="05xxxxxxxx"
+                    style={{ textAlign: 'right' }}
                     required={!isLogin}
                   />
                   <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />

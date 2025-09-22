@@ -208,6 +208,16 @@ body {
   box-shadow: 0 0 0 4px rgba(139, 115, 85, 0.1);
 }
 
+.input-modern[type="tel"] {
+  text-align: right;
+  direction: ltr;
+}
+
+.input-modern[type="tel"]::placeholder {
+  text-align: right;
+  direction: ltr;
+}
+
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.3), transparent);
