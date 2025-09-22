@@ -31,35 +31,35 @@ const Dashboard = () => {
 
   // ===== Static data (as provided) =====
   const discussionTopics: Topic[] = [
-    { id: 1, title: "دور الأسرة في تعزيز الأمن الفكري", date: "2024/03/15" },
-    { id: 2, title: "التحديات المعاصرة للشباب", date: "2024/03/14" },
-    { id: 3, title: "الوسطية في الإسلام", date: "2024/03/13" }
+    { id: 1, title: "دور الأسرة في تعزيز الأمن الفكري", date: "2026/03/15" },
+    { id: 2, title: "التحديات المعاصرة للشباب", date: "2026/03/14" },
+    { id: 3, title: "الوسطية في الإسلام", date: "2026/03/13" }
   ];
 
   const upcomingEvents = [
-    { id: 1, title: "ورشة عمل تعزيز الهوية الوطنية", date: "2024/03/20", type: "ورشة" },
-    { id: 2, title: "دورة مهارات التفكير النقدي", date: "2024/03/25", type: "دورة" },
-    { id: 3, title: "محاضرة الأمن الفكري في العصر الرقمي", date: "2024/03/28", type: "محاضرة" }
+    { id: 1, title: "ورشة عمل تعزيز الهوية الوطنية", date: "2026/03/20", type: "ورشة" },
+    { id: 2, title: "دورة مهارات التفكير النقدي", date: "2026/03/25", type: "دورة" },
+    { id: 3, title: "محاضرة الأمن الفكري في العصر الرقمي", date: "2026/03/28", type: "محاضرة" }
   ];
 
   const libraryContent = {
     books: [
-      { id: 1, title: "أسس الأمن الفكري", desc: "دليل شامل لفهم وتطبيق مبادئ الأمن الفكري", date: "2024/03/01", likes: 167, image: "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg" },
-      { id: 2, title: "تعزيز الهوية الوطنية", desc: "دراسة عن أهمية الهوية الوطنية وحمايتها", date: "2024/03/20", likes: 189, image: "https://images.pexels.com/photos/5834/nature-grass-leaf-green.jpg" },
-      { id: 3, title: "التربية الإسلامية والأمن الفكري", desc: "العلاقة بين التربية الإسلامية وتحقيق الأمن الفكري", date: "2024/03/05", likes: 145, image: "https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg" },
+      { id: 1, title: "أسس الأمن الفكري", desc: "دليل شامل لفهم وتطبيق مبادئ الأمن الفكري", date: "2026/03/01", likes: 167, image: "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg" },
+      { id: 2, title: "تعزيز الهوية الوطنية", desc: "دراسة عن أهمية الهوية الوطنية وحمايتها", date: "2026/03/20", likes: 189, image: "https://images.pexels.com/photos/5834/nature-grass-leaf-green.jpg" },
+      { id: 3, title: "التربية الإسلامية والأمن الفكري", desc: "العلاقة بين التربية الإسلامية وتحقيق الأمن الفكري", date: "2026/03/05", likes: 145, image: "https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg" },
       { id: 4, title: "مهارات التفكير النقدي", desc: "دليل عملي لتنمية مهارات التفكير النقدي", date: "2024/03/10", likes: 178, image: "https://images.pexels.com/photos/3755755/pexels-photo-3755755.jpeg" }
     ],
     videos: [
-      { id: 1, title: "الوسطية في الإسلام", desc: "سلسلة تعليمية عن مفهوم الوسطية", date: "2024/03/13", likes: 278, image: "https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg" },
-      { id: 2, title: "محاضرة عن التطرف الفكري", desc: "محاضرة توعوية حول مخاطر التطرف", date: "2024/03/15", likes: 312, image: "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" },
-      { id: 3, title: "دور الأسرة في التربية", desc: "حلقة نقاشية عن دور الأسرة", date: "2024/03/18", likes: 245, image: "https://images.pexels.com/photos/7282476/pexels-photo-7282476.jpeg" },
-      { id: 4, title: "حماية الشباب من الانحراف", desc: "ندوة حول حماية الشباب", date: "2024/03/20", likes: 198, image: "https://images.pexels.com/photos/3760529/pexels-photo-3760529.jpeg" }
+      { id: 1, title: "الوسطية في الإسلام", desc: "سلسلة تعليمية عن مفهوم الوسطية", date: "2026/03/13", likes: 278, image: "https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg" },
+      { id: 2, title: "محاضرة عن التطرف الفكري", desc: "محاضرة توعوية حول مخاطر التطرف", date: "2026/03/15", likes: 312, image: "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" },
+      { id: 3, title: "دور الأسرة في التربية", desc: "حلقة نقاشية عن دور الأسرة", date: "2026/03/18", likes: 245, image: "https://images.pexels.com/photos/7282476/pexels-photo-7282476.jpeg" },
+      { id: 4, title: "حماية الشباب من الانحراف", desc: "ندوة حول حماية الشباب", date: "2026/03/20", likes: 198, image: "https://images.pexels.com/photos/3760529/pexels-photo-3760529.jpeg" }
     ],
     articles: [
-      { id: 1, title: "التحديات المعاصرة للأمن الفكري", desc: "تحليل للتحديات التي تواجه الشباب", date: "2024/03/10", likes: 203, image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" },
-      { id: 2, title: "دور الأسرة في تعزيز الأمن الفكري", desc: "مقال يناقش أهمية دور الأسرة", date: "2024/03/18", likes: 156, image: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg" },
-      { id: 3, title: "الإعلام والأمن الفكري", desc: "تأثير وسائل الإعلام على الأمن الفكري", date: "2024/03/15", likes: 167, image: "https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg" },
-      { id: 4, title: "التعليم ودوره في الأمن الفكري", desc: "أهمية التعليم في تحقيق الأمن الفكري", date: "2024/03/12", likes: 189, image: "https://images.pexels.com/photos/3769714/pexels-photo-3769714.jpeg" }
+      { id: 1, title: "التحديات المعاصرة للأمن الفكري", desc: "تحليل للتحديات التي تواجه الشباب", date: "2026/03/10", likes: 203, image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" },
+      { id: 2, title: "دور الأسرة في تعزيز الأمن الفكري", desc: "مقال يناقش أهمية دور الأسرة", date: "2026/03/18", likes: 156, image: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg" },
+      { id: 3, title: "الإعلام والأمن الفكري", desc: "تأثير وسائل الإعلام على الأمن الفكري", date: "2026/03/15", likes: 167, image: "https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg" },
+      { id: 4, title: "التعليم ودوره في الأمن الفكري", desc: "أهمية التعليم في تحقيق الأمن الفكري", date: "2026/03/12", likes: 189, image: "https://images.pexels.com/photos/3769714/pexels-photo-3769714.jpeg" }
     ]
   };
 
