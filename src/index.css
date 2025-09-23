@@ -208,6 +208,16 @@ body {
   box-shadow: 0 0 0 4px rgba(139, 115, 85, 0.1);
 }
 
+.input-modern[type="tel"] {
+  text-align: right;
+  direction: ltr;
+}
+
+.input-modern[type="tel"]::placeholder {
+  text-align: right;
+  direction: ltr;
+}
+
 .section-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(139, 115, 85, 0.3), transparent);
@@ -308,6 +318,52 @@ body {
 
 .animate-fade-in {
   animation: fade-in 0.3s ease-out;
+}
+
+/* Cross-browser grid support */
+@supports not (display: grid) {
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  
+  .lg\\:col-span-4 {
+    flex: 0 0 33.333333%;
+  }
+  
+  .lg\\:col-span-8 {
+    flex: 0 0 66.666667%;
+  }
+  
+  .xl\\:col-span-3 {
+    flex: 0 0 25%;
+  }
+  
+  .xl\\:col-span-9 {
+    flex: 0 0 75%;
+  }
+}
+
+/* Ensure proper RTL layout */
+[dir="rtl"] .grid {
+  direction: rtl;
+}
+
+/* Fix for Edge browser specific issues */
+@supports (-ms-ime-align: auto) {
+  .grid {
+    display: -ms-grid;
+  }
+  
+  .lg\\:col-span-4 {
+    -ms-grid-column: 1;
+    -ms-grid-column-span: 4;
+  }
+  
+  .lg\\:col-span-8 {
+    -ms-grid-column: 5;
+    -ms-grid-column-span: 8;
+  }
 }
 
 /* تحسين scrollbar للشات */
