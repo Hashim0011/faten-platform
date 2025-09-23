@@ -15,7 +15,7 @@ const Register = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/two-factor-verification');
+    navigate('/dashboard');
   };
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield, Phone } from 'lucide-react';
+import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield } from 'lucide-react';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -9,27 +9,21 @@ const HomePage = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
-    phone: ''
+    name: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (isLogin) {
-      // تسجيل الدخول - الانتقال مباشرة للوحة التحكم
-      const email = formData.email.toLowerCase();
-      
-      if (email === 'admin@faten.com') {
-        navigate('/admin-dashboard');
-      } else if (email === 'expert@faten.com') {
-        navigate('/expert-dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+    // تحديد دور المستخدم بناءً على البريد الإلكتروني
+    const email = formData.email.toLowerCase();
+    
+    if (email === 'admin@faten.com') {
+      navigate('/admin-dashboard');
+    } else if (email === 'expert@faten.com') {
+      navigate('/expert-dashboard');
     } else {
-      // التسجيل الجديد - الانتقال لصفحة التحقق بخطوتين
-      navigate('/two-factor-verification');
+      navigate('/dashboard');
     }
   };
 
@@ -94,28 +88,6 @@ const HomePage = () => {
                     required={!isLogin}
                   />
                   <Brain className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
-                </div>
-              </div>
-            )}
-
-            {!isLogin && (
-              <div>
-                <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-[#8B7355]" />
-                  رقم الجوال
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    className="input-modern w-full has-right-icon"
-                    placeholder="05xxxxxxxx"
-                    style={{ textAlign: 'right' }}
-                    required={!isLogin}
-                  />
-                  <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 </div>
               </div>
             )}

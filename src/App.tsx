@@ -6,7 +6,6 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
-import TwoFactorVerification from './pages/TwoFactorVerification';
 
 function App() {
   return (
@@ -16,7 +15,6 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/expert-dashboard" element={<ExpertDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
