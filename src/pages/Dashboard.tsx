@@ -134,9 +134,9 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row-reverse gap-6 lg:gap-8">
           {/* Sidebar - النقاشات والفعاليات */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-6 lg:order-2">
+          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6">
             {/* Discussion Topics */}
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
@@ -186,10 +186,10 @@ const Dashboard = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </aside>
 
           {/* Main Content - المحتوى الرئيسي */}
-          <div className="lg:col-span-8 xl:col-span-9 lg:order-1">
+          <main className="flex-1 min-w-0">
             {/* Search Bar */}
             <div className="content-card mb-8">
               <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
@@ -318,7 +318,7 @@ const Dashboard = () => {
                 );
               })}
             </div>
-          </div>
+          </main>
         </div>
       </div>
 
