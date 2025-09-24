@@ -359,8 +359,61 @@ const Dashboard = () => {
 
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10">
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Sidebar - النقاشات والفعاليات */}
+          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6 order-1 lg:order-1">
+            {/* Discussion Topics */}
+            <div className="content-card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
+                <MessageCircle className="w-5 h-5 text-[#8B7355]" />
+              </div>
+              <div className="space-y-3">
+                {discussionTopics.map(topic => (
+                  <button
+                    key={topic.id}
+                    onClick={() => handleTopicClick(topic)}
+                    className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
+                  >
+                    <h4 className="font-semibold text-sm sm:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-[#6B7280]">{topic.date}</span>
+                      <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">نشط</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Upcoming Events */}
+            <div className="content-card">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
+                <Bell className="w-5 h-5 text-[#8B7355]" />
+              </div>
+              <div className="space-y-4">
+                {upcomingEvents.map(event => (
+                  <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className={`status-badge ${
+                        event.type === 'ورشة' ? 'status-new' : 
+                        event.type === 'دورة' ? 'status-featured' : 'status-popular'
+                      }`}>
+                        {event.type}
+                      </span>
+                      <span className="text-sm text-[#6B7280] flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {event.date}
+                      </span>
+                    </div>
+                    <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </aside>
+
           {/* Main Content - المكتبة */}
-          <main className="flex-1 min-w-0 order-3 lg:order-1">
+          <main className="flex-1 min-w-0 order-2 lg:order-2">
             {/* Search Bar */}
             <div className="content-card mb-8">
               <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
@@ -554,59 +607,6 @@ const Dashboard = () => {
               })}
             </div>
           </main>
-
-          {/* Sidebar - النقاشات والفعاليات */}
-          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6 order-1 lg:order-2">
-            {/* Discussion Topics */}
-            <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
-                <MessageCircle className="w-5 h-5 text-[#8B7355]" />
-              </div>
-              <div className="space-y-3">
-                {discussionTopics.map(topic => (
-                  <button
-                    key={topic.id}
-                    onClick={() => handleTopicClick(topic)}
-                    className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
-                  >
-                    <h4 className="font-semibold text-sm sm:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#6B7280]">{topic.date}</span>
-                      <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">نشط</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Upcoming Events */}
-            <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
-                <Bell className="w-5 h-5 text-[#8B7355]" />
-              </div>
-              <div className="space-y-4">
-                {upcomingEvents.map(event => (
-                  <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`status-badge ${
-                        event.type === 'ورشة' ? 'status-new' : 
-                        event.type === 'دورة' ? 'status-featured' : 'status-popular'
-                      }`}>
-                        {event.type}
-                      </span>
-                      <span className="text-sm text-[#6B7280] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {event.date}
-                      </span>
-                    </div>
-                    <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </aside>
         </div>
       </div>
 
