@@ -153,10 +153,6 @@ const AdminDashboard = () => {
     const activeUsers = usersList.filter(u => u.status === 'active').length;
     const totalViews = contentList.reduce((sum, content) => sum + content.views, 0);
     const totalLikes = contentList.reduce((sum, content) => sum + content.likes, 0);
-    const totalUsers = usersList.length;
-    const activeUsers = usersList.filter(u => u.status === 'active').length;
-    const totalViews = contentList.reduce((sum, content) => sum + content.views, 0);
-    const totalLikes = contentList.reduce((sum, content) => sum + content.likes, 0);
     const avgRating = 4.6;
     const completionRate = 78;
     const engagementRate = Math.round((totalLikes / totalViews) * 100);
