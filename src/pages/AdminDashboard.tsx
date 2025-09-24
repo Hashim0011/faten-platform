@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Brain, 
@@ -145,6 +146,51 @@ const AdminDashboard = () => {
     }
   ]);
 
+  // حساب الإحصائيات بناءً على البيانات الموجودة
+  const stats = React.useMemo(() => {
+    const totalContent = contentList.length;
+    const totalUsers = usersList.length;
+    const activeUsers = usersList.filter(u => u.status === 'active').length;
+    const totalViews = contentList.reduce((sum, content) => sum + content.views, 0);
+    const totalLikes = contentList.reduce((sum, content) => sum + content.likes, 0);
+    const totalUsers = usersList.length;
+    const activeUsers = usersList.filter(u => u.status === 'active').length;
+    const totalViews = contentList.reduce((sum, content) => sum + content.views, 0);
+    const totalLikes = contentList.reduce((sum, content) => sum + content.likes, 0);
+    const avgRating = 4.6;
+    const completionRate = 78;
+    const engagementRate = Math.round((totalLikes / totalViews) * 100);
+    const monthlyGrowth = 12.5;
+    const dailyActiveUsers = Math.floor(activeUsers * 0.6);
+    const weeklyActiveUsers = Math.floor(activeUsers * 0.8);
+    const bounceRate = 23;
+    const sessionDuration = 8.5;
+
+    return {
+      totalContent,
+      totalUsers,
+      activeUsers,
+      totalViews,
+      totalLikes,
+      avgRating,
+      completionRate,
+      engagementRate,
+      monthlyGrowth,
+      dailyActiveUsers,
+      weeklyActiveUsers,
+      bounceRate,
+      sessionDuration
+    };
+  }, [contentList, usersList]);
+
+  // تصفية المحتوى بناءً على البحث
+  const filteredContent = useMemo(() => {
+    return contentList.filter(content =>
+      content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      content.author.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [contentList, searchQuery]);
+
   const handleViewContent = (content: Content) => {
     setSelectedContent(content);
     setShowContentDetails(true);
@@ -249,27 +295,6 @@ const AdminDashboard = () => {
       case 'pending': return 'text-yellow-600';
       default: return 'text-gray-600';
     }
-  };
-
-  const filteredContent = contentList.filter(content =>
-    content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    content.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const stats = {
-    totalContent: contentList.length,
-    totalUsers: usersList.length,
-    activeUsers: usersList.filter(u => u.status === 'active').length,
-    totalViews: contentList.reduce((sum, content) => sum + content.views, 0),
-    totalLikes: contentList.reduce((sum, content) => sum + content.likes, 0),
-    avgRating: 4.6,
-    completionRate: 78,
-    engagementRate: 85,
-    monthlyGrowth: 12.5,
-    dailyActiveUsers: Math.floor(usersList.filter(u => u.status === 'active').length * 0.6),
-    weeklyActiveUsers: Math.floor(usersList.filter(u => u.status === 'active').length * 0.8),
-    bounceRate: 23,
-    sessionDuration: 8.5
   };
 
   return (
