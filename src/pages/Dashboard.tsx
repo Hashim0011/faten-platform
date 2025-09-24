@@ -20,6 +20,70 @@ const Dashboard = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showContactOptions, setShowContactOptions] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasNewNotifications, setHasNewNotifications] = useState(true);
+
+  // Mock notifications data
+  const notifications = [
+    {
+      id: 1,
+      title: "محتوى جديد: مهارات التفكير النقدي",
+      message: "تم إضافة كتاب جديد في قسم الكتب",
+      time: "منذ 5 دقائق",
+      type: "new_content",
+      isNew: true
+    },
+    {
+      id: 2,
+      title: "ورشة عمل قادمة",
+      message: "ورشة تعزيز الهوية الوطنية - 25 يناير",
+      time: "منذ ساعة",
+      type: "event",
+      isNew: true
+    },
+    {
+      id: 3,
+      title: "نقاش جديد",
+      message: "انضم للنقاش حول دور الأسرة في الأمن الفكري",
+      time: "منذ 3 ساعات",
+      type: "discussion",
+      isNew: false
+    },
+    {
+      id: 4,
+      title: "تحديث المحتوى",
+      message: "تم تحديث مقال التحديات المعاصرة",
+      time: "أمس",
+      type: "update",
+      isNew: false
+    }
+  ];
+
+  const newNotificationsCount = notifications.filter(n => n.isNew).length;
+
+  const handleNotificationClick = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const handleMarkAllAsRead = () => {
+    setHasNewNotifications(false);
+    // In real app, this would update the backend
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'new_content':
+        return '📚';
+      case 'event':
+        return '🎯';
+      case 'discussion':
+        return '💬';
+      case 'update':
+        return '🔄';
+      default:
+        return '🔔';
+    }
+  };
 
   const parseDate = (d: string) => {
     const [y, m, day] = d.split('/').map(Number);
@@ -172,10 +236,74 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
-              <Bell className="w-5 h-5 text-[#8B7355]" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={handleNotificationClick}
+                className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
+              >
+                <Bell className="w-5 h-5 text-[#8B7355]" />
+                {hasNewNotifications && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    {newNotificationsCount}
+                  </span>
+                )}
+              </button>
+              
+              {showNotifications && (
+                <div className="absolute top-full left-0 mt-2 w-80 glass-effect rounded-xl shadow-lg border border-[#8B7355]/20 z-50 max-h-96 overflow-hidden">
+                  <div className="p-4 border-b border-[#8B7355]/10">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-[#2D2D2D]">الإشعارات</h3>
+                      {hasNewNotifications && (
+                        <button
+                          onClick={handleMarkAllAsRead}
+                          className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors"
+                        >
+                          تحديد الكل كمقروء
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-80 overflow-y-auto scrollbar-hide">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`p-4 border-b border-[#8B7355]/5 hover:bg-[#8B7355]/5 transition-colors cursor-pointer ${
+                          notification.isNew ? 'bg-[#8B7355]/5' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl">{getNotificationIcon(notification.type)}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-semibold text-[#2D2D2D] text-sm truncate">
+                                {notification.title}
+                              </h4>
+                              {notification.isNew && (
+                                <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+                              )}
+                            </div>
+                            <p className="text-[#6B7280] text-xs leading-relaxed mb-2">
+                              {notification.message}
+                            </p>
+                            <span className="text-[#8B7355] text-xs font-medium">
+                              {notification.time}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="p-3 border-t border-[#8B7355]/10 text-center">
+                    <button className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors font-medium">
+                      عرض جميع الإشعارات
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <div className="relative">
               <button 
                 onClick={() => setShowContactOptions(!showContactOptions)}
