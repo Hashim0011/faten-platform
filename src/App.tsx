@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import HomePage from './pages/HomePage';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -45,22 +46,24 @@ function PageTitleUpdater() {
 
 function App() {
   return (
-    <Router>
-      {/* مبدئياً نضبط العنوان لأول واجهة */}
-      <PageTitleUpdater />
+    <ErrorBoundary>
+      <Router>
+        {/* مبدئياً نضبط العنوان لأول واجهة */}
+        <PageTitleUpdater />
 
-      <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/expert-dashboard" element={<ExpertDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        </Routes>
-      </div>
-    </Router>
+        <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/expert-dashboard" element={<ExpertDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          </Routes>
+        </div>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

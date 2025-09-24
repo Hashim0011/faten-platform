@@ -1,192 +1,77 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Brain, 
   Users, 
-  UserCog, 
   BookOpen, 
-  BarChart3, 
-  Home,
+  Settings, 
+  LogOut, 
   Search, 
   Filter, 
   Plus, 
-  Trash2, 
-  Ban, 
   Eye, 
-  Edit,
-  Settings, 
-  LogOut, 
-  Bell,
-  TrendingUp,
-  Clock,
-  MessageSquare,
-  Star,
-  Activity,
-  Download,
-  RefreshCw,
+  Edit, 
+  Trash2, 
+  Bell, 
+  Shield, 
+  UserCheck, 
+  UserX, 
+  Ban,
   AlertTriangle,
-  CheckCircle,
-  XCircle,
+  Book,
   Video,
   FileText,
-  Book
+  Clock,
+  Star,
+  Heart
 } from 'lucide-react';
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  role: 'user' | 'expert';
-  status: 'active' | 'suspended' | 'deleted';
-  joinDate: string;
-  lastActive: string;
-  hoursSpent: number;
-  engagementRate: number;
-  contentEngaged: number;
-  discussionsParticipated: number;
-}
-
-interface Expert {
-  id: number;
-  name: string;
-  email: string;
-  status: 'active' | 'suspended' | 'deleted';
-  joinDate: string;
-  discussionsHandled: number;
-  activityHours: number;
-  engagementRate: number;
-  rating: number;
-  specialization: string;
-}
 
 interface Content {
   id: number;
   title: string;
   type: 'book' | 'video' | 'article';
-  category: string;
+  description: string;
   author: string;
-  uploadDate: string;
-  views: number;
+  date: string;
   likes: number;
-  status: 'published' | 'draft' | 'archived';
+  views: number;
+  status: 'published' | 'draft' | 'pending';
   image: string;
 }
 
-interface Analytics {
-  totalUsers: number;
-  totalExperts: number;
-  totalContent: number;
-  totalDiscussions: number;
-  activeUsersThisWeek: number;
-  discussionEngagementRate: number;
-  platformGrowthRate: number;
-  contentEngagementRate: number;
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: 'user' | 'expert' | 'admin';
+  status: 'active' | 'blocked' | 'pending';
+  joinDate: string;
+  lastActive: string;
 }
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('summary');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeSection, setActiveSection] = useState('content');
   const [showAddContent, setShowAddContent] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [showContentDetails, setShowContentDetails] = useState(false);
   const [showEditContent, setShowEditContent] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [contentToDelete, setContentToDelete] = useState<Content | null>(null);
+  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [editingContent, setEditingContent] = useState<Content | null>(null);
+  const [contentToDelete, setContentToDelete] = useState<Content | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
 
-  // Mock data - in real app, this would come from API
-  const [analytics, setAnalytics] = useState<Analytics>({
-    totalUsers: 1247,
-    totalExperts: 89,
-    totalContent: 456,
-    totalDiscussions: 234,
-    activeUsersThisWeek: 892,
-    discussionEngagementRate: 78.5,
-    platformGrowthRate: 12.3,
-    contentEngagementRate: 85.2
-  });
-
-  const [users] = useState<User[]>([
-    {
-      id: 1,
-      name: "أحمد محمد السالم",
-      email: "ahmed@example.com",
-      role: "user",
-      status: "active",
-      joinDate: "2024/01/15",
-      lastActive: "2024/03/20",
-      hoursSpent: 45.5,
-      engagementRate: 89.2,
-      contentEngaged: 78,
-      discussionsParticipated: 12
-    },
-    {
-      id: 2,
-      name: "فاطمة عبدالله",
-      email: "fatima@example.com",
-      role: "user",
-      status: "active",
-      joinDate: "2024/02/10",
-      lastActive: "2024/03/19",
-      hoursSpent: 32.8,
-      engagementRate: 76.4,
-      contentEngaged: 65,
-      discussionsParticipated: 8
-    },
-    {
-      id: 3,
-      name: "محمد العتيبي",
-      email: "mohammed@example.com",
-      role: "user",
-      status: "suspended",
-      joinDate: "2024/01/20",
-      lastActive: "2024/03/15",
-      hoursSpent: 28.3,
-      engagementRate: 45.2,
-      contentEngaged: 34,
-      discussionsParticipated: 3
-    }
-  ]);
-
-  const [experts] = useState<Expert[]>([
-    {
-      id: 1,
-      name: "د. أحمد السالم",
-      email: "expert1@faten.com",
-      status: "active",
-      joinDate: "2023/12/01",
-      discussionsHandled: 45,
-      activityHours: 120.5,
-      engagementRate: 92.3,
-      rating: 4.8,
-      specialization: "الأمن الفكري"
-    },
-    {
-      id: 2,
-      name: "د. سارة الحربي",
-      email: "expert2@faten.com",
-      status: "active",
-      joinDate: "2024/01/15",
-      discussionsHandled: 38,
-      activityHours: 98.2,
-      engagementRate: 87.6,
-      rating: 4.6,
-      specialization: "التربية الإسلامية"
-    }
-  ]);
-
-  const [contentList] = useState<Content[]>([
+  const [contentList, setContentList] = useState<Content[]>([
     {
       id: 1,
       title: "أسس الأمن الفكري",
       type: "book",
-      category: "كتب",
+      description: "دليل شامل لفهم وتطبيق مبادئ الأمن الفكري",
       author: "د. محمد الشهري",
-      uploadDate: "2024/03/01",
+      date: "2024/03/01",
+      likes: 167,
       views: 1247,
-      likes: 189,
       status: "published",
       image: "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg"
     },
@@ -194,42 +79,57 @@ const AdminDashboard = () => {
       id: 2,
       title: "الوسطية في الإسلام",
       type: "video",
-      category: "فيديوهات",
+      description: "سلسلة تعليمية عن مفهوم الوسطية",
       author: "د. أحمد السالم",
-      uploadDate: "2024/03/10",
+      date: "2024/03/13",
+      likes: 278,
       views: 892,
-      likes: 156,
       status: "published",
       image: "https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg"
     },
     {
       id: 3,
-      title: "التحديات المعاصرة",
+      title: "التحديات المعاصرة للأمن الفكري",
       type: "article",
-      category: "مقالات",
+      description: "تحليل للتحديات التي تواجه الشباب",
       author: "د. سارة الحربي",
-      uploadDate: "2024/03/15",
+      date: "2024/03/10",
+      likes: 203,
       views: 654,
-      likes: 98,
       status: "published",
       image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg"
     }
   ]);
 
-  const topUsers = users.slice(0, 5).sort((a, b) => b.hoursSpent - a.hoursSpent);
-  const topExperts = experts.slice(0, 5).sort((a, b) => b.discussionsHandled - a.discussionsHandled);
-
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    // Simulate API call
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 2000);
-  };
-
-  const handleLogout = () => {
-    navigate('/');
-  };
+  const [usersList] = useState<User[]>([
+    {
+      id: 1,
+      name: "أحمد محمد العتيبي",
+      email: "ahmed@example.com",
+      role: "user",
+      status: "active",
+      joinDate: "2024/01/15",
+      lastActive: "منذ 5 دقائق"
+    },
+    {
+      id: 2,
+      name: "د. فاطمة السالم",
+      email: "fatima@example.com",
+      role: "expert",
+      status: "active",
+      joinDate: "2024/02/20",
+      lastActive: "منذ ساعة"
+    },
+    {
+      id: 3,
+      name: "محمد الرشيد",
+      email: "mohammed@example.com",
+      role: "user",
+      status: "blocked",
+      joinDate: "2024/03/01",
+      lastActive: "منذ يومين"
+    }
+  ]);
 
   const handleViewContent = (content: Content) => {
     setSelectedContent(content);
@@ -237,7 +137,7 @@ const AdminDashboard = () => {
   };
 
   const handleEditContent = (content: Content) => {
-    setEditingContent(content);
+    setEditingContent({ ...content });
     setShowEditContent(true);
   };
 
@@ -248,40 +148,105 @@ const AdminDashboard = () => {
 
   const confirmDelete = () => {
     if (contentToDelete) {
-      // في التطبيق الحقيقي، هنا سيتم حذف المحتوى من قاعدة البيانات
-      console.log(`تم حذف المحتوى: ${contentToDelete.title}`);
+      setContentList(contentList.filter(content => content.id !== contentToDelete.id));
       setShowDeleteConfirm(false);
       setContentToDelete(null);
     }
   };
 
-  const handleSaveEdit = (updatedContent: Content) => {
-    // في التطبيق الحقيقي، هنا سيتم تحديث المحتوى في قاعدة البيانات
-    console.log(`تم تحديث المحتوى:`, updatedContent);
-    setShowEditContent(false);
-    setEditingContent(null);
+  const handleSaveEdit = () => {
+    if (editingContent) {
+      setContentList(contentList.map(content => 
+        content.id === editingContent.id ? editingContent : content
+      ));
+      setShowEditContent(false);
+      setEditingContent(null);
+    }
+  };
+
+  const handleAddContent = (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const newContent: Content = {
+      id: contentList.length + 1,
+      title: formData.get('title') as string,
+      type: formData.get('type') as 'book' | 'video' | 'article',
+      description: formData.get('description') as string,
+      author: formData.get('author') as string,
+      date: new Date().toLocaleDateString('en-CA'),
+      likes: 0,
+      views: 0,
+      status: formData.get('status') as 'published' | 'draft' | 'pending',
+      image: formData.get('image') as string || "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg"
+    };
+    
+    setContentList([...contentList, newContent]);
+    setShowAddContent(false);
   };
 
   const getContentIcon = (type: string) => {
     switch (type) {
-      case 'book': return <Book className="w-4 h-4" />;
-      case 'video': return <Video className="w-4 h-4" />;
-      case 'article': return <FileText className="w-4 h-4" />;
-      default: return <BookOpen className="w-4 h-4" />;
+      case 'book': return <Book className="w-5 h-5" />;
+      case 'video': return <Video className="w-5 h-5" />;
+      case 'article': return <FileText className="w-5 h-5" />;
+      default: return <BookOpen className="w-5 h-5" />;
+    }
+  };
+
+  const getContentTypeLabel = (type: string) => {
+    switch (type) {
+      case 'book': return 'كتاب';
+      case 'video': return 'فيديو';
+      case 'article': return 'مقال';
+      default: return 'محتوى';
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'active':
-        return <span className="status-badge status-new">نشط</span>;
-      case 'suspended':
-        return <span className="status-badge" style={{background: 'linear-gradient(135deg, #F59E0B, #D97706)', color: 'white'}}>معلق</span>;
-      case 'deleted':
-        return <span className="status-badge" style={{background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white'}}>محذوف</span>;
+      case 'published':
+        return <span className="status-badge status-new">منشور</span>;
+      case 'draft':
+        return <span className="status-badge status-popular">مسودة</span>;
+      case 'pending':
+        return <span className="status-badge status-featured">قيد المراجعة</span>;
       default:
-        return <span className="status-badge status-featured">{status}</span>;
+        return <span className="status-badge">غير محدد</span>;
     }
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return <span className="status-badge status-featured">مدير</span>;
+      case 'expert':
+        return <span className="status-badge status-popular">خبير</span>;
+      case 'user':
+        return <span className="status-badge status-new">مستخدم</span>;
+      default:
+        return <span className="status-badge">غير محدد</span>;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'text-green-600';
+      case 'blocked': return 'text-red-600';
+      case 'pending': return 'text-yellow-600';
+      default: return 'text-gray-600';
+    }
+  };
+
+  const filteredContent = contentList.filter(content =>
+    content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    content.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const stats = {
+    totalContent: contentList.length,
+    totalUsers: usersList.length,
+    activeUsers: usersList.filter(u => u.status === 'active').length,
+    totalViews: contentList.reduce((sum, content) => sum + content.views, 0)
   };
 
   return (
@@ -291,12 +256,12 @@ const AdminDashboard = () => {
         {/* Header */}
         <div className="p-6 border-b border-[#8B7355]/20">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#DC2626] to-[#B91C1C] flex items-center justify-center">
-              <Brain className="w-7 h-7 text-white" />
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
+              <Shield className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold gradient-text">لوحة الإدارة</h1>
-              <p className="text-sm text-[#6B7280]">التحكم الكامل في المنصة</p>
+              <p className="text-sm text-[#6B7280]">إدارة شاملة للمنصة</p>
             </div>
           </div>
         </div>
@@ -305,22 +270,10 @@ const AdminDashboard = () => {
         <div className="flex-1 p-4">
           <nav className="space-y-2">
             <button
-              onClick={() => setActiveSection('summary')}
-              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
-                activeSection === 'summary'
-                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
-                  : 'text-[#8B7355] hover:bg-[#8B7355]/10'
-              }`}
-            >
-              <Home className="w-5 h-5" />
-              <span className="font-medium">لوحة المعلومات</span>
-            </button>
-
-            <button
               onClick={() => setActiveSection('content')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
                 activeSection === 'content'
-                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                   : 'text-[#8B7355] hover:bg-[#8B7355]/10'
               }`}
             >
@@ -329,22 +282,10 @@ const AdminDashboard = () => {
             </button>
 
             <button
-              onClick={() => setActiveSection('experts')}
-              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
-                activeSection === 'experts'
-                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
-                  : 'text-[#8B7355] hover:bg-[#8B7355]/10'
-              }`}
-            >
-              <UserCog className="w-5 h-5" />
-              <span className="font-medium">إدارة الخبراء</span>
-            </button>
-
-            <button
               onClick={() => setActiveSection('users')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
                 activeSection === 'users'
-                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                   : 'text-[#8B7355] hover:bg-[#8B7355]/10'
               }`}
             >
@@ -356,12 +297,12 @@ const AdminDashboard = () => {
               onClick={() => setActiveSection('analytics')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
                 activeSection === 'analytics'
-                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                   : 'text-[#8B7355] hover:bg-[#8B7355]/10'
               }`}
             >
-              <BarChart3 className="w-5 h-5" />
-              <span className="font-medium">التحليلات والتقارير</span>
+              <Brain className="w-5 h-5" />
+              <span className="font-medium">التحليلات</span>
             </button>
           </nav>
         </div>
@@ -374,7 +315,7 @@ const AdminDashboard = () => {
               <span>الإعدادات</span>
             </button>
             <button 
-              onClick={handleLogout}
+              onClick={() => navigate('/')}
               className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2"
             >
               <LogOut className="w-4 h-4" />
@@ -391,27 +332,17 @@ const AdminDashboard = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold text-[#2D2D2D]">
-                {activeSection === 'summary' && 'لوحة المعلومات الرئيسية'}
                 {activeSection === 'content' && 'إدارة المحتوى'}
-                {activeSection === 'experts' && 'إدارة الخبراء'}
                 {activeSection === 'users' && 'إدارة المستخدمين'}
-                {activeSection === 'analytics' && 'التحليلات والتقارير'}
+                {activeSection === 'analytics' && 'التحليلات والإحصائيات'}
               </h2>
               <p className="text-[#6B7280] mt-1">
-                {activeSection === 'summary' && 'نظرة شاملة على أداء المنصة'}
-                {activeSection === 'content' && 'إضافة وحذف وإدارة المحتوى التعليمي'}
-                {activeSection === 'experts' && 'مراقبة وإدارة حسابات الخبراء'}
-                {activeSection === 'users' && 'مراقبة وإدارة حسابات المستخدمين'}
-                {activeSection === 'analytics' && 'تقارير مفصلة وإحصائيات المنصة'}
+                {activeSection === 'content' && 'إضافة وتعديل وحذف المحتوى التعليمي'}
+                {activeSection === 'users' && 'إدارة المستخدمين والصلاحيات'}
+                {activeSection === 'analytics' && 'عرض الإحصائيات والتحليلات'}
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button 
-                onClick={handleRefresh}
-                className={`p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors ${refreshing ? 'animate-spin' : ''}`}
-              >
-                <RefreshCw className="w-5 h-5 text-[#8B7355]" />
-              </button>
               <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
                 <Bell className="w-5 h-5 text-[#8B7355]" />
                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
@@ -431,145 +362,42 @@ const AdminDashboard = () => {
 
         {/* Content Area */}
         <div className="flex-1 p-6 overflow-auto">
-          {/* Summary Dashboard */}
-          {activeSection === 'summary' && (
-            <div className="space-y-6">
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="content-card text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{analytics.totalUsers.toLocaleString()}</h3>
-                  <p className="text-[#6B7280] text-sm">إجمالي المستخدمين</p>
-                  <div className="flex items-center justify-center gap-1 mt-2">
-                    <TrendingUp className="w-3 h-3 text-green-500" />
-                    <span className="text-xs text-green-500">+{analytics.platformGrowthRate}%</span>
-                  </div>
-                </div>
-
-                <div className="content-card text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
-                    <UserCog className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{analytics.totalExperts}</h3>
-                  <p className="text-[#6B7280] text-sm">إجمالي الخبراء</p>
-                  <div className="flex items-center justify-center gap-1 mt-2">
-                    <Star className="w-3 h-3 text-yellow-500" />
-                    <span className="text-xs text-yellow-500">4.7 تقييم</span>
-                  </div>
-                </div>
-
-                <div className="content-card text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{analytics.totalContent}</h3>
-                  <p className="text-[#6B7280] text-sm">إجمالي المحتوى</p>
-                  <div className="flex items-center justify-center gap-1 mt-2">
-                    <Activity className="w-3 h-3 text-blue-500" />
-                    <span className="text-xs text-blue-500">{analytics.contentEngagementRate}% تفاعل</span>
-                  </div>
-                </div>
-
-                <div className="content-card text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center">
-                    <MessageSquare className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{analytics.totalDiscussions}</h3>
-                  <p className="text-[#6B7280] text-sm">إجمالي النقاشات</p>
-                  <div className="flex items-center justify-center gap-1 mt-2">
-                    <MessageSquare className="w-3 h-3 text-purple-500" />
-                    <span className="text-xs text-purple-500">{analytics.discussionEngagementRate}% مشاركة</span>
-                  </div>
-                </div>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="content-card text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
+                <BookOpen className="w-6 h-6 text-white" />
               </div>
-
-              {/* Top Users and Experts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="content-card">
-                  <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">أفضل 5 مستخدمين</h3>
-                  <div className="space-y-4">
-                    {topUsers.map((user, index) => (
-                      <div key={user.id} className="flex items-center gap-4 p-3 rounded-xl bg-[#8B7355]/5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#10B981] to-[#059669] text-white flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-[#2D2D2D]">{user.name}</h4>
-                          <p className="text-sm text-[#6B7280]">{user.hoursSpent} ساعة • {user.engagementRate}% تفاعل</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-semibold text-[#8B7355]">{user.contentEngaged}%</div>
-                          <div className="text-xs text-[#6B7280]">محتوى مكتمل</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="content-card">
-                  <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">أفضل 5 خبراء</h3>
-                  <div className="space-y-4">
-                    {topExperts.map((expert, index) => (
-                      <div key={expert.id} className="flex items-center gap-4 p-3 rounded-xl bg-[#8B7355]/5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] text-white flex items-center justify-center font-bold text-sm">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-[#2D2D2D]">{expert.name}</h4>
-                          <p className="text-sm text-[#6B7280]">{expert.discussionsHandled} نقاش • {expert.activityHours} ساعة</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-500" />
-                            <span className="text-sm font-semibold text-[#8B7355]">{expert.rating}</span>
-                          </div>
-                          <div className="text-xs text-[#6B7280]">{expert.engagementRate}% تفاعل</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Activity */}
-              <div className="content-card">
-                <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">النشاط الأخير</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
-                      <Plus className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">تم إضافة محتوى جديد: "مهارات التفكير النقدي"</p>
-                      <p className="text-sm text-[#6B7280]">منذ 5 دقائق</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
-                      <UserCog className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">انضم خبير جديد: د. محمد الأحمد</p>
-                      <p className="text-sm text-[#6B7280]">منذ 15 دقيقة</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">نقاش جديد: "دور التعليم في الأمن الفكري"</p>
-                      <p className="text-sm text-[#6B7280]">منذ 30 دقيقة</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{stats.totalContent}</h3>
+              <p className="text-[#6B7280] text-sm">إجمالي المحتوى</p>
             </div>
-          )}
+            
+            <div className="content-card text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{stats.totalUsers}</h3>
+              <p className="text-[#6B7280] text-sm">إجمالي المستخدمين</p>
+            </div>
+            
+            <div className="content-card text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
+                <UserCheck className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{stats.activeUsers}</h3>
+              <p className="text-[#6B7280] text-sm">المستخدمون النشطون</p>
+            </div>
+            
+            <div className="content-card text-center">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#2D2D2D] mb-1">{stats.totalViews.toLocaleString()}</h3>
+              <p className="text-[#6B7280] text-sm">إجمالي المشاهدات</p>
+            </div>
+          </div>
 
-          {/* Content Management */}
+          {/* Content Management Section */}
           {activeSection === 'content' && (
             <div>
               <div className="flex items-center gap-4 mb-6">
@@ -577,24 +405,23 @@ const AdminDashboard = () => {
                   <input
                     type="text"
                     placeholder="البحث في المحتوى..."
-                    className="input-modern w-full has-right-icon"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    className="input-modern w-full has-right-icon"
                   />
                   <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
                 </div>
-                <button className="btn-secondary flex items-center gap-2">
+                <button 
+                  onClick={() => setShowFilter(!showFilter)}
+                  className="btn-secondary flex items-center gap-2"
+                >
                   <Filter className="w-4 h-4" />
                   <span>تصفية</span>
-                </button>
-                <button className="btn-secondary flex items-center gap-2">
-                  <Download className="w-4 h-4" />
-                  <span>تصدير</span>
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {contentList.map(content => (
+                {filteredContent.map(content => (
                   <div key={content.id} className="content-card card-hover group">
                     <div className="relative h-48 mb-4 rounded-xl overflow-hidden">
                       <img
@@ -620,7 +447,7 @@ const AdminDashboard = () => {
                         >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDeleteContent(content)}
                           className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
                           title="حذف المحتوى"
@@ -634,20 +461,21 @@ const AdminDashboard = () => {
                         {getContentIcon(content.type)}
                         <h3 className="text-[#2D2D2D] font-bold text-lg leading-tight">{content.title}</h3>
                       </div>
-                      <div className="flex items-center justify-between text-sm text-[#6B7280]">
-                        <span>{content.author}</span>
-                        <span>{content.category}</span>
-                      </div>
+                      <p className="text-[#6B7280] text-sm leading-relaxed">{content.description}</p>
+                      <p className="text-[#8B7355] text-sm font-medium">بواسطة: {content.author}</p>
                       <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
-                        <span className="text-sm text-[#6B7280]">{content.uploadDate}</span>
+                        <span className="text-sm text-[#6B7280] flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {content.date}
+                        </span>
                         <div className="flex items-center gap-4 text-sm">
                           <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4 text-[#8B7355]" />
-                            <span>{content.views}</span>
+                            <Heart className="w-3 h-3 text-red-500" />
+                            <span className="text-[#8B7355] font-semibold">{content.likes}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-red-500">❤️</span>
-                            <span>{content.likes}</span>
+                            <Eye className="w-3 h-3 text-[#8B7355]" />
+                            <span className="text-[#6B7280]">{content.views}</span>
                           </div>
                         </div>
                       </div>
@@ -658,83 +486,7 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Experts Management */}
-          {activeSection === 'experts' && (
-            <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-[#2D2D2D]">قائمة الخبراء</h3>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="البحث عن خبير..."
-                     className="input-modern has-right-icon"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4 pointer-events-none" />
-                  </div>
-                  <button className="btn-secondary flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    <span>تصفية</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[#8B7355]/20">
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الخبير</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">التخصص</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">النقاشات</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">ساعات النشاط</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">التقييم</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الحالة</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {experts.map(expert => (
-                      <tr key={expert.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B7355]/5 transition-colors">
-                        <td className="p-4">
-                          <div>
-                            <div className="font-semibold text-[#2D2D2D]">{expert.name}</div>
-                            <div className="text-sm text-[#6B7280]">{expert.email}</div>
-                          </div>
-                        </td>
-                        <td className="p-4 text-[#6B7280]">{expert.specialization}</td>
-                        <td className="p-4 text-[#2D2D2D] font-semibold">{expert.discussionsHandled}</td>
-                        <td className="p-4 text-[#2D2D2D]">{expert.activityHours}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-4 h-4 text-yellow-500" />
-                            <span className="font-semibold text-[#2D2D2D]">{expert.rating}</span>
-                          </div>
-                        </td>
-                        <td className="p-4">{getStatusBadge(expert.status)}</td>
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <button className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors">
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 rounded-lg hover:bg-yellow-100 text-yellow-600 transition-colors">
-                              <Ban className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* Users Management */}
+          {/* Users Management Section */}
           {activeSection === 'users' && (
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
@@ -744,9 +496,7 @@ const AdminDashboard = () => {
                     <input
                       type="text"
                       placeholder="البحث عن مستخدم..."
-                     className="input-modern has-right-icon"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="input-modern has-right-icon"
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4 pointer-events-none" />
                   </div>
@@ -756,44 +506,53 @@ const AdminDashboard = () => {
                   </button>
                 </div>
               </div>
-
+              
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#8B7355]/20">
                       <th className="text-right p-4 font-semibold text-[#2D2D2D]">المستخدم</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">ساعات الاستخدام</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">معدل التفاعل</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">المحتوى المكتمل</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">النقاشات</th>
+                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الدور</th>
                       <th className="text-right p-4 font-semibold text-[#2D2D2D]">الحالة</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الإجراءات</th>
+                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">تاريخ الانضمام</th>
+                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">آخر نشاط</th>
+                      <th className="text-center p-4 font-semibold text-[#2D2D2D]">الإجراءات</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map(user => (
-                      <tr key={user.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B7355]/5 transition-colors">
+                    {usersList.map(user => (
+                      <tr key={user.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B7355]/5">
                         <td className="p-4">
-                          <div>
-                            <div className="font-semibold text-[#2D2D2D]">{user.name}</div>
-                            <div className="text-sm text-[#6B7280]">{user.email}</div>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#8B7355] text-white flex items-center justify-center font-semibold">
+                              {user.name[0]}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-[#2D2D2D]">{user.name}</div>
+                              <div className="text-sm text-[#6B7280]">{user.email}</div>
+                            </div>
                           </div>
                         </td>
-                        <td className="p-4 text-[#2D2D2D] font-semibold">{user.hoursSpent}</td>
-                        <td className="p-4 text-[#2D2D2D]">{user.engagementRate}%</td>
-                        <td className="p-4 text-[#2D2D2D]">{user.contentEngaged}%</td>
-                        <td className="p-4 text-[#2D2D2D]">{user.discussionsParticipated}</td>
-                        <td className="p-4">{getStatusBadge(user.status)}</td>
                         <td className="p-4">
-                          <div className="flex items-center gap-2">
-                            <button className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors">
+                          {getRoleBadge(user.role)}
+                        </td>
+                        <td className="p-4">
+                          <span className={`font-medium ${getStatusColor(user.status)}`}>
+                            {user.status === 'active' ? 'نشط' : user.status === 'blocked' ? 'محظور' : 'قيد المراجعة'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-[#6B7280]">{user.joinDate}</td>
+                        <td className="p-4 text-[#6B7280]">{user.lastActive}</td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button className="p-2 rounded-lg hover:bg-[#8B7355]/10 text-[#8B7355]" title="عرض التفاصيل">
                               <Eye className="w-4 h-4" />
                             </button>
-                            <button className="p-2 rounded-lg hover:bg-yellow-100 text-yellow-600 transition-colors">
+                            <button className="p-2 rounded-lg hover:bg-yellow-100 text-yellow-600" title="حظر المستخدم">
                               <Ban className="w-4 h-4" />
                             </button>
-                            <button className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors">
-                              <Trash2 className="w-4 h-4" />
+                            <button className="p-2 rounded-lg hover:bg-red-100 text-red-600" title="حذف المستخدم">
+                              <UserX className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -805,104 +564,12 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Analytics & Reports */}
+          {/* Analytics Section */}
           {activeSection === 'analytics' && (
-            <div className="space-y-6">
-              {/* Analytics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="content-card">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#2D2D2D]">المستخدمون النشطون</h3>
-                    <Activity className="w-5 h-5 text-[#10B981]" />
-                  </div>
-                  <div className="text-3xl font-bold text-[#2D2D2D] mb-2">{analytics.activeUsersThisWeek}</div>
-                  <div className="text-sm text-[#6B7280]">هذا الأسبوع</div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-500">+15.3% من الأسبوع الماضي</span>
-                  </div>
-                </div>
-
-                <div className="content-card">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#2D2D2D]">معدل التفاعل</h3>
-                    <MessageSquare className="w-5 h-5 text-[#8B5CF6]" />
-                  </div>
-                  <div className="text-3xl font-bold text-[#2D2D2D] mb-2">{analytics.discussionEngagementRate}%</div>
-                  <div className="text-sm text-[#6B7280]">في النقاشات</div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-500">+8.7% من الشهر الماضي</span>
-                  </div>
-                </div>
-
-                <div className="content-card">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-[#2D2D2D]">نمو المنصة</h3>
-                    <BarChart3 className="w-5 h-5 text-[#F59E0B]" />
-                  </div>
-                  <div className="text-3xl font-bold text-[#2D2D2D] mb-2">{analytics.platformGrowthRate}%</div>
-                  <div className="text-sm text-[#6B7280]">معدل النمو الشهري</div>
-                  <div className="flex items-center gap-1 mt-2">
-                    <TrendingUp className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-500">مستقر</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Detailed Reports */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="content-card">
-                  <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">تقرير الاستخدام اليومي</h3>
-                  <div className="h-64 flex items-center justify-center text-[#6B7280]">
-                    <div className="text-center">
-                      <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>الرسوم البيانية قيد التطوير</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="content-card">
-                  <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">توزيع المحتوى</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Book className="w-5 h-5 text-[#10B981]" />
-                        <span className="text-[#2D2D2D]">الكتب</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-3/4 h-full bg-[#10B981] rounded-full"></div>
-                        </div>
-                        <span className="text-sm text-[#6B7280]">156</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Video className="w-5 h-5 text-[#8B5CF6]" />
-                        <span className="text-[#2D2D2D]">الفيديوهات</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-1/2 h-full bg-[#8B5CF6] rounded-full"></div>
-                        </div>
-                        <span className="text-sm text-[#6B7280]">89</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[#F59E0B]" />
-                        <span className="text-[#2D2D2D]">المقالات</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-full h-full bg-[#F59E0B] rounded-full"></div>
-                        </div>
-                        <span className="text-sm text-[#6B7280]">211</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="content-card">
+              <div className="text-center py-12 text-[#6B7280]">
+                <Brain className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                <p>قسم التحليلات قيد التطوير</p>
               </div>
             </div>
           )}
@@ -914,33 +581,43 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-[#8B7355]/20">
-              <h3 className="text-xl font-bold text-[#2D2D2D]">إضافة محتوى جديد</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-[#2D2D2D]">إضافة محتوى جديد</h3>
+                <button
+                  onClick={() => setShowAddContent(false)}
+                  className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors"
+                >
+                  <span className="text-[#8B7355] text-xl">×</span>
+                </button>
+              </div>
             </div>
-            <div className="p-6">
-              <form className="space-y-6">
+            <div className="p-6 overflow-y-auto">
+              <form onSubmit={handleAddContent} className="space-y-6">
                 <div>
                   <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
                   <input
                     type="text"
+                    name="title"
                     className="input-modern w-full"
                     placeholder="أدخل عنوان المحتوى"
+                    required
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[#2D2D2D] font-semibold mb-3">نوع المحتوى</label>
-                    <select className="input-modern w-full">
+                    <select name="type" className="input-modern w-full" required>
                       <option value="book">كتاب</option>
                       <option value="video">فيديو</option>
                       <option value="article">مقال</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[#2D2D2D] font-semibold mb-3">الفئة</label>
-                    <select className="input-modern w-full">
-                      <option value="security">الأمن الفكري</option>
-                      <option value="education">التربية الإسلامية</option>
-                      <option value="culture">الثقافة العامة</option>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">الحالة</label>
+                    <select name="status" className="input-modern w-full" required>
+                      <option value="published">منشور</option>
+                      <option value="draft">مسودة</option>
+                      <option value="pending">قيد المراجعة</option>
                     </select>
                   </div>
                 </div>
@@ -948,35 +625,41 @@ const AdminDashboard = () => {
                   <label className="block text-[#2D2D2D] font-semibold mb-3">المؤلف</label>
                   <input
                     type="text"
+                    name="author"
                     className="input-modern w-full"
-                    placeholder="اسم المؤلف أو المنشئ"
+                    placeholder="اسم المؤلف"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
                   <textarea
+                    name="description"
                     className="input-modern w-full h-24 resize-none"
                     placeholder="أدخل وصف المحتوى"
+                    required
                   ></textarea>
                 </div>
                 <div>
                   <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة</label>
                   <input
                     type="url"
+                    name="image"
                     className="input-modern w-full"
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
+                <div className="flex gap-3 pt-4">
+                  <button type="submit" className="btn-primary flex-1">إضافة المحتوى</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddContent(false)}
+                    className="btn-secondary flex-1"
+                  >
+                    إلغاء
+                  </button>
+                </div>
               </form>
-            </div>
-            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3">
-              <button className="btn-primary flex-1">إضافة المحتوى</button>
-              <button
-                onClick={() => setShowAddContent(false)}
-                className="btn-secondary flex-1"
-              >
-                إلغاء
-              </button>
             </div>
           </div>
         </div>
@@ -993,7 +676,7 @@ const AdminDashboard = () => {
                   onClick={() => setShowContentDetails(false)}
                   className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors"
                 >
-                  <X className="w-5 h-5 text-[#8B7355]" />
+                  <span className="text-[#8B7355] text-xl">×</span>
                 </button>
               </div>
             </div>
@@ -1019,7 +702,7 @@ const AdminDashboard = () => {
                     <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">النوع</label>
                     <div className="flex items-center gap-2">
                       {getContentIcon(selectedContent.type)}
-                      <span className="text-[#6B7280]">{selectedContent.category}</span>
+                      <span className="text-[#6B7280]">{getContentTypeLabel(selectedContent.type)}</span>
                     </div>
                   </div>
                   <div>
@@ -1028,15 +711,19 @@ const AdminDashboard = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">تاريخ النشر</label>
-                    <p className="text-[#6B7280]">{selectedContent.uploadDate}</p>
+                    <p className="text-[#6B7280]">{selectedContent.date}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">الإعجابات</label>
+                    <p className="text-[#6B7280]">{selectedContent.likes.toLocaleString()}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">المشاهدات</label>
                     <p className="text-[#6B7280]">{selectedContent.views.toLocaleString()}</p>
                   </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">الإعجابات</label>
-                    <p className="text-[#6B7280]">{selectedContent.likes.toLocaleString()}</p>
+                  <div className="col-span-2">
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">الوصف</label>
+                    <p className="text-[#6B7280]">{selectedContent.description}</p>
                   </div>
                 </div>
               </div>
@@ -1050,13 +737,18 @@ const AdminDashboard = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
             <div className="p-6 border-b border-[#8B7355]/20">
-              <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل المحتوى</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل المحتوى</h3>
+                <button
+                  onClick={() => setShowEditContent(false)}
+                  className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors"
+                >
+                  <span className="text-[#8B7355] text-xl">×</span>
+                </button>
+              </div>
             </div>
             <div className="p-6 overflow-y-auto">
-              <form className="space-y-6" onSubmit={(e) => {
-                e.preventDefault();
-                handleSaveEdit(editingContent);
-              }}>
+              <div className="space-y-6">
                 <div>
                   <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
                   <input
@@ -1081,14 +773,16 @@ const AdminDashboard = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[#2D2D2D] font-semibold mb-3">الفئة</label>
-                    <input
-                      type="text"
-                      value={editingContent.category}
-                      onChange={(e) => setEditingContent({...editingContent, category: e.target.value})}
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">الحالة</label>
+                    <select 
+                      value={editingContent.status}
+                      onChange={(e) => setEditingContent({...editingContent, status: e.target.value as 'published' | 'draft' | 'pending'})}
                       className="input-modern w-full"
-                      placeholder="الفئة"
-                    />
+                    >
+                      <option value="published">منشور</option>
+                      <option value="draft">مسودة</option>
+                      <option value="pending">قيد المراجعة</option>
+                    </select>
                   </div>
                 </div>
                 <div>
@@ -1098,8 +792,17 @@ const AdminDashboard = () => {
                     value={editingContent.author}
                     onChange={(e) => setEditingContent({...editingContent, author: e.target.value})}
                     className="input-modern w-full"
-                    placeholder="اسم المؤلف أو المنشئ"
+                    placeholder="اسم المؤلف"
                   />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
+                  <textarea
+                    value={editingContent.description}
+                    onChange={(e) => setEditingContent({...editingContent, description: e.target.value})}
+                    className="input-modern w-full h-24 resize-none"
+                    placeholder="أدخل وصف المحتوى"
+                  ></textarea>
                 </div>
                 <div>
                   <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة</label>
@@ -1111,23 +814,11 @@ const AdminDashboard = () => {
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
-                <div>
-                  <label className="block text-[#2D2D2D] font-semibold mb-3">الحالة</label>
-                  <select 
-                    value={editingContent.status}
-                    onChange={(e) => setEditingContent({...editingContent, status: e.target.value as 'published' | 'draft' | 'archived'})}
-                    className="input-modern w-full"
-                  >
-                    <option value="published">منشور</option>
-                    <option value="draft">مسودة</option>
-                    <option value="archived">مؤرشف</option>
-                  </select>
-                </div>
-              </form>
+              </div>
             </div>
             <div className="p-6 border-t border-[#8B7355]/20 flex gap-3">
               <button 
-                onClick={() => handleSaveEdit(editingContent)}
+                onClick={handleSaveEdit}
                 className="btn-primary flex-1"
               >
                 حفظ التغييرات
