@@ -13,6 +13,7 @@ const Dashboard = () => {
   const [showDiscussion, setShowDiscussion] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [showContactOptions, setShowContactOptions] = useState(false);
 
   const parseDate = (d: string) => {
     const [y, m, day] = d.split('/').map(Number);
@@ -92,6 +93,16 @@ const Dashboard = () => {
     navigate('/');
   };
 
+  const handleContactEmail = () => {
+    window.open('mailto:hashimabdullatef@gmail.com', '_blank');
+    setShowContactOptions(false);
+  };
+
+  const handleContactWhatsApp = () => {
+    window.open('https://wa.me/966555657087', '_blank');
+    setShowContactOptions(false);
+  };
+
   return (
     <div className="min-h-screen bg-pattern">
       {/* Header */}
@@ -115,10 +126,45 @@ const Dashboard = () => {
               <Bell className="w-5 h-5 text-[#8B7355]" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
             </button>
-            <button className="btn-secondary text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-4">
-              <Mail className="w-4 h-4" />
-              <span className="hidden sm:inline">تواصل معنا</span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowContactOptions(!showContactOptions)}
+                className="btn-secondary text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-4"
+              >
+                <Mail className="w-4 h-4" />
+                <span className="hidden sm:inline">تواصل معنا</span>
+              </button>
+              
+              {showContactOptions && (
+                <div className="absolute top-full left-0 mt-2 w-48 glass-effect rounded-xl shadow-lg border border-[#8B7355]/20 z-50">
+                  <div className="p-2">
+                    <button
+                      onClick={handleContactEmail}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-[#8B7355]/10 transition-colors text-right"
+                    >
+                      <Mail className="w-5 h-5 text-[#8B7355]" />
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-[#2D2D2D]">البريد الإلكتروني</div>
+                        <div className="text-xs text-[#6B7280]">hashimabdullatef@gmail.com</div>
+                      </div>
+                    </button>
+                    
+                    <button
+                      onClick={handleContactWhatsApp}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-[#8B7355]/10 transition-colors text-right"
+                    >
+                      <div className="w-5 h-5 rounded-full bg-[#25D366] flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">W</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-[#2D2D2D]">واتساب</div>
+                        <div className="text-xs text-[#6B7280]">0555657087</div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
             <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors hidden sm:block">
               <Settings className="w-5 h-5 text-[#8B7355]" />
             </button>
