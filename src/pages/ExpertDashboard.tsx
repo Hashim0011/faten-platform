@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell, X, AlertTriangle } from 'lucide-react';
 
 interface Message {
@@ -29,7 +28,6 @@ interface Content {
 }
 
 const ExpertDashboard = () => {
-  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('discussions');
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [showAddContent, setShowAddContent] = useState(false);
@@ -158,11 +156,6 @@ const ExpertDashboard = () => {
     setEditingContent(null);
   };
 
-  const handleLogout = () => {
-    // يمكن إضافة منطق تنظيف البيانات هنا إذا لزم الأمر
-    navigate('/');
-  };
-
   const getContentIcon = (type: string) => {
     switch (type) {
       case 'book': return <Book className="w-5 h-5" />;
@@ -246,10 +239,7 @@ const ExpertDashboard = () => {
               <Settings className="w-4 h-4" />
               <span>الإعدادات</span>
             </button>
-            <button 
-              onClick={handleLogout}
-              className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2"
-            >
+            <button className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2">
               <LogOut className="w-4 h-4" />
               <span>خروج</span>
             </button>
