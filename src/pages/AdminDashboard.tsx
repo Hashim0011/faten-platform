@@ -266,8 +266,8 @@ const AdminDashboard = () => {
     completionRate: 78,
     engagementRate: 85,
     monthlyGrowth: 12.5,
-    dailyActiveUsers: Math.floor(stats.activeUsers * 0.6),
-    weeklyActiveUsers: Math.floor(stats.activeUsers * 0.8),
+    dailyActiveUsers: Math.floor(usersList.filter(u => u.status === 'active').length * 0.6),
+    weeklyActiveUsers: Math.floor(usersList.filter(u => u.status === 'active').length * 0.8),
     bounceRate: 23,
     sessionDuration: 8.5
   };
