@@ -89,6 +89,12 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddContent, setShowAddContent] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<Content | null>(null);
+  const [showContentDetails, setShowContentDetails] = useState(false);
+  const [showEditContent, setShowEditContent] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [contentToDelete, setContentToDelete] = useState<Content | null>(null);
+  const [editingContent, setEditingContent] = useState<Content | null>(null);
 
   // Mock data - in real app, this would come from API
   const [analytics, setAnalytics] = useState<Analytics>({
@@ -223,6 +229,37 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     navigate('/');
+  };
+
+  const handleViewContent = (content: Content) => {
+    setSelectedContent(content);
+    setShowContentDetails(true);
+  };
+
+  const handleEditContent = (content: Content) => {
+    setEditingContent(content);
+    setShowEditContent(true);
+  };
+
+  const handleDeleteContent = (content: Content) => {
+    setContentToDelete(content);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
+    if (contentToDelete) {
+      // في التطبيق الحقيقي، هنا سيتم حذف المحتوى من قاعدة البيانات
+      console.log(`تم حذف المحتوى: ${contentToDelete.title}`);
+      setShowDeleteConfirm(false);
+      setContentToDelete(null);
+    }
+  };
+
+  const handleSaveEdit = (updatedContent: Content) => {
+    // في التطبيق الحقيقي، هنا سيتم تحديث المحتوى في قاعدة البيانات
+    console.log(`تم تحديث المحتوى:`, updatedContent);
+    setShowEditContent(false);
+    setEditingContent(null);
   };
 
   const getContentIcon = (type: string) => {
@@ -569,13 +606,25 @@ const AdminDashboard = () => {
                         {getStatusBadge(content.status)}
                       </div>
                       <div className="absolute top-3 left-3 flex gap-2">
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors">
+                        <button 
+                          onClick={() => handleViewContent(content)}
+                          className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors"
+                          title="عرض التفاصيل"
+                        >
                           <Eye className="w-4 h-4" />
                         </button>
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors">
+                        <button 
+                          onClick={() => handleEditContent(content)}
+                          className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors"
+                          title="تعديل المحتوى"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors">
+                        <button 
+                          onClick={() => handleDeleteContent(content)}
+                          className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
+                          title="حذف المحتوى"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -928,6 +977,200 @@ const AdminDashboard = () => {
               >
                 إلغاء
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Content Details Modal */}
+      {showContentDetails && selectedContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-[#8B7355]/20">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold text-[#2D2D2D]">تفاصيل المحتوى</h3>
+                <button
+                  onClick={() => setShowContentDetails(false)}
+                  className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors"
+                >
+                  <X className="w-5 h-5 text-[#8B7355]" />
+                </button>
+              </div>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <div className="space-y-6">
+                <div className="relative h-48 rounded-xl overflow-hidden">
+                  <img
+                    src={selectedContent.image}
+                    alt={selectedContent.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-3 right-3">
+                    {getStatusBadge(selectedContent.status)}
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">العنوان</label>
+                    <p className="text-[#6B7280]">{selectedContent.title}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">النوع</label>
+                    <div className="flex items-center gap-2">
+                      {getContentIcon(selectedContent.type)}
+                      <span className="text-[#6B7280]">{selectedContent.category}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">المؤلف</label>
+                    <p className="text-[#6B7280]">{selectedContent.author}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">تاريخ النشر</label>
+                    <p className="text-[#6B7280]">{selectedContent.uploadDate}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">المشاهدات</label>
+                    <p className="text-[#6B7280]">{selectedContent.views.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">الإعجابات</label>
+                    <p className="text-[#6B7280]">{selectedContent.likes.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Content Modal */}
+      {showEditContent && editingContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="p-6 border-b border-[#8B7355]/20">
+              <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل المحتوى</h3>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <form className="space-y-6" onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveEdit(editingContent);
+              }}>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
+                  <input
+                    type="text"
+                    value={editingContent.title}
+                    onChange={(e) => setEditingContent({...editingContent, title: e.target.value})}
+                    className="input-modern w-full"
+                    placeholder="أدخل عنوان المحتوى"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">نوع المحتوى</label>
+                    <select 
+                      value={editingContent.type}
+                      onChange={(e) => setEditingContent({...editingContent, type: e.target.value as 'book' | 'video' | 'article'})}
+                      className="input-modern w-full"
+                    >
+                      <option value="book">كتاب</option>
+                      <option value="video">فيديو</option>
+                      <option value="article">مقال</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">الفئة</label>
+                    <input
+                      type="text"
+                      value={editingContent.category}
+                      onChange={(e) => setEditingContent({...editingContent, category: e.target.value})}
+                      className="input-modern w-full"
+                      placeholder="الفئة"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">المؤلف</label>
+                  <input
+                    type="text"
+                    value={editingContent.author}
+                    onChange={(e) => setEditingContent({...editingContent, author: e.target.value})}
+                    className="input-modern w-full"
+                    placeholder="اسم المؤلف أو المنشئ"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة</label>
+                  <input
+                    type="url"
+                    value={editingContent.image}
+                    onChange={(e) => setEditingContent({...editingContent, image: e.target.value})}
+                    className="input-modern w-full"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الحالة</label>
+                  <select 
+                    value={editingContent.status}
+                    onChange={(e) => setEditingContent({...editingContent, status: e.target.value as 'published' | 'draft' | 'archived'})}
+                    className="input-modern w-full"
+                  >
+                    <option value="published">منشور</option>
+                    <option value="draft">مسودة</option>
+                    <option value="archived">مؤرشف</option>
+                  </select>
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3">
+              <button 
+                onClick={() => handleSaveEdit(editingContent)}
+                className="btn-primary flex-1"
+              >
+                حفظ التغييرات
+              </button>
+              <button
+                onClick={() => setShowEditContent(false)}
+                className="btn-secondary flex-1"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && contentToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-md">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+                <AlertTriangle className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-[#2D2D2D] mb-2">تأكيد الحذف</h3>
+              <p className="text-[#6B7280] mb-6">
+                هل أنت متأكد من حذف المحتوى "{contentToDelete.title}"؟
+                <br />
+                <span className="text-red-600 font-semibold">لا يمكن التراجع عن هذا الإجراء.</span>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-semibold transition-colors"
+                >
+                  نعم، احذف
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="btn-secondary flex-1"
+                >
+                  إلغاء
+                </button>
+              </div>
             </div>
           </div>
         </div>
