@@ -23,7 +23,21 @@ import {
   FileText,
   Clock,
   Star,
-  Heart
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Calendar,
+  Download,
+  Share2,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Target,
+  Zap,
+  Globe,
+  MousePointer,
+  Timer
 } from 'lucide-react';
 
 interface Content {
@@ -246,7 +260,16 @@ const AdminDashboard = () => {
     totalContent: contentList.length,
     totalUsers: usersList.length,
     activeUsers: usersList.filter(u => u.status === 'active').length,
-    totalViews: contentList.reduce((sum, content) => sum + content.views, 0)
+    totalViews: contentList.reduce((sum, content) => sum + content.views, 0),
+    totalLikes: contentList.reduce((sum, content) => sum + content.likes, 0),
+    avgRating: 4.6,
+    completionRate: 78,
+    engagementRate: 85,
+    monthlyGrowth: 12.5,
+    dailyActiveUsers: Math.floor(stats.activeUsers * 0.6),
+    weeklyActiveUsers: Math.floor(stats.activeUsers * 0.8),
+    bounceRate: 23,
+    sessionDuration: 8.5
   };
 
   return (
