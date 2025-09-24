@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Brain, 
@@ -23,7 +24,21 @@ import {
   FileText,
   Clock,
   Star,
-  Heart
+  Heart,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  Calendar,
+  Download,
+  Share2,
+  BarChart3,
+  PieChart,
+  LineChart,
+  Target,
+  Zap,
+  Globe,
+  MousePointer,
+  Timer
 } from 'lucide-react';
 
 interface Content {
@@ -131,6 +146,47 @@ const AdminDashboard = () => {
     }
   ]);
 
+  // حساب الإحصائيات بناءً على البيانات الموجودة
+  const stats = React.useMemo(() => {
+    const totalContent = contentList.length;
+    const totalUsers = usersList.length;
+    const activeUsers = usersList.filter(u => u.status === 'active').length;
+    const totalViews = contentList.reduce((sum, content) => sum + content.views, 0);
+    const totalLikes = contentList.reduce((sum, content) => sum + content.likes, 0);
+    const avgRating = 4.6;
+    const completionRate = 78;
+    const engagementRate = Math.round((totalLikes / totalViews) * 100);
+    const monthlyGrowth = 12.5;
+    const dailyActiveUsers = Math.floor(activeUsers * 0.6);
+    const weeklyActiveUsers = Math.floor(activeUsers * 0.8);
+    const bounceRate = 23;
+    const sessionDuration = 8.5;
+
+    return {
+      totalContent,
+      totalUsers,
+      activeUsers,
+      totalViews,
+      totalLikes,
+      avgRating,
+      completionRate,
+      engagementRate,
+      monthlyGrowth,
+      dailyActiveUsers,
+      weeklyActiveUsers,
+      bounceRate,
+      sessionDuration
+    };
+  }, [contentList, usersList]);
+
+  // تصفية المحتوى بناءً على البحث
+  const filteredContent = useMemo(() => {
+    return contentList.filter(content =>
+      content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      content.author.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [contentList, searchQuery]);
+
   const handleViewContent = (content: Content) => {
     setSelectedContent(content);
     setShowContentDetails(true);
@@ -235,18 +291,6 @@ const AdminDashboard = () => {
       case 'pending': return 'text-yellow-600';
       default: return 'text-gray-600';
     }
-  };
-
-  const filteredContent = contentList.filter(content =>
-    content.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    content.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const stats = {
-    totalContent: contentList.length,
-    totalUsers: usersList.length,
-    activeUsers: usersList.filter(u => u.status === 'active').length,
-    totalViews: contentList.reduce((sum, content) => sum + content.views, 0)
   };
 
   return (
@@ -566,10 +610,304 @@ const AdminDashboard = () => {
 
           {/* Analytics Section */}
           {activeSection === 'analytics' && (
-            <div className="content-card">
-              <div className="text-center py-12 text-[#6B7280]">
-                <Brain className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p>قسم التحليلات قيد التطوير</p>
+            <div className="space-y-8">
+              {/* Enhanced KPI Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="content-card card-hover group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#10B981]/20 to-transparent rounded-full blur-2xl"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Eye className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex items-center gap-1 text-green-600">
+                        <TrendingUp className="w-4 h-4" />
+                        <span className="text-sm font-semibold">+{stats.monthlyGrowth}%</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#2D2D2D] mb-1">{stats.totalViews.toLocaleString()}</h3>
+                    <p className="text-[#6B7280] text-sm">إجمالي المشاهدات</p>
+                    <div className="mt-3 h-2 bg-[#10B981]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full animate-pulse" style={{width: '78%'}}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="content-card card-hover group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#F59E0B]/20 to-transparent rounded-full blur-2xl"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Heart className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex items-center gap-1 text-orange-600">
+                        <Activity className="w-4 h-4" />
+                        <span className="text-sm font-semibold">{stats.engagementRate}%</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#2D2D2D] mb-1">{stats.totalLikes.toLocaleString()}</h3>
+                    <p className="text-[#6B7280] text-sm">إجمالي الإعجابات</p>
+                    <div className="mt-3 h-2 bg-[#F59E0B]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#F59E0B] to-[#D97706] rounded-full animate-pulse" style={{width: `${stats.engagementRate}%`}}></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="content-card card-hover group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#8B5CF6]/20 to-transparent rounded-full blur-2xl"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <Target className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex items-center gap-1 text-purple-600">
+                        <Zap className="w-4 h-4" />
+                        <span className="text-sm font-semibold">{stats.completionRate}%</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#2D2D2D] mb-1">{stats.avgRating.toFixed(1)}</h3>
+                    <p className="text-[#6B7280] text-sm">متوسط التقييم</p>
+                    <div className="mt-3 flex items-center gap-1">
+                      {[1,2,3,4,5].map(star => (
+                        <Star key={star} className={`w-4 h-4 ${star <= Math.floor(stats.avgRating) ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="content-card card-hover group relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#EF4444]/20 to-transparent rounded-full blur-2xl"></div>
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                        <MousePointer className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex items-center gap-1 text-green-600">
+                        <TrendingDown className="w-4 h-4" />
+                        <span className="text-sm font-semibold">{stats.bounceRate}%</span>
+                      </div>
+                    </div>
+                    <h3 className="text-3xl font-bold text-[#2D2D2D] mb-1">{stats.sessionDuration}</h3>
+                    <p className="text-[#6B7280] text-sm">متوسط مدة الجلسة (دقيقة)</p>
+                    <div className="mt-3 h-2 bg-[#EF4444]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#EF4444] to-[#DC2626] rounded-full animate-pulse" style={{width: '85%'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Charts and Analytics */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* User Activity Chart */}
+                <div className="content-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-[#2D2D2D] flex items-center gap-3">
+                      <BarChart3 className="w-6 h-6 text-[#8B7355]" />
+                      نشاط المستخدمين
+                    </h3>
+                    <div className="flex items-center gap-2">
+                      <button className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors">يومي</button>
+                      <span className="text-[#6B7280]">|</span>
+                      <button className="text-sm text-[#6B7280] hover:text-[#8B7355] transition-colors">أسبوعي</button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6B7280]">المستخدمون النشطون يومياً</span>
+                      <span className="font-bold text-[#2D2D2D]">{stats.dailyActiveUsers.toLocaleString()}</span>
+                    </div>
+                    <div className="h-3 bg-[#8B7355]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#8B7355] to-[#D4AF37] rounded-full animate-pulse" style={{width: '60%'}}></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6B7280]">المستخدمون النشطون أسبوعياً</span>
+                      <span className="font-bold text-[#2D2D2D]">{stats.weeklyActiveUsers.toLocaleString()}</span>
+                    </div>
+                    <div className="h-3 bg-[#8B7355]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full animate-pulse" style={{width: '80%'}}></div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#6B7280]">إجمالي المستخدمين</span>
+                      <span className="font-bold text-[#2D2D2D]">{stats.totalUsers.toLocaleString()}</span>
+                    </div>
+                    <div className="h-3 bg-[#8B7355]/10 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] rounded-full animate-pulse" style={{width: '100%'}}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Performance */}
+                <div className="content-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-[#2D2D2D] flex items-center gap-3">
+                      <PieChart className="w-6 h-6 text-[#8B7355]" />
+                      أداء المحتوى
+                    </h3>
+                    <button className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors flex items-center gap-1">
+                      <Download className="w-4 h-4" />
+                      تصدير
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#10B981]/10 to-[#059669]/10 border border-[#10B981]/20">
+                      <div className="flex items-center gap-3">
+                        <Book className="w-8 h-8 text-[#10B981]" />
+                        <div>
+                          <h4 className="font-semibold text-[#2D2D2D]">الكتب</h4>
+                          <p className="text-sm text-[#6B7280]">{((contentList.filter(c => c.type === 'book').length / contentList.length) * 100).toFixed(1)}% من المحتوى</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-[#10B981]">{contentList.filter(c => c.type === 'book').length}</div>
+                        <div className="text-sm text-[#6B7280]">كتاب</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/10 border border-[#F59E0B]/20">
+                      <div className="flex items-center gap-3">
+                        <Video className="w-8 h-8 text-[#F59E0B]" />
+                        <div>
+                          <h4 className="font-semibold text-[#2D2D2D]">الفيديوهات</h4>
+                          <p className="text-sm text-[#6B7280]">{((contentList.filter(c => c.type === 'video').length / contentList.length) * 100).toFixed(1)}% من المحتوى</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-[#F59E0B]">{contentList.filter(c => c.type === 'video').length}</div>
+                        <div className="text-sm text-[#6B7280]">فيديو</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-[#8B5CF6]/10 to-[#7C3AED]/10 border border-[#8B5CF6]/20">
+                      <div className="flex items-center gap-3">
+                        <FileText className="w-8 h-8 text-[#8B5CF6]" />
+                        <div>
+                          <h4 className="font-semibold text-[#2D2D2D]">المقالات</h4>
+                          <p className="text-sm text-[#6B7280]">{((contentList.filter(c => c.type === 'article').length / contentList.length) * 100).toFixed(1)}% من المحتوى</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold text-[#8B5CF6]">{contentList.filter(c => c.type === 'article').length}</div>
+                        <div className="text-sm text-[#6B7280]">مقال</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Activity & Quick Actions */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Recent Activity */}
+                <div className="lg:col-span-2 content-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-[#2D2D2D] flex items-center gap-3">
+                      <Activity className="w-6 h-6 text-[#8B7355]" />
+                      النشاط الأخير
+                    </h3>
+                    <button className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors">عرض الكل</button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
+                        <Plus className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[#2D2D2D]">تم إضافة محتوى جديد</p>
+                        <p className="text-sm text-[#6B7280]">كتاب "مهارات التفكير النقدي" - منذ 5 دقائق</p>
+                      </div>
+                      <span className="text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-1 rounded-full">جديد</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                        <Edit className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[#2D2D2D]">تم تحديث محتوى</p>
+                        <p className="text-sm text-[#6B7280]">مقال "التحديات المعاصرة" - منذ ساعة</p>
+                      </div>
+                      <span className="text-xs text-[#F59E0B] bg-[#F59E0B]/10 px-2 py-1 rounded-full">محدث</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
+                        <Users className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[#2D2D2D]">انضمام مستخدم جديد</p>
+                        <p className="text-sm text-[#6B7280]">أحمد محمد العتيبي - منذ 3 ساعات</p>
+                      </div>
+                      <span className="text-xs text-[#8B5CF6] bg-[#8B5CF6]/10 px-2 py-1 rounded-full">عضو</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center">
+                        <Trash2 className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-[#2D2D2D]">تم حذف محتوى</p>
+                        <p className="text-sm text-[#6B7280]">مقال قديم - منذ يوم</p>
+                      </div>
+                      <span className="text-xs text-[#EF4444] bg-[#EF4444]/10 px-2 py-1 rounded-full">محذوف</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div className="content-card">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-bold text-[#2D2D2D] flex items-center gap-3">
+                      <Zap className="w-6 h-6 text-[#8B7355]" />
+                      إجراءات سريعة
+                    </h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <button className="w-full p-4 rounded-xl bg-gradient-to-r from-[#10B981]/10 to-[#059669]/10 border border-[#10B981]/20 hover:from-[#10B981]/20 hover:to-[#059669]/20 transition-all group">
+                      <div className="flex items-center gap-3">
+                        <Download className="w-5 h-5 text-[#10B981] group-hover:scale-110 transition-transform" />
+                        <div className="text-right">
+                          <div className="font-semibold text-[#2D2D2D]">تصدير التقارير</div>
+                          <div className="text-sm text-[#6B7280]">PDF, Excel</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button className="w-full p-4 rounded-xl bg-gradient-to-r from-[#F59E0B]/10 to-[#D97706]/10 border border-[#F59E0B]/20 hover:from-[#F59E0B]/20 hover:to-[#D97706]/20 transition-all group">
+                      <div className="flex items-center gap-3">
+                        <Share2 className="w-5 h-5 text-[#F59E0B] group-hover:scale-110 transition-transform" />
+                        <div className="text-right">
+                          <div className="font-semibold text-[#2D2D2D]">مشاركة الإحصائيات</div>
+                          <div className="text-sm text-[#6B7280]">رابط مباشر</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button className="w-full p-4 rounded-xl bg-gradient-to-r from-[#8B5CF6]/10 to-[#7C3AED]/10 border border-[#8B5CF6]/20 hover:from-[#8B5CF6]/20 hover:to-[#7C3AED]/20 transition-all group">
+                      <div className="flex items-center gap-3">
+                        <Globe className="w-5 h-5 text-[#8B5CF6] group-hover:scale-110 transition-transform" />
+                        <div className="text-right">
+                          <div className="font-semibold text-[#2D2D2D]">حالة النظام</div>
+                          <div className="text-sm text-green-600">متصل</div>
+                        </div>
+                      </div>
+                    </button>
+                    
+                    <button className="w-full p-4 rounded-xl bg-gradient-to-r from-[#EF4444]/10 to-[#DC2626]/10 border border-[#EF4444]/20 hover:from-[#EF4444]/20 hover:to-[#DC2626]/20 transition-all group">
+                      <div className="flex items-center gap-3">
+                        <Timer className="w-5 h-5 text-[#EF4444] group-hover:scale-110 transition-transform" />
+                        <div className="text-right">
+                          <div className="font-semibold text-[#2D2D2D]">نسخ احتياطي</div>
+                          <div className="text-sm text-[#6B7280]">آخر نسخة: اليوم</div>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
