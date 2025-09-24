@@ -358,9 +358,9 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="flex flex-col lg:flex-row-reverse gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           {/* Sidebar - النقاشات والفعاليات */}
-          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6">
+          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6 order-1 lg:order-2">
             {/* Discussion Topics */}
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
@@ -413,7 +413,7 @@ const Dashboard = () => {
           </aside>
 
           {/* Main Content - المحتوى الرئيسي */}
-          <main className="flex-1 min-w-0">
+          <main className="flex-1 min-w-0 order-2 lg:order-1">
             {/* Search Bar */}
             <div className="content-card mb-8">
               <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
