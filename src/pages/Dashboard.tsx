@@ -10,6 +10,12 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'books' | 'videos' | 'articles'>('books');
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({
+    sortBy: 'newest',
+    category: 'all',
+    dateRange: 'all'
+  });
   const [showDiscussion, setShowDiscussion] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
@@ -77,12 +83,56 @@ const Dashboard = () => {
 
   const filteredContent = useMemo(() => {
     const q = searchQuery.trim();
-    if (!q) return libraryContent[activeTab];
+    let content = libraryContent[activeTab];
+    
+    // Apply search filter
+    if (q) {
+      content = content.filter((item: any) =>
+        [item.title, item.desc].some((t: string) => t.toLowerCase().includes(q.toLowerCase()))
+      );
+    }
+    
+    // Apply category filter
+    if (filterOptions.category !== 'all') {
+      // This would filter by category if we had category data
+    }
+    
+    // Apply date range filter
+    if (filterOptions.dateRange !== 'all') {
+      const now = new Date();
+      content = content.filter((item: any) => {
+        const itemDate = parseDate(item.date);
+        switch (filterOptions.dateRange) {
+          case 'week':
+            return isWithinDays(itemDate, 7);
+          case 'month':
+            return isWithinDays(itemDate, 30);
+          case '3months':
+            return isWithinDays(itemDate, 90);
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // Apply sorting
+    content = [...content].sort((a: any, b: any) => {
+      switch (filterOptions.sortBy) {
+        case 'newest':
+          return parseDate(b.date).getTime() - parseDate(a.date).getTime();
+        case 'oldest':
+          return parseDate(a.date).getTime() - parseDate(b.date).getTime();
+        case 'popular':
+          return b.likes - a.likes;
+        case 'title':
+          return a.title.localeCompare(b.title, 'ar');
+        default:
+          return 0;
+      }
+    });
 
-    return libraryContent[activeTab].filter((item: any) =>
-      [item.title, item.desc].some((t: string) => t.toLowerCase().includes(q.toLowerCase()))
-    );
-  }, [activeTab, searchQuery, libraryContent]);
+    return content;
+  }, [activeTab, searchQuery, libraryContent, filterOptions]);
 
   const handleTopicClick = (topic: Topic) => {
     setSelectedTopic(topic);
@@ -243,10 +293,74 @@ const Dashboard = () => {
                   <button className="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2">
                     جميع المحتويات
                   </button>
-                  <button className="btn-secondary text-xs sm:text-sm px-3 sm:px-4 py-2 flex items-center gap-2">
+                  <div className="relative">
+                    <button 
+                      onClick={() => setShowFilter(!showFilter)}
+                      className={`text-xs sm:text-sm px-3 sm:px-4 py-2 flex items-center gap-2 transition-all ${
+                        showFilter 
+                          ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                          : 'btn-secondary'
+                      }`}
+                    >
                     <Filter className="w-4 h-4" />
                     <span className="hidden sm:inline">تصفية</span>
-                  </button>
+                    </button>
+                    
+                    {showFilter && (
+                      <div className="absolute top-full left-0 mt-2 w-72 glass-effect rounded-xl shadow-lg border border-[#8B7355]/20 z-50">
+                        <div className="p-4 space-y-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">ترتيب حسب</label>
+                            <select 
+                              value={filterOptions.sortBy}
+                              onChange={(e) => setFilterOptions({...filterOptions, sortBy: e.target.value})}
+                              className="input-modern w-full text-sm"
+                            >
+                              <option value="newest">الأحدث</option>
+                              <option value="oldest">الأقدم</option>
+                              <option value="popular">الأكثر إعجاباً</option>
+                              <option value="title">الترتيب الأبجدي</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-[#2D2D2D] mb-2">الفترة الزمنية</label>
+                            <select 
+                              value={filterOptions.dateRange}
+                              onChange={(e) => setFilterOptions({...filterOptions, dateRange: e.target.value})}
+                              className="input-modern w-full text-sm"
+                            >
+                              <option value="all">جميع الفترات</option>
+                              <option value="week">آخر أسبوع</option>
+                              <option value="month">آخر شهر</option>
+                              <option value="3months">آخر 3 أشهر</option>
+                            </select>
+                          </div>
+                          
+                          <div className="flex gap-2 pt-2">
+                            <button 
+                              onClick={() => {
+                                setFilterOptions({
+                                  sortBy: 'newest',
+                                  category: 'all',
+                                  dateRange: 'all'
+                                });
+                              }}
+                              className="btn-secondary flex-1 text-sm py-2"
+                            >
+                              إعادة تعيين
+                            </button>
+                            <button 
+                              onClick={() => setShowFilter(false)}
+                              className="btn-primary flex-1 text-sm py-2"
+                            >
+                              تطبيق
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div className="flex-1 relative order-1 sm:order-2">
                   <input
