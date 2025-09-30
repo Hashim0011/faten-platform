@@ -10,7 +10,8 @@ const HomePage = () => {
     email: '',
     password: '',
     name: '',
-    phone: ''
+    phone: '',
+    role: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,6 +99,33 @@ const HomePage = () => {
               </div>
             )}
 
+            {!isLogin && (
+              <div>
+                <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#8B7355]" />
+                  نوع المستخدم
+                </label>
+                <div className="relative">
+                  <select
+                    name="role"
+                    value={formData.role || ''}
+                    onChange={handleInputChange}
+                    className="input-modern w-full has-right-icon appearance-none cursor-pointer"
+                    required={!isLogin}
+                  >
+                    <option value="">اختر نوع المستخدم</option>
+                    <option value="parent">ولي أمر</option>
+                    <option value="teacher">معلم</option>
+                    <option value="student">طالب</option>
+                    <option value="other">غير ذلك</option>
+                  </select>
+                  <Users className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                  <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            )}
             {!isLogin && (
               <div>
                 <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
