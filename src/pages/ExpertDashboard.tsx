@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell } from 'lucide-react';
 
 interface Message {
@@ -28,6 +29,7 @@ interface Content {
 }
 
 const ExpertDashboard = () => {
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('discussions');
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [showAddContent, setShowAddContent] = useState(false);
@@ -138,6 +140,9 @@ const ExpertDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    navigate('/');
+  };
   return (
     <div className="min-h-screen bg-pattern flex">
       {/* Sidebar */}
@@ -203,7 +208,10 @@ const ExpertDashboard = () => {
               <Settings className="w-4 h-4" />
               <span>الإعدادات</span>
             </button>
-            <button className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2">
+            <button 
+              onClick={handleLogout}
+              className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2"
+            >
               <LogOut className="w-4 h-4" />
               <span>خروج</span>
             </button>
