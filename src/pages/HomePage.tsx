@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield, Phone } from 'lucide-react';
+import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield, Phone, ChevronDown } from 'lucide-react';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -10,7 +10,8 @@ const HomePage = () => {
     email: '',
     password: '',
     name: '',
-    phone: ''
+    phone: '',
+    role: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -76,6 +77,31 @@ const HomePage = () => {
             </p>
           </div>
 
+          {!isLogin && (
+            <div>
+              <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#8B7355]" />
+                نوع المستخدم
+              </label>
+              <div className="relative">
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleInputChange}
+                  className="input-modern w-full has-right-icon appearance-none cursor-pointer"
+                  required={!isLogin}
+                >
+                  <option value="">اختر نوع المستخدم</option>
+                  <option value="student">طالب</option>
+                  <option value="parent">ولي أمر</option>
+                  <option value="teacher">معلم</option>
+                  <option value="other">غير ذلك</option>
+                </select>
+                <Users className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                <ChevronDown className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {!isLogin && (
               <div>
