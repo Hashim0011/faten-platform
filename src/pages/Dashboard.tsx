@@ -134,9 +134,9 @@ const Dashboard = () => {
       </div>
 
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+        <div className="flex flex-col lg:flex-row-reverse gap-6 lg:gap-8">
           {/* Sidebar - النقاشات والفعاليات */}
-          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6 order-1 lg:order-1">
+          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6">
             {/* Discussion Topics */}
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
@@ -188,8 +188,8 @@ const Dashboard = () => {
             </div>
           </aside>
 
-          {/* Main Content - المكتبة */}
-          <main className="flex-1 min-w-0 order-2 lg:order-2">
+          {/* Main Content - المحتوى الرئيسي */}
+          <main className="flex-1 min-w-0">
             {/* Search Bar */}
             <div className="content-card mb-8">
               <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
@@ -321,6 +321,33 @@ const Dashboard = () => {
           </main>
         </div>
       </div>
+
+      {/* AI Chat Button */}
+      <button
+        onClick={() => setShowAiChat(true)}
+        className="fixed bottom-4 left-4 sm:bottom-8 sm:left-8 p-3 sm:p-4 glass-effect rounded-2xl shadow-xl hover:shadow-2xl transition-all group"
+      >
+        <div className="relative">
+          <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-[#8B7355] group-hover:scale-110 transition-transform" />
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center">
+            <Brain className="w-2 h-2 text-white" />
+          </div>
+        </div>
+      </button>
+
+      {/* Modals */}
+      {selectedTopic && (
+        <DiscussionModal
+          isOpen={showDiscussion}
+          onClose={() => setShowDiscussion(false)}
+          topic={selectedTopic}
+        />
+      )}
+      
+      <AiChatModal
+        isOpen={showAiChat}
+        onClose={() => setShowAiChat(false)}
+      />
     </div>
   );
 };
