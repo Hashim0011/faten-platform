@@ -208,6 +208,25 @@ body {
   box-shadow: 0 0 0 4px rgba(139, 115, 85, 0.1);
 }
 
+/* تنسيق القائمة المنسدلة */
+select.input-modern {
+  background-image: none;
+  padding-right: 50px;
+  padding-left: 50px;
+}
+
+select.input-modern:focus {
+  outline: none;
+  border-color: var(--primary-brown);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(139, 115, 85, 0.1);
+}
+
+/* إخفاء السهم الافتراضي للمتصفح */
+select.input-modern::-ms-expand {
+  display: none;
+}
+
 .input-modern[type="tel"] {
   text-align: right;
   direction: ltr;
