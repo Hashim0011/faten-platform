@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell } from 'lucide-react';
+import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, CreditCard as Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell } from 'lucide-react';
 
 interface Message {
   id: number;
