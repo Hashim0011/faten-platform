@@ -123,17 +123,28 @@ export async function getCurrentUser() {
 // التحقق من دور المستخدم
 export async function getUserRole(userId: string) {
   try {
+    // Get user email from auth.users to avoid RLS recursion
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      return 'student'
+    }
+
+    // التحقق من الإدارة باستخدام auth.users مباشرة
+    if (user.email === 'admin@faten.com') {
+      return 'admin'
+    }
+
+    // Get user role from users table
     const { data, error } = await supabase
       .from('users')
-      .select('role, email')
+      .select('role')
       .eq('id', userId)
       .single()
 
-    if (error) throw error
-
-    // التحقق من الإدارة
-    if (data.email === 'admin@faten.com') {
-      return 'admin'
+    if (error) {
+      console.error('خطأ في الحصول على دور المستخدم:', error)
+      return 'student'
     }
 
     // التحقق من الخبراء
