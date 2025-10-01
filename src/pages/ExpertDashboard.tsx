@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, CreditCard as Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell } from 'lucide-react';
+import NotificationModal from '../components/NotificationModal';
 
 interface Message {
   id: number;
@@ -33,6 +34,8 @@ const ExpertDashboard = () => {
   const [activeSection, setActiveSection] = useState('discussions');
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [showAddContent, setShowAddContent] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications] = useState(3); // عدد الإشعارات غير المقروءة للخبير
 
   const discussions: Discussion[] = [
     {
@@ -237,9 +240,16 @@ const ExpertDashboard = () => {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
+              <button 
+                onClick={() => setShowNotifications(true)}
+                className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
+              >
                 <Bell className="w-5 h-5 text-[#8B7355]" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                    {unreadNotifications}
+                  </span>
+                )}
               </button>
               {activeSection === 'content' && (
                 <button
@@ -493,6 +503,13 @@ const ExpertDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        userRole="expert"
+      />
     </div>
   );
 };

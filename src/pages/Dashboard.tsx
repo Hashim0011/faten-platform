@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, Clock, Filter, Users, Star } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
+import NotificationModal from '../components/NotificationModal';
 
 type Topic = { id: number; title: string; date: string };
 
@@ -13,6 +14,8 @@ const Dashboard = () => {
   const [showDiscussion, setShowDiscussion] = useState(false);
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications] = useState(5); // عدد الإشعارات غير المقروءة
 
   const parseDate = (d: string) => {
     const [y, m, day] = d.split('/').map(Number);
@@ -111,9 +114,16 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
+            <button 
+              onClick={() => setShowNotifications(true)}
+              className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
+            >
               <Bell className="w-5 h-5 text-[#8B7355]" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full text-xs"></span>
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                  {unreadNotifications}
+                </span>
+              )}
             </button>
             <button className="btn-secondary text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-4">
               <Mail className="w-4 h-4" />
@@ -347,6 +357,12 @@ const Dashboard = () => {
       <AiChatModal
         isOpen={showAiChat}
         onClose={() => setShowAiChat(false)}
+      />
+      
+      <NotificationModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        userRole="user"
       />
     </div>
   );

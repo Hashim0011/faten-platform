@@ -31,6 +31,7 @@ import {
   FileText,
   Book
 } from 'lucide-react';
+import NotificationModal from '../components/NotificationModal';
 
 interface User {
   id: number;
@@ -89,6 +90,8 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddContent, setShowAddContent] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadNotifications] = useState(8); // عدد الإشعارات غير المقروءة للمدير
 
   // Mock data - in real app, this would come from API
   const [analytics, setAnalytics] = useState<Analytics>({
@@ -375,9 +378,16 @@ const AdminDashboard = () => {
               >
                 <RefreshCw className="w-5 h-5 text-[#8B7355]" />
               </button>
-              <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative">
+              <button 
+                onClick={() => setShowNotifications(true)}
+                className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
+              >
                 <Bell className="w-5 h-5 text-[#8B7355]" />
-                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                    {unreadNotifications}
+                  </span>
+                )}
               </button>
               {activeSection === 'content' && (
                 <button
@@ -932,6 +942,13 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Notifications Modal */}
+      <NotificationModal
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+        userRole="admin"
+      />
     </div>
   );
 };
