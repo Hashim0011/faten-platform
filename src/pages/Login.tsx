@@ -39,7 +39,17 @@ const Login = () => {
       }
     } catch (error: any) {
       console.error('خطأ في تسجيل الدخول:', error);
-      setError('بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى');
+      
+      // Handle specific error types
+      if (error.message?.includes('Invalid login credentials')) {
+        setError('بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور، أو تأكد من تفعيل حسابك عبر البريد الإلكتروني.');
+      } else if (error.message?.includes('email_not_confirmed') || error.message?.includes('Email not confirmed')) {
+        setError('لم يتم تأكيد بريدك الإلكتروني بعد. يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد.');
+      } else if (error.message?.includes('rate_limit')) {
+        setError('تم إرسال عدد كبير من الطلبات. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.');
+      } else {
+        setError('حدث خطأ في تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+      }
     } finally {
       setIsLoading(false);
     }
