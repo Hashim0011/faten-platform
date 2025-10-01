@@ -77,13 +77,11 @@ const HomePage = () => {
       
       // Handle specific error types
       if (error.message?.includes('Invalid login credentials')) {
-        setError('بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور، أو تأكد من تفعيل حسابك عبر البريد الإلكتروني.');
+        setError('بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.');
       } else if (error.message?.includes('rate_limit')) {
         setError('تم إرسال عدد كبير من الطلبات. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.');
       } else if (error.message?.includes('email_not_confirmed')) {
         setError('يرجى تأكيد بريدك الإلكتروني أولاً من خلال الرابط المرسل إليك.');
-      } else if (error.message?.includes('Email not confirmed')) {
-        setError('لم يتم تأكيد بريدك الإلكتروني بعد. يرجى فتح بريدك الإلكتروني والنقر على رابط التأكيد.');
       } else if (error.message?.includes('row-level security')) {
         setError('تم إنشاء الحساب بنجاح. يرجى تسجيل الدخول.');
         setIsLogin(true); // Switch to login mode
