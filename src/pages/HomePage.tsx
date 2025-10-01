@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield, Phone } from 'lucide-react';
+import { signUp, signIn, getUserRole } from '../lib/auth';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,23 +17,57 @@ const HomePage = () => {
     role: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError('');
     
-    if (isLogin) {
-      // تسجيل الدخول - الانتقال مباشرة للوحة التحكم
-      const email = formData.email.toLowerCase();
-      
-      if (email === 'admin@faten.com') {
-        navigate('/admin-dashboard');
-      } else if (email === 'expert@faten.com') {
-        navigate('/expert-dashboard');
+    try {
+      if (isLogin) {
+        // تسجيل الدخول
+        const { user } = await signIn({
+          email: formData.email,
+          password: formData.password
+        });
+
+        if (user) {
+          const userRole = await getUserRole(user.id);
+          
+          // توجيه المستخدم حسب دوره
+          switch (userRole) {
+            case 'admin':
+              navigate('/admin-dashboard');
+              break;
+            case 'expert':
+              navigate('/expert-dashboard');
+              break;
+            default:
+              navigate('/dashboard');
+          }
+        }
       } else {
-        navigate('/dashboard');
+        // التسجيل الجديد
+        if (!formData.role) {
+          setError('يرجى اختيار نوع المستخدم');
+          return;
+        }
+
+        await signUp({
+          email: formData.email,
+          password: formData.password,
+          fullName: formData.name,
+          phone: formData.phone,
+          role: formData.role as 'parent' | 'teacher' | 'student' | 'other'
+        });
+
+        // الانتقال لصفحة التحقق
+        navigate('/two-factor-verification');
       }
-    } else {
-      // التسجيل الجديد - الانتقال لصفحة التحقق بخطوتين
-      navigate('/two-factor-verification');
+    } catch (error: any) {
+      console.error('خطأ في العملية:', error);
+      setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -109,7 +146,7 @@ const HomePage = () => {
                   <select
                     name="role"
                     value={formData.role || ''}
-                    onChange={handleInputChange}
+                    onChange={(e) => setFormData({...formData, role: e.target.value})}
                     className="input-modern w-full has-right-icon appearance-none cursor-pointer"
                     required={!isLogin}
                   >
@@ -208,11 +245,18 @@ const HomePage = () => {
               </div>
             )}
 
+            {error && (
+              <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+                <p className="text-red-600 text-sm text-center">{error}</p>
+              </div>
+            )}
+
             <button
               type="submit"
-              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center gap-3"
+              disabled={isLoading}
+              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>{isLogin ? 'تسجيل الدخول' : 'إنشاء الحساب'}</span>
+              <span>{isLoading ? 'جاري المعالجة...' : (isLogin ? 'تسجيل الدخول' : 'إنشاء الحساب')}</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>

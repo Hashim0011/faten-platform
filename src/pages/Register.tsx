@@ -1,21 +1,65 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Users, Phone } from 'lucide-react';
+import { signUp } from '../lib/auth';
 
 const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
+    role: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/two-factor-verification');
+    setIsLoading(true);
+    setError('');
+
+    // التحقق من تطابق كلمات المرور
+    if (formData.password !== formData.confirmPassword) {
+      setError('كلمات المرور غير متطابقة');
+      setIsLoading(false);
+      return;
+    }
+
+    // التحقق من اختيار الدور
+    if (!formData.role) {
+      setError('يرجى اختيار نوع المستخدم');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await signUp({
+        email: formData.email,
+        password: formData.password,
+        fullName: formData.name,
+        phone: formData.phone,
+        role: formData.role as 'parent' | 'teacher' | 'student' | 'other'
+      });
+
+      navigate('/two-factor-verification');
+    } catch (error: any) {
+      console.error('خطأ في التسجيل:', error);
+      setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
   };
 
   return (
@@ -39,6 +83,9 @@ const Register = () => {
             <div className="relative">
               <input
                 type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
                 className="input-modern w-full has-right-icon"
                 placeholder="أدخل اسمك الكامل"
                 required
@@ -49,12 +96,60 @@ const Register = () => {
           
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#8B7355]" />
+              نوع المستخدم
+            </label>
+            <div className="relative">
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                className="input-modern w-full has-right-icon appearance-none cursor-pointer"
+                required
+              >
+                <option value="">اختر نوع المستخدم</option>
+                <option value="parent">ولي أمر</option>
+                <option value="teacher">معلم</option>
+                <option value="student">طالب</option>
+                <option value="other">غير ذلك</option>
+              </select>
+              <Users className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
+              <Phone className="w-4 h-4 text-[#8B7355]" />
+              رقم الجوال
+            </label>
+            <div className="relative">
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="input-modern w-full has-right-icon"
+                placeholder="05xxxxxxxx"
+                style={{ textAlign: 'right' }}
+              />
+              <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Mail className="w-4 h-4 text-[#8B7355]" />
               البريد الإلكتروني
             </label>
             <div className="relative">
               <input
                 type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
                 className="input-modern w-full has-right-icon"
                 placeholder="example@domain.com"
                 required
@@ -71,6 +166,9 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
                 className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة مرور قوية"
                 required
@@ -94,6 +192,9 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
                 className="input-modern w-full has-both-icons"
                 placeholder="أعد إدخال كلمة المرور"
                 required
@@ -109,11 +210,18 @@ const Register = () => {
             </div>
           </div>
           
+          {error && (
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+              <p className="text-red-600 text-sm text-center">{error}</p>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
+            disabled={isLoading}
+            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span>إنشاء الحساب</span>
+            <span>{isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
