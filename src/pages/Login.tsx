@@ -2,46 +2,21 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
 import { useState } from 'react';
-import { signIn, getUserRole } from '../lib/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    const formData = new FormData(e.target as HTMLFormElement);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
-
-    try {
-      const { user } = await signIn({ email, password });
-      
-      if (user) {
-        const userRole = await getUserRole(user.id);
-        
-        // توجيه المستخدم حسب دوره
-        switch (userRole) {
-          case 'admin':
-            navigate('/admin-dashboard');
-            break;
-          case 'expert':
-            navigate('/expert-dashboard');
-            break;
-          default:
-            navigate('/dashboard');
-        }
-      }
-    } catch (error: any) {
-      console.error('خطأ في تسجيل الدخول:', error);
-      setError('بيانات الدخول غير صحيحة، يرجى المحاولة مرة أخرى');
-    } finally {
-      setIsLoading(false);
+    // Check if it's an admin email (you can customize this logic)
+    const email = (e.target as HTMLFormElement).email.value;
+    if (email === 'admin@faten.com') {
+      navigate('/admin-dashboard');
+    } else if (email === 'expert@faten.com') {
+      navigate('/expert-dashboard');
+    } else {
+      navigate('/dashboard');
     }
   };
 
@@ -86,7 +61,6 @@ const Login = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
                 className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة المرور"
                 required
@@ -115,18 +89,11 @@ const Login = () => {
             </button>
           </div>
           
-          {error && (
-            <div className="p-4 rounded-xl bg-red-50 border border-red-200 mb-6">
-              <p className="text-red-600 text-sm text-center">{error}</p>
-            </div>
-          )}
-          
           <button
             type="submit"
-            disabled={isLoading}
-            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
           >
-            <span>{isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}</span>
+            <span>تسجيل الدخول</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>

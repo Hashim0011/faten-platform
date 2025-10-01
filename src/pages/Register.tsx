@@ -1,56 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Users, Phone } from 'lucide-react';
-import { signUp } from '../lib/auth';
+import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 
 const Register = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
-    phone: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    // التحقق من تطابق كلمات المرور
-    if (formData.password !== formData.confirmPassword) {
-      setError('كلمات المرور غير متطابقة');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      await signUp({
-        email: formData.email,
-        password: formData.password,
-        fullName: formData.name,
-        phone: formData.phone
-      });
-
-      navigate('/two-factor-verification');
-    } catch (error: any) {
-      console.error('خطأ في التسجيل:', error);
-      setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    navigate('/two-factor-verification');
   };
 
   return (
@@ -74,9 +39,6 @@ const Register = () => {
             <div className="relative">
               <input
                 type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
                 className="input-modern w-full has-right-icon"
                 placeholder="أدخل اسمك الكامل"
                 required
@@ -87,34 +49,12 @@ const Register = () => {
           
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Phone className="w-4 h-4 text-[#8B7355]" />
-              رقم الجوال
-            </label>
-            <div className="relative">
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="input-modern w-full has-right-icon"
-                placeholder="05xxxxxxxx"
-                style={{ textAlign: 'right' }}
-              />
-              <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Mail className="w-4 h-4 text-[#8B7355]" />
               البريد الإلكتروني
             </label>
             <div className="relative">
               <input
                 type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
                 className="input-modern w-full has-right-icon"
                 placeholder="example@domain.com"
                 required
@@ -131,9 +71,6 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
                 className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة مرور قوية"
                 required
@@ -157,9 +94,6 @@ const Register = () => {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleInputChange}
                 className="input-modern w-full has-both-icons"
                 placeholder="أعد إدخال كلمة المرور"
                 required
@@ -175,18 +109,11 @@ const Register = () => {
             </div>
           </div>
           
-          {error && (
-            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
-              <p className="text-red-600 text-sm text-center">{error}</p>
-            </div>
-          )}
-
           <button
             type="submit"
-            disabled={isLoading}
-            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
           >
-            <span>{isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}</span>
+            <span>إنشاء الحساب</span>
             <ArrowRight className="w-5 h-5" />
           </button>
         </form>
@@ -202,13 +129,6 @@ const Register = () => {
             تسجيل الدخول
           </button>
         </p>
-        
-        {/* Info about account types */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200">
-          <p className="text-xs text-blue-700 text-center">
-            <strong>ملاحظة:</strong> التسجيل متاح للمستخدمين العاديين فقط. حسابات الخبراء والإدارة يتم إنشاؤها من قبل الإدارة.
-          </p>
-        </div>
       </div>
     </div>
   );

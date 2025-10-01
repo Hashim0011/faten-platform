@@ -1,88 +1,36 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, BookOpen, Users, Shield, Phone } from 'lucide-react';
-import { signUp, signIn, getUserRole } from '../lib/auth';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
-    phone: ''
+    phone: '',
+    role: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
     
-    try {
-      if (isLogin) {
-        // تسجيل الدخول
-        const { user } = await signIn({
-          email: formData.email,
-          password: formData.password
-        });
-
-        if (user) {
-          const userRole = await getUserRole(user.id);
-          
-          // توجيه المستخدم حسب دوره
-          switch (userRole) {
-            case 'admin':
-              navigate('/admin-dashboard');
-              break;
-            case 'expert':
-              navigate('/expert-dashboard');
-              break;
-            default:
-              navigate('/dashboard');
-          }
-        }
-      } else {
-        // التسجيل الجديد
-        const result = await signUp({
-          email: formData.email,
-          password: formData.password,
-          fullName: formData.name,
-          phone: formData.phone
-        });
-
-        // Check if email confirmation is required
-        if (result.user && !result.session) {
-          // Email confirmation required
-          setError('تم إرسال رابط التأكيد إلى بريدك الإلكتروني. يرجى التحقق من البريد الإلكتروني لتفعيل الحساب.');
-        } else if (result.session) {
-          // User is automatically logged in (email confirmation disabled)
-          navigate('/dashboard');
-        } else {
-          // الانتقال لصفحة التحقق
-          navigate('/two-factor-verification');
-        }
-      }
-    } catch (error: any) {
-      console.error('خطأ في العملية:', error);
+    if (isLogin) {
+      // تسجيل الدخول - الانتقال مباشرة للوحة التحكم
+      const email = formData.email.toLowerCase();
       
-      // Handle specific error types
-      if (error.message?.includes('Invalid login credentials')) {
-        setError('بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.');
-      } else if (error.message?.includes('rate_limit')) {
-        setError('تم إرسال عدد كبير من الطلبات. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.');
-      } else if (error.message?.includes('email_not_confirmed')) {
-        setError('يرجى تأكيد بريدك الإلكتروني أولاً من خلال الرابط المرسل إليك.');
-      } else if (error.message?.includes('row-level security')) {
-        setError('تم إنشاء الحساب بنجاح. يرجى تسجيل الدخول.');
-        setIsLogin(true); // Switch to login mode
+      if (email === 'admin@faten.com') {
+        navigate('/admin-dashboard');
+      } else if (email === 'expert@faten.com') {
+        navigate('/expert-dashboard');
       } else {
-        setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+        navigate('/dashboard');
       }
-    } finally {
-      setIsLoading(false);
+    } else {
+      // التسجيل الجديد - الانتقال لصفحة التحقق بخطوتين
+      navigate('/two-factor-verification');
     }
   };
 
@@ -151,6 +99,33 @@ const HomePage = () => {
               </div>
             )}
 
+            {!isLogin && (
+              <div>
+                <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#8B7355]" />
+                  نوع المستخدم
+                </label>
+                <div className="relative">
+                  <select
+                    name="role"
+                    value={formData.role || ''}
+                    onChange={handleInputChange}
+                    className="input-modern w-full has-right-icon appearance-none cursor-pointer"
+                    required={!isLogin}
+                  >
+                    <option value="">اختر نوع المستخدم</option>
+                    <option value="parent">ولي أمر</option>
+                    <option value="teacher">معلم</option>
+                    <option value="student">طالب</option>
+                    <option value="other">غير ذلك</option>
+                  </select>
+                  <Users className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                  <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+            )}
             {!isLogin && (
               <div>
                 <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
@@ -233,18 +208,11 @@ const HomePage = () => {
               </div>
             )}
 
-            {error && (
-              <div className="p-4 rounded-xl bg-red-50 border border-red-200">
-                <p className="text-red-600 text-sm text-center">{error}</p>
-              </div>
-            )}
-
             <button
               type="submit"
-              disabled={isLoading}
-              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full py-3 sm:py-4 text-base sm:text-lg font-semibold flex items-center justify-center gap-3"
             >
-              <span>{isLoading ? 'جاري المعالجة...' : (isLogin ? 'تسجيل الدخول' : 'إنشاء الحساب')}</span>
+              <span>{isLogin ? 'تسجيل الدخول' : 'إنشاء الحساب'}</span>
               <ArrowRight className="w-5 h-5" />
             </button>
           </form>
@@ -284,16 +252,6 @@ const HomePage = () => {
             <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
           <span className="text-xs sm:text-sm text-[#6B7280] font-medium text-center">أمن<br/>فكري</span>
-        </div>
-      </div>
-
-      {/* Login credentials info for testing */}
-      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200 max-w-md mx-auto">
-        <h4 className="text-sm font-semibold text-blue-800 mb-2">حسابات للاختبار:</h4>
-        <div className="text-xs text-blue-700 space-y-1">
-          <div><strong>إدارة:</strong> admin@faten.com / Admin123!</div>
-          <div><strong>خبير:</strong> expert@faten.com / Expert123!</div>
-          <div><strong>مستخدم:</strong> سجل حساب جديد</div>
         </div>
       </div>
     </div>
