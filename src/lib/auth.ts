@@ -5,7 +5,6 @@ export interface SignUpData {
   password: string
   fullName: string
   phone?: string
-  role: 'parent' | 'teacher' | 'student' | 'other'
 }
 
 export interface SignInData {
@@ -13,49 +12,26 @@ export interface SignInData {
   password: string
 }
 
-// تسجيل مستخدم جديد
+// تسجيل مستخدم جديد (للمستخدمين العاديين فقط)
 export async function signUp(userData: SignUpData) {
   try {
-    // إنشاء حساب في Supabase Auth
+    // إنشاء حساب في Supabase Auth (دور المستخدم العادي فقط)
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: userData.email,
       password: userData.password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
+          role: 'user', // دائماً مستخدم عادي
           full_name: userData.fullName,
-          phone: userData.phone,
-          role: userData.role
+          phone: userData.phone
         }
       }
     })
 
     if (authError) throw authError
 
-    // إضافة المستخدم إلى جدول users
-    if (authData.user) {
-      const { error: dbError } = await supabase
-        .from('users')
-        .insert([
-          {
-            id: authData.user.id,
-            email: userData.email,
-            full_name: userData.fullName,
-            phone: userData.phone,
-            role: userData.role,
-            status: 'active'
-          }
-        ])
-
-      if (dbError) {
-        console.error('خطأ في إضافة المستخدم لقاعدة البيانات:', dbError)
-        // If it's an RLS error, the user was created in auth but not in our table
-        // This might be acceptable for now, we can handle it in the UI
-        if (dbError.code !== '42501') {
-          throw dbError
-        }
-      }
-    }
+    // سيتم إضافة المستخدم تلقائياً عبر trigger في قاعدة البيانات
 
     return { user: authData.user, session: authData.session }
   } catch (error) {
@@ -98,15 +74,39 @@ export async function getCurrentUser() {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (user) {
-      // الحصول على بيانات المستخدم من قاعدة البيانات
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+      const role = await getUserRole(user.id)
+      
+      let userData = null
+      
+      // الحصول على بيانات المستخدم حسب دوره
+      if (role === 'admin') {
+        const { data, error } = await supabase
+          .from('admins')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (!error) userData = { ...data, role: 'admin' }
+      } else if (role === 'expert') {
+        const { data, error } = await supabase
+          .from('experts')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (!error) userData = { ...data, role: 'expert' }
+      } else {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+        
+        if (!error) userData = { ...data, role: 'user' }
+      }
 
-      if (error) {
-        console.error('خطأ في الحصول على بيانات المستخدم:', error)
+      if (!userData) {
+        console.error('لم يتم العثور على بيانات المستخدم')
         return null
       }
 
@@ -123,16 +123,14 @@ export async function getCurrentUser() {
 // التحقق من دور المستخدم
 export async function getUserRole(userId: string) {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('role, email')
-      .eq('id', userId)
+    // التحقق من الإدارة أولاً
+    const { data: adminData } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('user_id', userId)
       .single()
 
-    if (error) throw error
-
-    // التحقق من الإدارة
-    if (data.email === 'admin@faten.com') {
+    if (adminData) {
       return 'admin'
     }
 
@@ -147,9 +145,21 @@ export async function getUserRole(userId: string) {
       return 'expert'
     }
 
-    return data.role
+    // التحقق من المستخدمين العاديين
+    const { data: userData } = await supabase
+      .from('users')
+      .select('id')
+      .eq('user_id', userId)
+      .single()
+
+    if (userData) {
+      return 'user'
+    }
+
+    // افتراضي
+    return 'user'
   } catch (error) {
     console.error('خطأ في التحقق من دور المستخدم:', error)
-    return 'student'
+    return 'user'
   }
 }

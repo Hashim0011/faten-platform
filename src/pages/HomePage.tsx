@@ -13,8 +13,7 @@ const HomePage = () => {
     email: '',
     password: '',
     name: '',
-    phone: '',
-    role: ''
+    phone: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -47,17 +46,11 @@ const HomePage = () => {
         }
       } else {
         // التسجيل الجديد
-        if (!formData.role) {
-          setError('يرجى اختيار نوع المستخدم');
-          return;
-        }
-
         const result = await signUp({
           email: formData.email,
           password: formData.password,
           fullName: formData.name,
-          phone: formData.phone,
-          role: formData.role as 'parent' | 'teacher' | 'student' | 'other'
+          phone: formData.phone
         });
 
         // Check if email confirmation is required
@@ -158,33 +151,6 @@ const HomePage = () => {
               </div>
             )}
 
-            {!isLogin && (
-              <div>
-                <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#8B7355]" />
-                  نوع المستخدم
-                </label>
-                <div className="relative">
-                  <select
-                    name="role"
-                    value={formData.role || ''}
-                    onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    className="input-modern w-full has-right-icon appearance-none cursor-pointer"
-                    required={!isLogin}
-                  >
-                    <option value="">اختر نوع المستخدم</option>
-                    <option value="parent">ولي أمر</option>
-                    <option value="teacher">معلم</option>
-                    <option value="student">طالب</option>
-                    <option value="other">غير ذلك</option>
-                  </select>
-                  <Users className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
-                  <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            )}
             {!isLogin && (
               <div>
                 <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
@@ -318,6 +284,16 @@ const HomePage = () => {
             <Shield className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
           <span className="text-xs sm:text-sm text-[#6B7280] font-medium text-center">أمن<br/>فكري</span>
+        </div>
+      </div>
+
+      {/* Login credentials info for testing */}
+      <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200 max-w-md mx-auto">
+        <h4 className="text-sm font-semibold text-blue-800 mb-2">حسابات للاختبار:</h4>
+        <div className="text-xs text-blue-700 space-y-1">
+          <div><strong>إدارة:</strong> admin@faten.com / Admin123!</div>
+          <div><strong>خبير:</strong> expert@faten.com / Expert123!</div>
+          <div><strong>مستخدم:</strong> سجل حساب جديد</div>
         </div>
       </div>
     </div>
