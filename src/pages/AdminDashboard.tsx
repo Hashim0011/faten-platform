@@ -1,36 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Brain, 
-  Users, 
-  UserCog, 
-  BookOpen, 
-  BarChart3, 
-  Home,
-  Search, 
-  Filter, 
-  Plus, 
-  Trash2, 
-  Ban, 
-  Eye, 
-  Edit,
-  Settings, 
-  LogOut, 
-  Bell,
-  TrendingUp,
-  Clock,
-  MessageSquare,
-  Star,
-  Activity,
-  Download,
-  RefreshCw,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Video,
-  FileText,
-  Book
-} from 'lucide-react';
+import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, CreditCard as Edit, Settings, LogOut, Bell, TrendingUp, Clock, MessageSquare, Star, Activity, Download, RefreshCw, AlertTriangle, CheckCircle, XCircle, Video, FileText, Book } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
 
 interface User {
