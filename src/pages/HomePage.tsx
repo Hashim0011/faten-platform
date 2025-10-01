@@ -76,7 +76,9 @@ const HomePage = () => {
       console.error('خطأ في العملية:', error);
       
       // Handle specific error types
-      if (error.message?.includes('rate_limit')) {
+      if (error.message?.includes('Invalid login credentials')) {
+        setError('بيانات تسجيل الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.');
+      } else if (error.message?.includes('rate_limit')) {
         setError('تم إرسال عدد كبير من الطلبات. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.');
       } else if (error.message?.includes('email_not_confirmed')) {
         setError('يرجى تأكيد بريدك الإلكتروني أولاً من خلال الرابط المرسل إليك.');
