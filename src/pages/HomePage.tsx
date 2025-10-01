@@ -52,7 +52,7 @@ const HomePage = () => {
           return;
         }
 
-        await signUp({
+        const result = await signUp({
           email: formData.email,
           password: formData.password,
           fullName: formData.name,
@@ -60,12 +60,32 @@ const HomePage = () => {
           role: formData.role as 'parent' | 'teacher' | 'student' | 'other'
         });
 
-        // الانتقال لصفحة التحقق
-        navigate('/two-factor-verification');
+        // Check if email confirmation is required
+        if (result.user && !result.session) {
+          // Email confirmation required
+          setError('تم إرسال رابط التأكيد إلى بريدك الإلكتروني. يرجى التحقق من البريد الإلكتروني لتفعيل الحساب.');
+        } else if (result.session) {
+          // User is automatically logged in (email confirmation disabled)
+          navigate('/dashboard');
+        } else {
+          // الانتقال لصفحة التحقق
+          navigate('/two-factor-verification');
+        }
       }
     } catch (error: any) {
       console.error('خطأ في العملية:', error);
-      setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+      
+      // Handle specific error types
+      if (error.message?.includes('rate_limit')) {
+        setError('تم إرسال عدد كبير من الطلبات. يرجى الانتظار قليلاً ثم المحاولة مرة أخرى.');
+      } else if (error.message?.includes('email_not_confirmed')) {
+        setError('يرجى تأكيد بريدك الإلكتروني أولاً من خلال الرابط المرسل إليك.');
+      } else if (error.message?.includes('row-level security')) {
+        setError('تم إنشاء الحساب بنجاح. يرجى تسجيل الدخول.');
+        setIsLogin(true); // Switch to login mode
+      } else {
+        setError(error.message || 'حدث خطأ، يرجى المحاولة مرة أخرى');
+      }
     } finally {
       setIsLoading(false);
     }

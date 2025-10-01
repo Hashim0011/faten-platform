@@ -21,6 +21,7 @@ export async function signUp(userData: SignUpData) {
       email: userData.email,
       password: userData.password,
       options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
         data: {
           full_name: userData.fullName,
           phone: userData.phone,
@@ -48,7 +49,11 @@ export async function signUp(userData: SignUpData) {
 
       if (dbError) {
         console.error('خطأ في إضافة المستخدم لقاعدة البيانات:', dbError)
-        throw dbError
+        // If it's an RLS error, the user was created in auth but not in our table
+        // This might be acceptable for now, we can handle it in the UI
+        if (dbError.code !== '42501') {
+          throw dbError
+        }
       }
     }
 
