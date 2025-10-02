@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -19,46 +18,19 @@ const Login = () => {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    try {
-      // Sign in with Supabase
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-        setLoading(false);
-        return;
+    // محاكاة تسجيل الدخول
+    setTimeout(() => {
+      const emailLower = email.toLowerCase();
+      
+      if (emailLower === 'admin@faten.com') {
+        navigate('/admin-dashboard');
+      } else if (emailLower === 'expert@faten.com') {
+        navigate('/expert-dashboard');
+      } else {
+        navigate('/dashboard');
       }
-
-      if (!data.user) {
-        setError('حدث خطأ أثناء تسجيل الدخول');
-        setLoading(false);
-        return;
-      }
-
-      // Get user role from metadata
-      const role = data.user.user_metadata?.role || 'user';
-
-      // Redirect based on role
-      switch (role) {
-        case 'admin':
-          navigate('/admin-dashboard');
-          break;
-        case 'expert':
-          navigate('/expert-dashboard');
-          break;
-        case 'user':
-        default:
-          navigate('/dashboard');
-          break;
-      }
-    } catch (err) {
-      console.error('Login error:', err);
-      setError('حدث خطأ أثناء تسجيل الدخول');
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (

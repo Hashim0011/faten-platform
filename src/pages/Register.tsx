@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -35,52 +34,11 @@ const Register = () => {
       return;
     }
 
-    try {
-      // Sign up with Supabase
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: 'user',
-          },
-        },
-      });
-
-      if (signUpError) {
-        setError('حدث خطأ أثناء إنشاء الحساب: ' + signUpError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!data.user) {
-        setError('حدث خطأ أثناء إنشاء الحساب');
-        setLoading(false);
-        return;
-      }
-
-      // Create user profile in users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          user_id: data.user.id,
-          full_name: fullName,
-          email: email,
-          status: 'active',
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-      }
-
-      // Redirect to dashboard after successful registration
+    // محاكاة إنشاء الحساب
+    setTimeout(() => {
       navigate('/dashboard');
-    } catch (err) {
-      console.error('Registration error:', err);
-      setError('حدث خطأ أثناء إنشاء الحساب');
       setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
