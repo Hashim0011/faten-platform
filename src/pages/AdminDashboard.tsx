@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, CreditCard as Edit, Settings, LogOut, Bell, TrendingUp, Clock, MessageSquare, Star, Activity, Download, RefreshCw, AlertTriangle, CheckCircle, XCircle, Video, FileText, Book } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
+import AddContentModal from '../components/AddContentModal';
+import { useContent } from '../hooks/useContent';
+import ContentGrid from '../components/ContentGrid';
 
 interface User {
   id: number;
@@ -62,6 +65,7 @@ const AdminDashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications] = useState(8); // عدد الإشعارات غير المقروءة للمدير
+  const { content, loading, loadContent, deleteContent } = useContent();
 
   // Mock data - in real app, this would come from API
   const [analytics, setAnalytics] = useState<Analytics>({
@@ -536,56 +540,19 @@ const AdminDashboard = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {contentList.map(content => (
-                  <div key={content.id} className="content-card card-hover group">
-                    <div className="relative h-48 mb-4 rounded-xl overflow-hidden">
-                      <img
-                        src={content.image}
-                        alt={content.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-3 right-3">
-                        {getStatusBadge(content.status)}
-                      </div>
-                      <div className="absolute top-3 left-3 flex gap-2">
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors">
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B7355] transition-colors">
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        {getContentIcon(content.type)}
-                        <h3 className="text-[#2D2D2D] font-bold text-lg leading-tight">{content.title}</h3>
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-[#6B7280]">
-                        <span>{content.author}</span>
-                        <span>{content.category}</span>
-                      </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
-                        <span className="text-sm text-[#6B7280]">{content.uploadDate}</span>
-                        <div className="flex items-center gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Eye className="w-4 h-4 text-[#8B7355]" />
-                            <span>{content.views}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-red-500">❤️</span>
-                            <span>{content.likes}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <div className="text-center py-12 text-[#6B7280]">
+                  <p>جاري التحميل...</p>
+                </div>
+              ) : (
+                <ContentGrid
+                  content={content.filter(item =>
+                    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+                  )}
+                  onDelete={deleteContent}
+                />
+              )}
             </div>
           )}
 
@@ -841,77 +808,11 @@ const AdminDashboard = () => {
       </div>
 
       {/* Add Content Modal */}
-      {showAddContent && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-            <div className="p-6 border-b border-[#8B7355]/20">
-              <h3 className="text-xl font-bold text-[#2D2D2D]">إضافة محتوى جديد</h3>
-            </div>
-            <div className="p-6">
-              <form className="space-y-6">
-                <div>
-                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
-                  <input
-                    type="text"
-                    className="input-modern w-full"
-                    placeholder="أدخل عنوان المحتوى"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[#2D2D2D] font-semibold mb-3">نوع المحتوى</label>
-                    <select className="input-modern w-full">
-                      <option value="book">كتاب</option>
-                      <option value="video">فيديو</option>
-                      <option value="article">مقال</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[#2D2D2D] font-semibold mb-3">الفئة</label>
-                    <select className="input-modern w-full">
-                      <option value="security">الأمن الفكري</option>
-                      <option value="education">التربية الإسلامية</option>
-                      <option value="culture">الثقافة العامة</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[#2D2D2D] font-semibold mb-3">المؤلف</label>
-                  <input
-                    type="text"
-                    className="input-modern w-full"
-                    placeholder="اسم المؤلف أو المنشئ"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
-                  <textarea
-                    className="input-modern w-full h-24 resize-none"
-                    placeholder="أدخل وصف المحتوى"
-                  ></textarea>
-                </div>
-                <div>
-                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة</label>
-                  <input
-                    type="url"
-                    className="input-modern w-full"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-              </form>
-            </div>
-            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3">
-              <button className="btn-primary flex-1">إضافة المحتوى</button>
-              <button
-                onClick={() => setShowAddContent(false)}
-                className="btn-secondary flex-1"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddContentModal
+        isOpen={showAddContent}
+        onClose={() => setShowAddContent(false)}
+        onContentAdded={loadContent}
+      />
 
       {/* Notifications Modal */}
       <NotificationModal
