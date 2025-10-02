@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import TwoFactorVerification from './pages/TwoFactorVerification';
+import SetupAccounts from './pages/SetupAccounts';
 
 // مكون صغير يغير العنوان حسب الصفحة
 function PageTitleUpdater() {
@@ -58,6 +59,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/expert-dashboard" element={<ExpertDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/setup-accounts" element={<SetupAccounts />} />
         </Routes>
       </div>
     </Router>
