@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Trash2, Edit, Video, FileText, Book } from 'lucide-react';
+import { Eye, Trash2, CreditCard as Edit, Video, FileText, Book } from 'lucide-react';
 import type { ContentItem } from '../hooks/useContent';
 
 interface ContentGridProps {
