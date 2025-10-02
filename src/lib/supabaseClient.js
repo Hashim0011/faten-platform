@@ -9,40 +9,39 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const getUserRole = async (userId) => {
+export const getUserProfile = async (userId) => {
   try {
-    const { data: admin } = await supabase
-      .from('admins')
-      .select('user_id, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, email, full_name, role, status, avatar_url, bio, specialization, permissions')
+      .eq('id', userId)
       .maybeSingle();
 
-    if (admin) return 'admin';
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
 
-    const { data: expert } = await supabase
-      .from('experts')
-      .select('user_id, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
+    if (!profile) {
+      console.warn('No profile found for user:', userId);
+      return null;
+    }
 
-    if (expert) return 'expert';
+    if (profile.status !== 'active') {
+      console.warn('User profile is not active:', userId);
+      return null;
+    }
 
-    const { data: user } = await supabase
-      .from('users')
-      .select('user_id, status')
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (user) return 'user';
-
-    return null;
+    return profile;
   } catch (error) {
-    console.error('Error fetching user role:', error);
+    console.error('Error fetching user profile:', error);
     return null;
   }
+};
+
+export const getUserRole = async (userId) => {
+  const profile = await getUserProfile(userId);
+  return profile ? profile.role : null;
 };
 
 export const redirectByRole = (role, navigate) => {

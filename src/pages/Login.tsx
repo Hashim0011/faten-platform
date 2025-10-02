@@ -38,48 +38,48 @@ const Login = () => {
         return;
       }
 
-      // Check admin table
-      const { data: admin } = await supabase
-        .from('admins')
-        .select('user_id, status')
-        .eq('user_id', data.user.id)
-        .eq('status', 'active')
+      // Query profiles table for user role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, role, status')
+        .eq('id', data.user.id)
         .maybeSingle();
 
-      if (admin) {
-        navigate('/admin-dashboard');
+      if (profileError) {
+        console.error('Profile query error:', profileError);
+        setError('حدث خطأ أثناء تحميل بيانات المستخدم');
+        setLoading(false);
         return;
       }
 
-      // Check expert table
-      const { data: expert } = await supabase
-        .from('experts')
-        .select('user_id, status')
-        .eq('user_id', data.user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (expert) {
-        navigate('/expert-dashboard');
+      if (!profile) {
+        setError('لم يتم العثور على صلاحيات لهذا الحساب. يرجى التواصل مع الإدارة');
+        setLoading(false);
         return;
       }
 
-      // Check users table
-      const { data: user } = await supabase
-        .from('users')
-        .select('user_id, status')
-        .eq('user_id', data.user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-
-      if (user) {
-        navigate('/dashboard');
+      if (profile.status !== 'active') {
+        setError('هذا الحساب غير نشط. يرجى التواصل مع الإدارة');
+        setLoading(false);
         return;
       }
 
-      // No role found - redirect to role selection
-      setError('لم يتم العثور على صلاحيات لهذا الحساب');
-      setLoading(false);
+      // Redirect based on role
+      switch (profile.role) {
+        case 'admin':
+          navigate('/admin-dashboard');
+          break;
+        case 'expert':
+          navigate('/expert-dashboard');
+          break;
+        case 'user':
+          navigate('/dashboard');
+          break;
+        default:
+          setError('صلاحية غير معروفة. يرجى التواصل مع الإدارة');
+          setLoading(false);
+          break;
+      }
     } catch (err) {
       console.error('Login error:', err);
       setError('حدث خطأ أثناء تسجيل الدخول');

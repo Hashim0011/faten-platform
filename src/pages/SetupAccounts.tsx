@@ -14,21 +14,23 @@ const SetupAccounts = () => {
 
   const checkAccounts = async () => {
     try {
-      const { data: admins } = await supabase
-        .from('admins')
-        .select('email')
+      const { data: adminProfile } = await supabase
+        .from('profiles')
+        .select('email, role')
         .eq('email', 'admin@example.com')
+        .eq('role', 'admin')
         .maybeSingle();
 
-      const { data: experts } = await supabase
-        .from('experts')
-        .select('email')
+      const { data: expertProfile } = await supabase
+        .from('profiles')
+        .select('email, role')
         .eq('email', 'expert@example.com')
+        .eq('role', 'expert')
         .maybeSingle();
 
       setAccountsExist({
-        admin: !!admins,
-        expert: !!experts
+        admin: !!adminProfile,
+        expert: !!expertProfile
       });
     } catch (err) {
       console.error('Error checking accounts:', err);
@@ -118,7 +120,7 @@ const SetupAccounts = () => {
                 الحسابات غير جاهزة
               </p>
               <p className="text-sm text-gray-600">
-                يرجى تشغيل Migration في قاعدة البيانات
+                يرجى تشغيل CREATE_PROFILES_TABLE.sql في قاعدة البيانات
               </p>
             </div>
 
