@@ -2,21 +2,62 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Check if it's an admin email (you can customize this logic)
-    const email = (e.target as HTMLFormElement).email.value;
-    if (email === 'admin@faten.com') {
-      navigate('/admin-dashboard');
-    } else if (email === 'expert@faten.com') {
-      navigate('/expert-dashboard');
-    } else {
-      navigate('/dashboard');
+    setLoading(true);
+    setError('');
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      // Sign in with Supabase
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        setLoading(false);
+        return;
+      }
+
+      if (!data.user) {
+        setError('حدث خطأ أثناء تسجيل الدخول');
+        setLoading(false);
+        return;
+      }
+
+      // Get user role from metadata
+      const role = data.user.user_metadata?.role || 'user';
+
+      // Redirect based on role
+      switch (role) {
+        case 'admin':
+          navigate('/admin-dashboard');
+          break;
+        case 'expert':
+          navigate('/expert-dashboard');
+          break;
+        case 'user':
+        default:
+          navigate('/dashboard');
+          break;
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('حدث خطأ أثناء تسجيل الدخول');
+      setLoading(false);
     }
   };
 
@@ -36,6 +77,12 @@ const Login = () => {
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-8">
+          {error && (
+            <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+              <p className="text-red-600 text-sm text-center">{error}</p>
+            </div>
+          )}
+
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Mail className="w-4 h-4 text-[#8B7355]" />
@@ -48,11 +95,12 @@ const Login = () => {
                 className="input-modern w-full has-right-icon"
                 placeholder="example@domain.com"
                 required
+                disabled={loading}
               />
               <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
             </div>
           </div>
-          
+
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Lock className="w-4 h-4 text-[#8B7355]" />
@@ -61,15 +109,18 @@ const Login = () => {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
+                name="password"
                 className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة المرور"
                 required
+                disabled={loading}
               />
               <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
+                disabled={loading}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -92,9 +143,16 @@ const Login = () => {
           <button
             type="submit"
             className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
+            disabled={loading}
           >
-            <span>تسجيل الدخول</span>
-            <ArrowRight className="w-5 h-5" />
+            {loading ? (
+              <span>جاري تسجيل الدخول...</span>
+            ) : (
+              <>
+                <span>تسجيل الدخول</span>
+                <ArrowRight className="w-5 h-5" />
+              </>
+            )}
           </button>
         </form>
         
