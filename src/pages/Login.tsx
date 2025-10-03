@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
-import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 
-const Login = () => {
+const Login: React.FC = () => {
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,25 +19,31 @@ const Login = () => {
     const password = formData.get('password') as string;
 
     try {
-      // Sign in with Supabase
+      // تسجيل الدخول
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (signInError) {
-        setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('يرجى تأكيد بريدك الإلكتروني أولاً');
+        } else {
+          setError('حدث خطأ أثناء تسجيل الدخول');
+        }
         setLoading(false);
         return;
       }
 
       if (!data.user) {
-        setError('حدث خطأ أثناء تسجيل الدخول');
+        setError('لم يتم العثور على حساب المستخدم');
         setLoading(false);
         return;
       }
 
-      // Query profiles table for user role
+      // جلب الدور من جدول profiles
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, role, status')
@@ -47,7 +52,7 @@ const Login = () => {
 
       if (profileError) {
         console.error('Profile query error:', profileError);
-        setError('حدث خطأ أثناء تحميل بيانات المستخدم');
+        setError('حدث خطأ أثناء تحميل بيانات الحساب');
         setLoading(false);
         return;
       }
@@ -64,13 +69,13 @@ const Login = () => {
         return;
       }
 
-      // Redirect based on role
+      // التوجيه بناءً على الدور
       switch (profile.role) {
         case 'admin':
-          navigate('/admin-dashboard');
+          navigate('/admin/dashboard');
           break;
         case 'expert':
-          navigate('/expert-dashboard');
+          navigate('/expert/dashboard');
           break;
         case 'user':
           navigate('/dashboard');
@@ -82,17 +87,18 @@ const Login = () => {
       }
     } catch (err) {
       console.error('Login error:', err);
-      setError('حدث خطأ أثناء تسجيل الدخول');
+      setError('حدث خطأ غير متوقع أثناء تسجيل الدخول');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-pattern p-4 relative overflow-hidden">
-      {/* Background decorative elements */}
+      {/* عناصر ديكور الخلفية */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
-      
+      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1.5s' }}></div>
+
       <div className="glass-effect p-10 rounded-3xl max-w-lg w-full card-hover">
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
@@ -101,7 +107,7 @@ const Login = () => {
           <h1 className="text-4xl font-bold gradient-text mb-3">مرحباً بعودتك</h1>
           <p className="text-[#6B7280] -mt-1">سجل دخولك للوصول إلى حسابك في فطن</p>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-8">
           {error && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200">
@@ -109,6 +115,7 @@ const Login = () => {
             </div>
           )}
 
+          {/* البريد الإلكتروني */}
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Mail className="w-4 h-4 text-[#8B7355]" />
@@ -127,6 +134,7 @@ const Login = () => {
             </div>
           </div>
 
+          {/* كلمة المرور */}
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
               <Lock className="w-4 h-4 text-[#8B7355]" />
@@ -134,7 +142,7 @@ const Login = () => {
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 name="password"
                 className="input-modern w-full has-both-icons"
                 placeholder="أدخل كلمة المرور"
@@ -152,7 +160,8 @@ const Login = () => {
               </button>
             </div>
           </div>
-          
+
+          {/* تذكرني + نسيت كلمة المرور */}
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" className="w-4 h-4 text-[#8B7355] border-2 border-[#8B7355]/30 rounded focus:ring-[#8B7355]" />
@@ -165,7 +174,8 @@ const Login = () => {
               نسيت كلمة المرور؟
             </button>
           </div>
-          
+
+          {/* زر تسجيل الدخول */}
           <button
             type="submit"
             className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
@@ -181,9 +191,9 @@ const Login = () => {
             )}
           </button>
         </form>
-        
+
         <div className="section-divider"></div>
-        
+
         <p className="text-center text-[#6B7280]">
           ليس لديك حساب؟{' '}
           <button
