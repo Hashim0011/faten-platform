@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
-import { loginUser } from '../lib/auth';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Shield } from 'lucide-react';
+import { loginAdmin } from '../lib/auth';
 
-const Login = () => {
+const AdminLogin = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,10 +18,10 @@ const Login = () => {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
-    const result = await loginUser(email, password);
+    const result = await loginAdmin(email, password);
 
     if (result.success) {
-      navigate('/dashboard');
+      navigate('/admin-dashboard');
     } else {
       setError(result.error || 'حدث خطأ أثناء تسجيل الدخول');
     }
@@ -32,24 +32,24 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-pattern p-4 relative overflow-hidden">
       {/* Background decorative elements */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
+      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-[#EF4444]/10 to-[#DC2626]/10 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-[#DC2626]/10 to-[#B91C1C]/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
 
       <div className="glass-effect p-10 rounded-3xl max-w-md w-full card-hover">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
-              <Brain className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center">
+              <Shield className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold gradient-text mb-3">تسجيل دخول المستخدم</h1>
-          <p className="text-[#6B7280]">مرحباً بك في بوابة المستخدمين</p>
+          <h1 className="text-4xl font-bold gradient-text mb-3">بوابة الإدارة</h1>
+          <p className="text-[#6B7280]">تسجيل دخول المديرين فقط</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[#8B7355]" />
+              <Mail className="w-4 h-4 text-[#EF4444]" />
               البريد الإلكتروني
             </label>
             <div className="relative">
@@ -57,16 +57,16 @@ const Login = () => {
                 type="email"
                 name="email"
                 className="input-modern w-full has-right-icon"
-                placeholder="example@domain.com"
+                placeholder="admin@domain.com"
                 required
               />
-              <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#EF4444] w-5 h-5 pointer-events-none" />
             </div>
           </div>
 
           <div>
             <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[#8B7355]" />
+              <Lock className="w-4 h-4 text-[#EF4444]" />
               كلمة المرور
             </label>
             <div className="relative">
@@ -77,11 +77,11 @@ const Login = () => {
                 placeholder="أدخل كلمة المرور"
                 required
               />
-              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#EF4444] w-5 h-5 pointer-events-none" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#EF4444] hover:text-[#DC2626] transition-colors z-10"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -89,7 +89,7 @@ const Login = () => {
             <div className="mt-2 text-left">
               <button
                 type="button"
-                className="text-sm text-[#8B7355] hover:text-[#D4AF37] transition-colors font-medium"
+                className="text-sm text-[#EF4444] hover:text-[#DC2626] transition-colors font-medium"
               >
                 نسيت كلمة المرور؟
               </button>
@@ -105,7 +105,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white hover:shadow-lg hover:scale-[1.02] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span>{loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}</span>
             <ArrowRight className="w-5 h-5" />
@@ -118,7 +118,7 @@ const Login = () => {
           العودة إلى{' '}
           <button
             onClick={() => navigate('/')}
-            className="text-[#8B7355] hover:text-[#D4AF37] font-semibold transition-colors underline decoration-2 underline-offset-4"
+            className="text-[#EF4444] hover:text-[#DC2626] font-semibold transition-colors underline decoration-2 underline-offset-4"
           >
             الصفحة الرئيسية
           </button>
@@ -128,4 +128,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default AdminLogin;

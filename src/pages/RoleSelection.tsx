@@ -30,9 +30,9 @@ const RoleSelection = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <button
-          onClick={() => navigate('/register', { state: { role: 'user' } })}
+          onClick={() => navigate('/register')}
           className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#D4AF37]/20 to-transparent rounded-full blur-2xl"></div>
@@ -47,7 +47,7 @@ const RoleSelection = () => {
         </button>
 
         <button
-          onClick={() => navigate('/register', { state: { role: 'expert' } })}
+          onClick={() => navigate('/expert-login')}
           className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#8B5CF6]/20 to-transparent rounded-full blur-2xl"></div>
@@ -58,6 +58,21 @@ const RoleSelection = () => {
             <span className="status-badge status-featured mb-4">مميز</span>
             <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">خبير</h2>
             <p className="text-[#6B7280] text-base leading-relaxed">شارك خبراتك المتخصصة وقدم استشارات قيمة للمجتمع</p>
+          </div>
+        </button>
+
+        <button
+          onClick={() => navigate('/admin-login')}
+          className="glass-effect p-10 rounded-3xl card-hover group relative overflow-hidden"
+        >
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#EF4444]/20 to-transparent rounded-full blur-2xl"></div>
+          <div className="relative">
+            <div className="w-24 h-24 mx-auto mb-8 rounded-2xl bg-gradient-to-br from-[#EF4444] to-[#DC2626] flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg">
+              <Shield className="w-12 h-12 text-white" />
+            </div>
+            <span className="status-badge status-featured mb-4">مميز</span>
+            <h2 className="text-2xl font-bold text-[#2D2D2D] mb-4">مدير</h2>
+            <p className="text-[#6B7280] text-base leading-relaxed">إدارة المنصة والإشراف على المحتوى والمستخدمين</p>
           </div>
         </button>
       </div>

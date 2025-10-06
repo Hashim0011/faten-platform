@@ -1,9 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, Clock, Filter, Users, Star } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
 import NotificationModal from '../components/NotificationModal';
+import { getPublishedContent } from '../lib/content';
+import { getAllDiscussions } from '../lib/discussions';
+import { getUpcomingEvents } from '../lib/events';
+import { getAllUsers } from '../lib/users';
 
 type Topic = { id: number; title: string; date: string };
 
@@ -16,52 +20,54 @@ const Dashboard = () => {
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications] = useState(5); // عدد الإشعارات غير المقروءة
+  const [libraryContent, setLibraryContent] = useState<any>({
+    books: [],
+    videos: [],
+    articles: [],
+    course: []
+  });
+  const [discussionTopics, setDiscussionTopics] = useState<any[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
 
-  const parseDate = (d: string) => {
-    const [y, m, day] = d.split('/').map(Number);
-    return new Date(y, m - 1, day);
-  };
+  // تحميل جميع البيانات من الداتا بيس
+  useEffect(() => {
+    loadAllData();
+  }, []);
 
-  const isWithinDays = (d: Date, days: number) => {
-    const now = new Date();
-    const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
-    return diff <= days && diff >= 0;
+  const loadAllData = async () => {
+    // تحميل المحتوى
+    const contentResult = await getPublishedContent();
+    if (contentResult.success && contentResult.data) {
+      const content = {
+        books: contentResult.data.filter((item: any) => item.content_type === 'book'),
+        videos: contentResult.data.filter((item: any) => item.content_type === 'video'),
+        articles: contentResult.data.filter((item: any) => item.content_type === 'article'),
+        course: contentResult.data.filter((item: any) => item.content_type === 'course'),
+      };
+      setLibraryContent(content);
+    }
+
+    // تحميل النقاشات
+    const discussionsResult = await getAllDiscussions();
+    if (discussionsResult.success && discussionsResult.data) {
+      setDiscussionTopics(discussionsResult.data.slice(0, 3)); // أحدث 3 نقاشات
+    }
+
+    // تحميل الفعاليات القادمة
+    const eventsResult = await getUpcomingEvents();
+    if (eventsResult.success && eventsResult.data) {
+      setUpcomingEvents(eventsResult.data.slice(0, 3)); // أقرب 3 فعاليات
+    }
+
+    // تحميل عدد المستخدمين
+    const usersResult = await getAllUsers();
+    if (usersResult.success && usersResult.data) {
+      setTotalUsers(usersResult.data.length);
+    }
   };
 
   const formatInt = (n: number) => n.toLocaleString('en-US');
-
-  const discussionTopics: Topic[] = [
-    { id: 1, title: "دور الأسرة في تعزيز الأمن الفكري", date: "2026/03/15" },
-    { id: 2, title: "التحديات المعاصرة للشباب", date: "2026/03/14" },
-    { id: 3, title: "الوسطية في الإسلام", date: "2026/03/13" }
-  ];
-
-  const upcomingEvents = [
-    { id: 1, title: "ورشة عمل تعزيز الهوية الوطنية", date: "2026/03/20", type: "ورشة" },
-    { id: 2, title: "دورة مهارات التفكير النقدي", date: "2026/03/25", type: "دورة" },
-    { id: 3, title: "محاضرة الأمن الفكري في العصر الرقمي", date: "2026/03/28", type: "محاضرة" }
-  ];
-
-  const libraryContent = {
-    books: [
-      { id: 1, title: "أسس الأمن الفكري", desc: "دليل شامل لفهم وتطبيق مبادئ الأمن الفكري", date: "2026/03/01", likes: 167, image: "https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg" },
-      { id: 2, title: "تعزيز الهوية الوطنية", desc: "دراسة عن أهمية الهوية الوطنية وحمايتها", date: "2026/03/20", likes: 189, image: "https://images.pexels.com/photos/5834/nature-grass-leaf-green.jpg" },
-      { id: 3, title: "التربية الإسلامية والأمن الفكري", desc: "العلاقة بين التربية الإسلامية وتحقيق الأمن الفكري", date: "2026/03/05", likes: 145, image: "https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg" },
-      { id: 4, title: "مهارات التفكير النقدي", desc: "دليل عملي لتنمية مهارات التفكير النقدي", date: "2024/03/10", likes: 178, image: "https://images.pexels.com/photos/3755755/pexels-photo-3755755.jpeg" }
-    ],
-    videos: [
-      { id: 1, title: "الوسطية في الإسلام", desc: "سلسلة تعليمية عن مفهوم الوسطية", date: "2026/03/13", likes: 278, image: "https://images.pexels.com/photos/2774556/pexels-photo-2774556.jpeg" },
-      { id: 2, title: "محاضرة عن التطرف الفكري", desc: "محاضرة توعوية حول مخاطر التطرف", date: "2026/03/15", likes: 312, image: "https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg" },
-      { id: 3, title: "دور الأسرة في التربية", desc: "حلقة نقاشية عن دور الأسرة", date: "2026/03/18", likes: 245, image: "https://images.pexels.com/photos/7282476/pexels-photo-7282476.jpeg" },
-      { id: 4, title: "حماية الشباب من الانحراف", desc: "ندوة حول حماية الشباب", date: "2026/03/20", likes: 198, image: "https://images.pexels.com/photos/3760529/pexels-photo-3760529.jpeg" }
-    ],
-    articles: [
-      { id: 1, title: "التحديات المعاصرة للأمن الفكري", desc: "تحليل للتحديات التي تواجه الشباب", date: "2026/03/10", likes: 203, image: "https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg" },
-      { id: 2, title: "دور الأسرة في تعزيز الأمن الفكري", desc: "مقال يناقش أهمية دور الأسرة", date: "2026/03/18", likes: 156, image: "https://images.pexels.com/photos/3184339/pexels-photo-3184339.jpeg" },
-      { id: 3, title: "الإعلام والأمن الفكري", desc: "تأثير وسائل الإعلام على الأمن الفكري", date: "2026/03/15", likes: 167, image: "https://images.pexels.com/photos/518543/pexels-photo-518543.jpeg" },
-      { id: 4, title: "التعليم ودوره في الأمن الفكري", desc: "أهمية التعليم في تحقيق الأمن الفكري", date: "2026/03/12", likes: 189, image: "https://images.pexels.com/photos/3769714/pexels-photo-3769714.jpeg" }
-    ]
-  };
 
   const counts = useMemo(() => {
     const books = libraryContent.books.length;
@@ -69,20 +75,23 @@ const Dashboard = () => {
     const articles = libraryContent.articles.length;
     const total = books + videos + articles;
 
-    
-    const activeUsers = Math.max(300, total * 75);
+    // حساب عدد المستخدمين النشطين من قاعدة البيانات
+    const activeUsers = totalUsers;
 
-    const rating = 4.6;
+    // حساب متوسط التقييم من المحتوى (إذا كان موجود حقل rating)
+    const allContent = [...libraryContent.books, ...libraryContent.videos, ...libraryContent.articles];
+    const totalRating = allContent.reduce((sum: number, item: any) => sum + (item.rating || 0), 0);
+    const rating = allContent.length > 0 ? (totalRating / allContent.length) || 4.5 : 4.5;
 
     return { books, videos, articles, total, activeUsers, rating };
-  }, [libraryContent]);
+  }, [libraryContent, totalUsers]);
 
   const filteredContent = useMemo(() => {
     const q = searchQuery.trim();
     if (!q) return libraryContent[activeTab];
 
     return libraryContent[activeTab].filter((item: any) =>
-      [item.title, item.desc].some((t: string) => t.toLowerCase().includes(q.toLowerCase()))
+      [item.title, item.description].some((t: string) => t && t.toLowerCase().includes(q.toLowerCase()))
     );
   }, [activeTab, searchQuery, libraryContent]);
 
@@ -242,13 +251,17 @@ const Dashboard = () => {
             {/* Content Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredContent.map((item: any) => {
-                const d = parseDate(item.date);
-                const isNew = isWithinDays(d, 30);
+                const createdAt = new Date(item.created_at);
+                const now = new Date();
+                const daysDiff = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                const isNew = daysDiff <= 30 && daysDiff >= 0;
+                const formattedDate = createdAt.toLocaleDateString('ar-SA');
+
                 return (
                   <div key={item.id} className="content-card card-hover group overflow-hidden">
                     <div className="relative h-40 sm:h-48 mb-4 rounded-xl overflow-hidden">
                       <img
-                        src={item.image}
+                        src={item.image_url || '/placeholder.jpg'}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
@@ -259,14 +272,14 @@ const Dashboard = () => {
                     </div>
                     <div className="space-y-3">
                       <h3 className="text-[#2D2D2D] font-bold text-base sm:text-lg leading-tight group-hover:text-[#8B7355] transition-colors">{item.title}</h3>
-                      <p className="text-[#6B7280] text-xs sm:text-sm leading-relaxed line-clamp-2">{item.desc}</p>
+                      <p className="text-[#6B7280] text-xs sm:text-sm leading-relaxed line-clamp-2">{item.description || 'لا يوجد وصف'}</p>
                       <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6B7280]">
                           <Clock className="w-4 h-4" />
-                          <span>{item.date}</span>
+                          <span>{formattedDate}</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm">
-                          <span className="text-[#8B7355] font-semibold">{formatInt(item.likes)}</span>
+                          <span className="text-[#8B7355] font-semibold">0</span>
                           <span className="text-red-500">❤️</span>
                         </div>
                       </div>

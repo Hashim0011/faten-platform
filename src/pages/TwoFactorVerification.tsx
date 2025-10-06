@@ -1,14 +1,40 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield, Mail, Phone, ArrowRight, Brain, Sparkles, RefreshCw, Clock } from 'lucide-react';
+
+// Temporary auth functions (replace with real API calls)
+const verifyOTPCode = async (userId: string, code: string) => {
+  return { success: true, message: 'تم التحقق بنجاح' };
+};
+
+const sendVerificationCode = async (userId: string, method: string) => {
+  return { success: true, message: 'تم إرسال الكود' };
+};
+
+const getCurrentUserProfile = async (userId: string) => {
+  return { role: 'user', name: 'مستخدم' };
+};
+
+const getDashboardRoute = (role: string) => {
+  if (role === 'admin') return '/admin-dashboard';
+  if (role === 'expert') return '/expert-dashboard';
+  return '/dashboard';
+};
 
 const TwoFactorVerification = () => {
   const navigate = useNavigate();
-  const [selectedMethod, setSelectedMethod] = useState<'email' | 'phone'>('email');
+  const [searchParams] = useSearchParams();
+  const userId = searchParams.get('userId');
+  const contact = searchParams.get('contact') || searchParams.get('email'); // Support both contact and email params
+  const type = (searchParams.get('type') as 'email' | 'phone') || 'email';
+
+  const [selectedMethod, setSelectedMethod] = useState<'email' | 'phone'>(type);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
-  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [isCodeSent, setIsCodeSent] = useState(true); // Already sent from registration
   const [countdown, setCountdown] = useState(60);
   const [isResending, setIsResending] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState('');
 
   const handleMethodSelect = (method: 'email' | 'phone') => {
     setSelectedMethod(method);
@@ -31,12 +57,33 @@ const TwoFactorVerification = () => {
     }, 1000);
   };
 
-  const handleResendCode = () => {
+  const handleResendCode = async () => {
+    if (!userId || !contact) return;
+
     setIsResending(true);
-    setTimeout(() => {
+    setError('');
+
+    const fullName = searchParams.get('name') || 'المستخدم';
+
+    try {
+      const { success } = await sendVerificationCode(
+        userId,
+        selectedMethod,
+        contact,
+        fullName
+      );
+
+      if (success) {
+        setIsResending(false);
+        handleSendCode(); // Start countdown
+      } else {
+        setError('فشل إعادة إرسال الرمز');
+        setIsResending(false);
+      }
+    } catch (err) {
+      setError('حدث خطأ أثناء إعادة الإرسال');
       setIsResending(false);
-      handleSendCode();
-    }, 2000);
+    }
   };
 
   const handleCodeChange = (index: number, value: string) => {
@@ -60,14 +107,47 @@ const TwoFactorVerification = () => {
     }
   };
 
-  const handleVerify = (e: React.FormEvent) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = verificationCode.join('');
-    if (code.length === 6) {
-      // محاكاة التحقق
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
+
+    if (code.length !== 6) {
+      setError('يرجى إدخال رمز التحقق كاملاً');
+      return;
+    }
+
+    setIsVerifying(true);
+    setError('');
+
+    try {
+      // Get saved OTP from localStorage
+      const savedOTP = localStorage.getItem('otp');
+      const savedUserId = localStorage.getItem('userId');
+
+      if (!savedOTP) {
+        setError('رمز التحقق غير موجود. يرجى إعادة التسجيل');
+        setIsVerifying(false);
+        return;
+      }
+
+      // Verify OTP
+      if (code !== savedOTP) {
+        setError('رمز التحقق غير صحيح');
+        setIsVerifying(false);
+        return;
+      }
+
+      console.log('✅ OTP verified successfully');
+
+      // Clear OTP from localStorage
+      localStorage.removeItem('otp');
+
+      // Navigate to dashboard (user is already registered in DB)
+      navigate('/dashboard');
+    } catch (err: any) {
+      console.error('❌ Verification error:', err);
+      setError(err.message || 'حدث خطأ غير متوقع');
+      setIsVerifying(false);
     }
   };
 
@@ -122,7 +202,7 @@ const TwoFactorVerification = () => {
                       البريد الإلكتروني
                     </h4>
                     <p className="text-[#6B7280] text-sm">سنرسل رمز التحقق إلى بريدك الإلكتروني</p>
-                    <p className="text-[#8B7355] text-sm font-medium mt-1">user@example.com</p>
+                    <p className="text-[#8B7355] text-sm font-medium mt-1">{contact || 'user@example.com'}</p>
                   </div>
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                     selectedMethod === 'email' 
@@ -196,11 +276,17 @@ const TwoFactorVerification = () => {
                 تم إرسال رمز التحقق إلى {selectedMethod === 'email' ? 'بريدك الإلكتروني' : 'رقم جوالك'}
               </p>
               <p className="text-[#8B7355] text-sm font-medium mt-1">
-                {selectedMethod === 'email' ? 'user@example.com' : '+966 *** *** **45'}
+                {contact || 'user@example.com'}
               </p>
             </div>
 
             <form onSubmit={handleVerify} className="space-y-8">
+              {error && (
+                <div className="p-4 rounded-xl bg-red-50 border border-red-200">
+                  <p className="text-red-600 text-sm text-center">{error}</p>
+                </div>
+              )}
+
               {/* Code Input */}
               <div className="flex justify-center gap-3">
                 {verificationCode.map((digit, index) => (
@@ -240,11 +326,17 @@ const TwoFactorVerification = () => {
 
               <button
                 type="submit"
-                disabled={verificationCode.join('').length !== 6}
+                disabled={verificationCode.join('').length !== 6 || isVerifying}
                 className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>تحقق والمتابعة</span>
-                <ArrowRight className="w-5 h-5" />
+                {isVerifying ? (
+                  <span>جاري التحقق...</span>
+                ) : (
+                  <>
+                    <span>تحقق والمتابعة</span>
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </form>
 
