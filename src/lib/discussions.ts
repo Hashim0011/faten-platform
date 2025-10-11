@@ -88,40 +88,70 @@ async function createNotificationForAll(notification: {
  */
 export async function getAllDiscussions() {
   try {
-    const { data, error } = await supabase
+    // جلب النقاشات مع عدد الرسائل فقط (بدون تفاصيل الرسائل)
+    const { data: discussions, error: discussionsError } = await supabase
       .from('discussions')
-      .select(`
-        *,
-        creator:created_by (
-          full_name,
-          role
-        ),
-        messages (
-          *,
-          sender:sender_id (
-            id,
-            full_name,
-            email,
-            role
-          )
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (discussionsError) throw discussionsError;
 
-    // ترتيب الرسائل داخل كل نقاش حسب التاريخ (الأقدم أولاً)
-    if (data) {
-      data.forEach((discussion: any) => {
-        if (discussion.messages && Array.isArray(discussion.messages)) {
-          discussion.messages.sort((a: any, b: any) => {
-            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
-          });
-        }
-      });
+    if (!discussions || discussions.length === 0) {
+      return { success: true, data: [] };
     }
 
-    return { success: true, data };
+    // جلب معلومات منشئ كل نقاش
+    const discussionsWithDetails = await Promise.all(
+      discussions.map(async (discussion) => {
+        // جلب معلومات المنشئ
+        const { data: creator } = await supabase
+          .from('users')
+          .select('full_name, role')
+          .eq('id', discussion.created_by)
+          .single();
+
+        // جلب عدد الرسائل
+        const { count: messageCount } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('discussion_id', discussion.id);
+
+        // جلب الرسائل مع بيانات المرسل
+        const { data: messages } = await supabase
+          .from('messages')
+          .select('*')
+          .eq('discussion_id', discussion.id)
+          .order('created_at', { ascending: true });
+
+        // إضافة بيانات المرسل لكل رسالة
+        let messagesWithSender = [];
+        if (messages && messages.length > 0) {
+          messagesWithSender = await Promise.all(
+            messages.map(async (message) => {
+              const { data: sender } = await supabase
+                .from('users')
+                .select('id, full_name, email, role')
+                .eq('id', message.sender_id)
+                .single();
+
+              return {
+                ...message,
+                sender: sender || { full_name: 'مستخدم محذوف', role: 'user' }
+              };
+            })
+          );
+        }
+
+        return {
+          ...discussion,
+          creator: creator || { full_name: 'مستخدم محذوف', role: 'user' },
+          messages: messagesWithSender,
+          messageCount: messageCount || 0
+        };
+      })
+    );
+
+    return { success: true, data: discussionsWithDetails };
   } catch (error: any) {
     console.error('Error fetching discussions:', error);
     return { success: false, error: error.message, data: [] };
@@ -133,28 +163,55 @@ export async function getAllDiscussions() {
  */
 export async function getDiscussion(id: string) {
   try {
-    const { data, error } = await supabase
+    // جلب النقاش
+    const { data: discussion, error: discussionError } = await supabase
       .from('discussions')
-      .select(`
-        *,
-        creator:created_by (
-          full_name,
-          role
-        ),
-        messages (
-          *,
-          sender:sender_id (
-            full_name,
-            role
-          )
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
-    if (error) throw error;
+    if (discussionError) throw discussionError;
 
-    return { success: true, data };
+    // جلب معلومات المنشئ
+    const { data: creator } = await supabase
+      .from('users')
+      .select('full_name, role')
+      .eq('id', discussion.created_by)
+      .single();
+
+    // جلب الرسائل
+    const { data: messages } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('discussion_id', id)
+      .order('created_at', { ascending: true });
+
+    // إضافة بيانات المرسل لكل رسالة
+    let messagesWithSender = [];
+    if (messages && messages.length > 0) {
+      messagesWithSender = await Promise.all(
+        messages.map(async (message) => {
+          const { data: sender } = await supabase
+            .from('users')
+            .select('id, full_name, email, role')
+            .eq('id', message.sender_id)
+            .single();
+
+          return {
+            ...message,
+            sender: sender || { full_name: 'مستخدم محذوف', role: 'user' }
+          };
+        })
+      );
+    }
+
+    const discussionWithDetails = {
+      ...discussion,
+      creator: creator || { full_name: 'مستخدم محذوف', role: 'user' },
+      messages: messagesWithSender
+    };
+
+    return { success: true, data: discussionWithDetails };
   } catch (error: any) {
     console.error('Error fetching discussion:', error);
     return { success: false, error: error.message };
@@ -172,7 +229,8 @@ export async function addMessage(discussionId: string, content: string) {
       throw new Error('يجب تسجيل الدخول أولاً');
     }
 
-    const { data, error } = await supabase
+    // إضافة الرسالة
+    const { data: message, error } = await supabase
       .from('messages')
       .insert({
         discussion_id: discussionId,
@@ -180,16 +238,22 @@ export async function addMessage(discussionId: string, content: string) {
         content,
         created_at: new Date().toISOString(),
       })
-      .select(`
-        *,
-        sender:sender_id (
-          full_name,
-          role
-        )
-      `)
+      .select()
       .single();
 
     if (error) throw error;
+
+    // جلب بيانات المرسل
+    const { data: sender } = await supabase
+      .from('users')
+      .select('id, full_name, email, role')
+      .eq('id', user.id)
+      .single();
+
+    const messageWithSender = {
+      ...message,
+      sender: sender || { full_name: 'مستخدم', role: 'user' }
+    };
 
     // تحديث وقت آخر تعديل للنقاش
     await supabase
@@ -197,7 +261,7 @@ export async function addMessage(discussionId: string, content: string) {
       .update({ updated_at: new Date().toISOString() })
       .eq('id', discussionId);
 
-    return { success: true, data };
+    return { success: true, data: messageWithSender };
   } catch (error: any) {
     console.error('Error adding message:', error);
     return { success: false, error: error.message };
