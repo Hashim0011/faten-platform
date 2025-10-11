@@ -97,6 +97,9 @@ const AdminDashboard = () => {
     videos: 0,
     articles: 0,
   });
+
+  // بيانات الاستخدام اليومي (آخر 7 أيام)
+  const [dailyUsageData, setDailyUsageData] = useState<Array<{ day: string; users: number; content: number; discussions: number }>>([]);
   const [newContent, setNewContent] = useState({
     title: '',
     content_type: 'article' as ContentType,
@@ -212,6 +215,9 @@ const AdminDashboard = () => {
 
     // تحديث توزيع المحتوى في الواجهة
     updateContentDistribution(booksCount, videosCount, articlesCount);
+
+    // حساب بيانات الاستخدام اليومي
+    calculateDailyUsage(usersResult.data || [], contentResult.data || [], discussionsResult.data || []);
   };
 
   const updateContentDistribution = (books: number, videos: number, articles: number) => {
@@ -221,6 +227,48 @@ const AdminDashboard = () => {
       articles,
     });
     console.log(`✅ توزيع المحتوى - كتب: ${books}, فيديوهات: ${videos}, مقالات: ${articles}`);
+  };
+
+  const calculateDailyUsage = (users: any[], content: any[], discussions: any[]) => {
+    const daysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const dailyData: Array<{ day: string; users: number; content: number; discussions: number }> = [];
+
+    // حساب آخر 7 أيام
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dayStart = new Date(date.setHours(0, 0, 0, 0));
+      const dayEnd = new Date(date.setHours(23, 59, 59, 999));
+
+      // حساب المستخدمين المسجلين في هذا اليوم
+      const usersCount = users.filter(u => {
+        const createdAt = new Date(u.created_at);
+        return createdAt >= dayStart && createdAt <= dayEnd;
+      }).length;
+
+      // حساب المحتوى المضاف في هذا اليوم
+      const contentCount = content.filter(c => {
+        const createdAt = new Date(c.created_at);
+        return createdAt >= dayStart && createdAt <= dayEnd;
+      }).length;
+
+      // حساب النقاشات المنشأة في هذا اليوم
+      const discussionsCount = discussions.filter(d => {
+        const createdAt = new Date(d.created_at);
+        return createdAt >= dayStart && createdAt <= dayEnd;
+      }).length;
+
+      const dayName = daysOfWeek[dayStart.getDay()];
+      dailyData.push({
+        day: dayName,
+        users: usersCount,
+        content: contentCount,
+        discussions: discussionsCount,
+      });
+    }
+
+    setDailyUsageData(dailyData);
+    console.log('✅ تم حساب بيانات الاستخدام اليومي:', dailyData);
   };
 
   const handleDeleteContent = async (id: string) => {
@@ -958,12 +1006,92 @@ const AdminDashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="content-card">
                   <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">تقرير الاستخدام اليومي</h3>
-                  <div className="h-64 flex items-center justify-center text-[#6B7280]">
-                    <div className="text-center">
-                      <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                      <p>الرسوم البيانية قيد التطوير</p>
+                  {dailyUsageData.length === 0 ? (
+                    <div className="h-64 flex items-center justify-center text-[#6B7280]">
+                      <div className="text-center">
+                        <BarChart3 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                        <p>جاري تحميل البيانات...</p>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="h-64 relative">
+                      {/* Bar Chart */}
+                      <div className="absolute inset-0 flex items-end justify-between gap-2 px-4 pb-12">
+                        {dailyUsageData.map((data, index) => {
+                          const maxValue = Math.max(...dailyUsageData.map(d => d.users + d.content + d.discussions));
+                          const totalValue = data.users + data.content + data.discussions;
+                          const heightPercentage = maxValue > 0 ? (totalValue / maxValue) * 100 : 0;
+
+                          return (
+                            <div key={index} className="flex-1 flex flex-col items-center gap-2 group">
+                              {/* الأعمدة المكدسة */}
+                              <div
+                                className="w-full bg-gradient-to-t from-[#8B7355]/10 to-[#8B7355]/5 rounded-t-lg relative overflow-hidden transition-all duration-300 hover:shadow-lg"
+                                style={{ height: `${heightPercentage}%`, minHeight: totalValue > 0 ? '20px' : '5px' }}
+                              >
+                                {/* عمود المستخدمين */}
+                                {data.users > 0 && (
+                                  <div
+                                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#10B981] to-[#059669]"
+                                    style={{ height: `${totalValue > 0 ? (data.users / totalValue) * 100 : 0}%` }}
+                                  ></div>
+                                )}
+                                {/* عمود المحتوى */}
+                                {data.content > 0 && (
+                                  <div
+                                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#F59E0B] to-[#D97706]"
+                                    style={{
+                                      height: `${totalValue > 0 ? (data.content / totalValue) * 100 : 0}%`,
+                                      transform: `translateY(-${data.users > 0 ? (data.users / totalValue) * 100 : 0}%)`
+                                    }}
+                                  ></div>
+                                )}
+                                {/* عمود النقاشات */}
+                                {data.discussions > 0 && (
+                                  <div
+                                    className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#8B5CF6] to-[#7C3AED]"
+                                    style={{
+                                      height: `${totalValue > 0 ? (data.discussions / totalValue) * 100 : 0}%`,
+                                      transform: `translateY(-${((data.users + data.content) / totalValue) * 100}%)`
+                                    }}
+                                  ></div>
+                                )}
+
+                                {/* Tooltip عند التمرير */}
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/70 text-white text-xs font-bold rounded-t-lg">
+                                  <div className="text-center">
+                                    <div>{totalValue}</div>
+                                    <div className="text-[10px] opacity-75">إجمالي</div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* اسم اليوم */}
+                              <div className="text-xs text-[#6B7280] font-medium text-center">
+                                {data.day}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* المفاتيح */}
+                      <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center gap-4 text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded bg-gradient-to-br from-[#10B981] to-[#059669]"></div>
+                          <span className="text-[#6B7280]">مستخدمين</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded bg-gradient-to-br from-[#F59E0B] to-[#D97706]"></div>
+                          <span className="text-[#6B7280]">محتوى</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]"></div>
+                          <span className="text-[#6B7280]">نقاشات</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="content-card">
