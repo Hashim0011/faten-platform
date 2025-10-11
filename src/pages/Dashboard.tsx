@@ -59,8 +59,12 @@ const Dashboard = () => {
 
     // تحميل النقاشات
     const discussionsResult = await getAllDiscussions();
+    console.log('💬 Discussions result (Dashboard):', discussionsResult);
     if (discussionsResult.success && discussionsResult.data) {
+      console.log('✅ Setting discussions:', discussionsResult.data.length, 'discussions');
       setDiscussionTopics(discussionsResult.data.slice(0, 3)); // أحدث 3 نقاشات
+    } else {
+      console.error('❌ Failed to load discussions:', discussionsResult.error);
     }
 
     // تحميل الفعاليات القادمة
@@ -308,19 +312,30 @@ const Dashboard = () => {
                 <MessageCircle className="w-5 h-5 text-[#8B7355]" />
               </div>
               <div className="space-y-3">
-                {discussionTopics.map(topic => (
-                  <button
-                    key={topic.id}
-                    onClick={() => handleTopicClick(topic)}
-                    className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
-                  >
-                    <h4 className="font-semibold text-sm sm:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-[#6B7280]">{topic.date}</span>
-                      <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">نشط</span>
-                    </div>
-                  </button>
-                ))}
+                {discussionTopics.length === 0 ? (
+                  <div className="text-center py-8">
+                    <MessageCircle className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
+                    <p className="text-sm text-[#6B7280]">لا توجد نقاشات حالياً</p>
+                  </div>
+                ) : (
+                  discussionTopics.map(topic => (
+                    <button
+                      key={topic.id}
+                      onClick={() => handleTopicClick(topic)}
+                      className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
+                    >
+                      <h4 className="font-semibold text-sm sm:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-[#6B7280]">
+                          {new Date(topic.created_at).toLocaleDateString('ar-SA')}
+                        </span>
+                        <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">
+                          {topic.messages?.length || 0} رسالة
+                        </span>
+                      </div>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
 

@@ -95,8 +95,12 @@ const ExpertDashboard = () => {
 
     // تحميل النقاشات
     const discussionsResult = await getAllDiscussions();
+    console.log('💬 Discussions result:', discussionsResult);
     if (discussionsResult.success && discussionsResult.data) {
+      console.log('✅ Setting discussions list with', discussionsResult.data.length, 'discussions');
       setDiscussions(discussionsResult.data);
+    } else {
+      console.error('❌ Failed to load discussions:', discussionsResult.error);
     }
 
     // تحميل الفعاليات
