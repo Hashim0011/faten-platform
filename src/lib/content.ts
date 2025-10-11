@@ -40,9 +40,76 @@ export async function addContent(contentData: ContentData) {
 
     if (error) throw error;
 
+    // إرسال إشعار لجميع المستخدمين
+    if (data) {
+      await createNotificationForAll({
+        title: 'محتوى جديد متاح',
+        message: `تم إضافة محتوى جديد: ${contentData.title}`,
+        type: 'new_content',
+        related_id: data.id,
+      });
+    }
+
     return { success: true, data };
   } catch (error: any) {
     console.error('Error adding content:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * إنشاء إشعار لجميع المستخدمين
+ */
+async function createNotificationForAll(notification: {
+  title: string;
+  message: string;
+  type: string;
+  related_id?: string;
+}) {
+  try {
+    console.log('🔔 بدء إرسال إشعار:', notification.title);
+
+    // جلب جميع المستخدمين
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id');
+
+    if (usersError) {
+      console.error('❌ خطأ في جلب المستخدمين:', usersError);
+      throw usersError;
+    }
+
+    console.log(`✅ تم جلب ${users?.length || 0} مستخدم`);
+
+    // إنشاء إشعار لكل مستخدم
+    const notifications = users?.map(user => ({
+      user_id: user.id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      related_id: notification.related_id,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    })) || [];
+
+    console.log(`📨 سيتم إرسال ${notifications.length} إشعار`);
+
+    if (notifications.length > 0) {
+      const { data: insertedData, error: notifError } = await supabase
+        .from('notifications')
+        .insert(notifications)
+        .select();
+
+      if (notifError) {
+        console.error('❌ خطأ في إرسال الإشعارات:', notifError);
+      } else {
+        console.log(`✅ تم إرسال ${insertedData?.length || 0} إشعار بنجاح!`);
+      }
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('❌ Create notification error:', error);
     return { success: false, error: error.message };
   }
 }

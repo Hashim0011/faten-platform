@@ -25,9 +25,60 @@ export async function createDiscussion(title: string, description?: string) {
 
     if (error) throw error;
 
+    // إرسال إشعار لجميع المستخدمين
+    if (data) {
+      await createNotificationForAll({
+        title: 'نقاش جديد',
+        message: `تم فتح نقاش جديد: ${title}`,
+        type: 'new_discussion',
+        related_id: data.id,
+      });
+    }
+
     return { success: true, data };
   } catch (error: any) {
     console.error('Error creating discussion:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * إنشاء إشعار لجميع المستخدمين
+ */
+async function createNotificationForAll(notification: {
+  title: string;
+  message: string;
+  type: string;
+  related_id?: string;
+}) {
+  try {
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id');
+
+    if (usersError) throw usersError;
+
+    const notifications = users?.map(user => ({
+      user_id: user.id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      related_id: notification.related_id,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    })) || [];
+
+    if (notifications.length > 0) {
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      if (notifError) console.error('Notification error:', notifError);
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Create notification error:', error);
     return { success: false, error: error.message };
   }
 }
