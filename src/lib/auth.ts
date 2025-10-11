@@ -184,6 +184,73 @@ export async function getCurrentUser() {
 }
 
 /**
+ * إنشاء حساب خبير من قبل المدير (Admin creates expert)
+ */
+export async function createExpertByAdmin(
+  email: string,
+  password: string,
+  fullName: string,
+  specialization: string,
+  phone?: string,
+  bio?: string
+) {
+  try {
+    // 1. إنشاء المستخدم في Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          phone: phone || '',
+          role: 'expert' as UserRole,
+        },
+        emailRedirectTo: window.location.origin + '/expert-dashboard',
+      },
+    });
+
+    if (authError) throw authError;
+
+    // 2. إضافة بيانات المستخدم في جدول users
+    if (authData.user) {
+      const { error: userError } = await supabase.from('users').insert({
+        id: authData.user.id,
+        email,
+        full_name: fullName,
+        phone: phone || null,
+        role: 'expert' as UserRole,
+      });
+
+      if (userError) throw userError;
+
+      // 3. إضافة بيانات الخبير في جدول experts
+      const { error: expertError } = await supabase.from('experts').insert({
+        id: authData.user.id,
+        user_id: authData.user.id,
+        specialization,
+        bio: bio || null,
+        verified: true, // الخبراء المضافين من الأدمن موثوقين تلقائياً
+      });
+
+      if (expertError) throw expertError;
+
+      // 4. إرسال إشعار لجميع المستخدمين بإضافة خبير جديد
+      await createNotificationForAll({
+        title: 'خبير جديد انضم للمنصة',
+        message: `انضم ${fullName} كخبير في ${specialization}`,
+        type: 'expert_joined',
+        related_id: authData.user.id,
+      });
+    }
+
+    return { success: true, user: authData.user };
+  } catch (error: any) {
+    console.error('Create expert error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * الحصول على route اللوحة حسب الدور
  */
 export function getDashboardRoute(role: UserRole): string {
@@ -195,5 +262,48 @@ export function getDashboardRoute(role: UserRole): string {
     case 'user':
     default:
       return '/dashboard';
+  }
+}
+
+/**
+ * إنشاء إشعار لجميع المستخدمين
+ */
+async function createNotificationForAll(notification: {
+  title: string;
+  message: string;
+  type: string;
+  related_id?: string;
+}) {
+  try {
+    // جلب جميع المستخدمين
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('id');
+
+    if (usersError) throw usersError;
+
+    // إنشاء إشعار لكل مستخدم
+    const notifications = users?.map(user => ({
+      user_id: user.id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type,
+      related_id: notification.related_id,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    })) || [];
+
+    if (notifications.length > 0) {
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert(notifications);
+
+      if (notifError) throw notifError;
+    }
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Create notification error:', error);
+    return { success: false, error: error.message };
   }
 }

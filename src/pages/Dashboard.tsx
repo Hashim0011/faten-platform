@@ -8,6 +8,7 @@ import { getPublishedContent } from '../lib/content';
 import { getAllDiscussions } from '../lib/discussions';
 import { getUpcomingEvents } from '../lib/events';
 import { getAllUsers } from '../lib/users';
+import { getUnreadCount } from '../lib/notifications';
 
 type Topic = { id: number; title: string; date: string };
 
@@ -19,7 +20,7 @@ const Dashboard = () => {
   const [showAiChat, setShowAiChat] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadNotifications] = useState(5); // عدد الإشعارات غير المقروءة
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [libraryContent, setLibraryContent] = useState<any>({
     books: [],
     videos: [],
@@ -33,7 +34,15 @@ const Dashboard = () => {
   // تحميل جميع البيانات من الداتا بيس
   useEffect(() => {
     loadAllData();
+    loadUnreadCount();
   }, []);
+
+  const loadUnreadCount = async () => {
+    const result = await getUnreadCount();
+    if (result.success) {
+      setUnreadNotifications(result.count);
+    }
+  };
 
   const loadAllData = async () => {
     // تحميل المحتوى

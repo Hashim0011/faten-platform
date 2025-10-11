@@ -6,7 +6,7 @@ import { addContent, getPublishedContent, deleteContent, type ContentType } from
 import { getAllDiscussions, deleteMessage as deleteDiscussionMessage, createDiscussion, deleteDiscussion } from '../lib/discussions';
 import { addEvent, getAllEvents, deleteEvent, type EventData } from '../lib/events';
 import { getAllUsers, deleteUser } from '../lib/users';
-import { createNotificationForAll } from '../lib/notifications';
+import { createNotificationForAll, getUnreadCount } from '../lib/notifications';
 
 interface Message {
   id: number;
@@ -41,7 +41,7 @@ const ExpertDashboard = () => {
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [showAddContent, setShowAddContent] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadNotifications] = useState(3); // عدد الإشعارات غير المقروءة للخبير
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -70,7 +70,15 @@ const ExpertDashboard = () => {
   // تحميل جميع البيانات من الداتا بيس
   useEffect(() => {
     loadAllData();
+    loadUnreadCount();
   }, []);
+
+  const loadUnreadCount = async () => {
+    const result = await getUnreadCount();
+    if (result.success) {
+      setUnreadNotifications(result.count);
+    }
+  };
 
   const loadAllData = async () => {
     console.log('🔄 Loading all data...');
