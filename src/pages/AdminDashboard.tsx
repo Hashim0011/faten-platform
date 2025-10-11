@@ -90,6 +90,13 @@ const AdminDashboard = () => {
   const [contentList, setContentList] = useState<any[]>([]);
   const [discussionsList, setDiscussionsList] = useState<any[]>([]);
   const [eventsList, setEventsList] = useState<any[]>([]);
+
+  // توزيع المحتوى الحقيقي من الداتا بيس
+  const [contentDistribution, setContentDistribution] = useState({
+    books: 0,
+    videos: 0,
+    articles: 0,
+  });
   const [newContent, setNewContent] = useState({
     title: '',
     content_type: 'article' as ContentType,
@@ -129,10 +136,17 @@ const AdminDashboard = () => {
       booksCount = contentResult.data.filter((c: any) => c.content_type === 'book').length;
       videosCount = contentResult.data.filter((c: any) => c.content_type === 'video').length;
       articlesCount = contentResult.data.filter((c: any) => c.content_type === 'article').length;
+
+      // حساب معدل تفاعل المحتوى بناءً على تنوع المحتوى
+      const contentTypes = [booksCount > 0 ? 1 : 0, videosCount > 0 ? 1 : 0, articlesCount > 0 ? 1 : 0].reduce((a, b) => a + b, 0);
+      const diversityScore = (contentTypes / 3) * 100; // نسبة التنوع
+      const volumeScore = Math.min(contentResult.data.length * 5, 100); // نقاط الحجم
+      const contentEngagement = Math.round((diversityScore * 0.3 + volumeScore * 0.7));
+
       setAnalytics(prev => ({
         ...prev,
         totalContent: contentResult.data.length,
-        contentEngagementRate: contentResult.data.length > 0 ? 85.2 : 0
+        contentEngagementRate: contentResult.data.length > 0 ? contentEngagement : 0
       }));
     }
 
@@ -140,11 +154,15 @@ const AdminDashboard = () => {
     const discussionsResult = await getAllDiscussions();
     if (discussionsResult.success && discussionsResult.data) {
       setDiscussionsList(discussionsResult.data);
-      const engagementRate = discussionsResult.data.length > 0 ? 78.5 : 0;
+      // حساب معدل التفاعل بناءً على عدد النقاشات مقارنة بعدد المحتوى
+      const totalContent = contentResult.data?.length || 1;
+      const totalDiscussions = discussionsResult.data.length;
+      const engagementRate = Math.min(Math.round((totalDiscussions / totalContent) * 100), 100);
+
       setAnalytics(prev => ({
         ...prev,
         totalDiscussions: discussionsResult.data.length,
-        discussionEngagementRate: engagementRate
+        discussionEngagementRate: engagementRate > 0 ? engagementRate : 0
       }));
     }
 
@@ -164,14 +182,24 @@ const AdminDashboard = () => {
       // حساب المستخدمين النشطين (كل المستخدمين يعتبرون نشطين حالياً)
       activeUsers = usersResult.data.length;
 
-      // حساب معدل النمو (بناءً على عدد المستخدمين)
-      const growthRate = usersResult.data.length > 0 ? 12.3 : 0;
+      // حساب معدل النمو بناءً على عدد المستخدمين الجدد
+      // نفترض أن المستخدمين المسجلين خلال آخر 30 يوم هم جدد
+      const now = new Date();
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const newUsers = usersResult.data.filter((u: any) => {
+        const createdAt = new Date(u.created_at);
+        return createdAt >= thirtyDaysAgo;
+      }).length;
+
+      // حساب معدل النمو الشهري
+      const oldUsers = usersResult.data.length - newUsers;
+      const growthRate = oldUsers > 0 ? Math.round((newUsers / oldUsers) * 100) : (newUsers > 0 ? 100 : 0);
 
       setAnalytics(prev => ({
         ...prev,
         totalUsers: usersResult.data.length,
         activeUsersThisWeek: activeUsers,
-        platformGrowthRate: growthRate
+        platformGrowthRate: Math.min(growthRate, 999) // حد أقصى 999%
       }));
     }
 
@@ -187,9 +215,12 @@ const AdminDashboard = () => {
   };
 
   const updateContentDistribution = (books: number, videos: number, articles: number) => {
-    // هذه البيانات ستُستخدم في قسم Analytics
-    // يمكن حفظها في state منفصل إذا لزم الأمر
-    console.log(`توزيع المحتوى - كتب: ${books}, فيديوهات: ${videos}, مقالات: ${articles}`);
+    setContentDistribution({
+      books,
+      videos,
+      articles,
+    });
+    console.log(`✅ توزيع المحتوى - كتب: ${books}, فيديوهات: ${videos}, مقالات: ${articles}`);
   };
 
   const handleDeleteContent = async (id: string) => {
@@ -937,44 +968,60 @@ const AdminDashboard = () => {
 
                 <div className="content-card">
                   <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">توزيع المحتوى</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Book className="w-5 h-5 text-[#10B981]" />
-                        <span className="text-[#2D2D2D]">الكتب</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-3/4 h-full bg-[#10B981] rounded-full"></div>
+                  {analytics.totalContent === 0 ? (
+                    <div className="text-center py-8">
+                      <BookOpen className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
+                      <p className="text-[#6B7280]">لا يوجد محتوى في الداتا بيس</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Book className="w-5 h-5 text-[#10B981]" />
+                          <span className="text-[#2D2D2D]">الكتب</span>
                         </div>
-                        <span className="text-sm text-[#6B7280]">156</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#10B981] rounded-full transition-all duration-500"
+                              style={{ width: `${analytics.totalContent > 0 ? (contentDistribution.books / analytics.totalContent) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-[#6B7280] min-w-[2rem] text-right">{contentDistribution.books}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Video className="w-5 h-5 text-[#8B5CF6]" />
+                          <span className="text-[#2D2D2D]">الفيديوهات</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#8B5CF6] rounded-full transition-all duration-500"
+                              style={{ width: `${analytics.totalContent > 0 ? (contentDistribution.videos / analytics.totalContent) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-[#6B7280] min-w-[2rem] text-right">{contentDistribution.videos}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FileText className="w-5 h-5 text-[#F59E0B]" />
+                          <span className="text-[#2D2D2D]">المقالات</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-[#F59E0B] rounded-full transition-all duration-500"
+                              style={{ width: `${analytics.totalContent > 0 ? (contentDistribution.articles / analytics.totalContent) * 100 : 0}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-[#6B7280] min-w-[2rem] text-right">{contentDistribution.articles}</span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Video className="w-5 h-5 text-[#8B5CF6]" />
-                        <span className="text-[#2D2D2D]">الفيديوهات</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-1/2 h-full bg-[#8B5CF6] rounded-full"></div>
-                        </div>
-                        <span className="text-sm text-[#6B7280]">89</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <FileText className="w-5 h-5 text-[#F59E0B]" />
-                        <span className="text-[#2D2D2D]">المقالات</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
-                          <div className="w-full h-full bg-[#F59E0B] rounded-full"></div>
-                        </div>
-                        <span className="text-sm text-[#6B7280]">211</span>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
