@@ -415,7 +415,7 @@ const ExpertDashboard = () => {
                           <div className="flex items-center justify-between text-sm text-[#6B7280]">
                             <span>{new Date(discussion.created_at).toLocaleDateString('ar-SA')}</span>
                             <div className="flex items-center gap-4">
-                              <span>{discussion.messages?.[0]?.count || 0} رسالة</span>
+                              <span>{discussion.messages?.length || 0} رسالة</span>
                             </div>
                           </div>
                         </button>
@@ -438,48 +438,66 @@ const ExpertDashboard = () => {
                   <>
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-xl font-bold text-[#2D2D2D]">{selectedDiscussion.title}</h3>
-                      <span className="text-sm text-[#6B7280]">{selectedDiscussion.messages.length} رسالة</span>
+                      <span className="text-sm text-[#6B7280]">{selectedDiscussion.messages?.length || 0} رسالة</span>
                     </div>
                     <div className="space-y-4 max-h-96 overflow-y-auto">
-                      {selectedDiscussion.messages.map(message => (
-                        <div key={message.id} className="p-4 rounded-xl bg-[#8B5CF6]/5 border border-[#8B5CF6]/10">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center text-sm font-semibold">
-                                {message.user[0]}
-                              </div>
-                              <div>
-                                <span className="font-semibold text-[#2D2D2D]">{message.user}</span>
-                                <span className="text-sm text-[#6B7280] mr-2">{message.timestamp}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleBlockUser(message.userId)}
-                                className="p-1 rounded hover:bg-yellow-100 text-yellow-600"
-                                title="حظر المستخدم"
-                              >
-                                <Ban className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleRemoveUser(message.userId)}
-                                className="p-1 rounded hover:bg-red-100 text-red-600"
-                                title="إزالة المستخدم"
-                              >
-                                <UserX className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteMessage(message.id)}
-                                className="p-1 rounded hover:bg-red-100 text-red-600"
-                                title="حذف الرسالة"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          <p className="text-[#2D2D2D]">{message.content}</p>
+                      {(!selectedDiscussion.messages || selectedDiscussion.messages.length === 0) ? (
+                        <div className="text-center py-12">
+                          <MessageSquare className="w-12 h-12 mx-auto text-[#8B5CF6]/30 mb-3" />
+                          <p className="text-[#6B7280]">لا توجد رسائل في هذا النقاش بعد</p>
                         </div>
-                      ))}
+                      ) : (
+                        selectedDiscussion.messages.map((message: any) => {
+                          const senderName = message.sender?.full_name || 'مستخدم';
+                          const senderInitial = senderName.charAt(0);
+                          const messageTime = new Date(message.created_at).toLocaleString('ar-SA', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+
+                          return (
+                            <div key={message.id} className="p-4 rounded-xl bg-[#8B5CF6]/5 border border-[#8B5CF6]/10">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-[#8B5CF6] text-white flex items-center justify-center text-sm font-semibold">
+                                    {senderInitial}
+                                  </div>
+                                  <div>
+                                    <span className="font-semibold text-[#2D2D2D]">{senderName}</span>
+                                    <span className="text-sm text-[#6B7280] mr-2">{messageTime}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => handleBlockUser(message.sender_id)}
+                                    className="p-1 rounded hover:bg-yellow-100 text-yellow-600"
+                                    title="حظر المستخدم"
+                                  >
+                                    <Ban className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveUser(message.sender_id)}
+                                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                                    title="إزالة المستخدم"
+                                  >
+                                    <UserX className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteMessage(message.id)}
+                                    className="p-1 rounded hover:bg-red-100 text-red-600"
+                                    title="حذف الرسالة"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              <p className="text-[#2D2D2D]">{message.content}</p>
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   </>
                 ) : (
