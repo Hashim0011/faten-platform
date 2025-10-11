@@ -100,6 +100,15 @@ const AdminDashboard = () => {
 
   // بيانات الاستخدام اليومي (آخر 7 أيام)
   const [dailyUsageData, setDailyUsageData] = useState<Array<{ day: string; users: number; content: number; discussions: number }>>([]);
+
+  // النشاطات الأخيرة (آخر 5 نشاطات)
+  const [recentActivities, setRecentActivities] = useState<Array<{
+    id: string;
+    type: 'content' | 'user' | 'expert' | 'discussion' | 'event';
+    title: string;
+    time: string;
+    created_at: string;
+  }>>([]);
   const [newContent, setNewContent] = useState({
     title: '',
     content_type: 'article' as ContentType,
@@ -218,6 +227,15 @@ const AdminDashboard = () => {
 
     // حساب بيانات الاستخدام اليومي
     calculateDailyUsage(usersResult.data || [], contentResult.data || [], discussionsResult.data || []);
+
+    // حساب النشاطات الأخيرة
+    calculateRecentActivities(
+      usersResult.data || [],
+      expertsResult.data || [],
+      contentResult.data || [],
+      discussionsResult.data || [],
+      eventsResult.data || []
+    );
   };
 
   const updateContentDistribution = (books: number, videos: number, articles: number) => {
@@ -269,6 +287,85 @@ const AdminDashboard = () => {
 
     setDailyUsageData(dailyData);
     console.log('✅ تم حساب بيانات الاستخدام اليومي:', dailyData);
+  };
+
+  const calculateRecentActivities = (
+    users: any[],
+    experts: any[],
+    content: any[],
+    discussions: any[],
+    events: any[]
+  ) => {
+    const activities: Array<{
+      id: string;
+      type: 'content' | 'user' | 'expert' | 'discussion' | 'event';
+      title: string;
+      time: string;
+      created_at: string;
+    }> = [];
+
+    // إضافة المحتوى
+    content.forEach(c => {
+      activities.push({
+        id: c.id,
+        type: 'content',
+        title: c.title,
+        time: c.created_at,
+        created_at: c.created_at,
+      });
+    });
+
+    // إضافة المستخدمين الجدد (user role فقط)
+    users.filter((u: any) => u.role === 'user').forEach(u => {
+      activities.push({
+        id: u.id,
+        type: 'user',
+        title: u.full_name || u.email,
+        time: u.created_at,
+        created_at: u.created_at,
+      });
+    });
+
+    // إضافة الخبراء الجدد
+    experts.forEach(e => {
+      activities.push({
+        id: e.id,
+        type: 'expert',
+        title: e.full_name || e.email,
+        time: e.created_at,
+        created_at: e.created_at,
+      });
+    });
+
+    // إضافة النقاشات
+    discussions.forEach(d => {
+      activities.push({
+        id: d.id,
+        type: 'discussion',
+        title: d.title,
+        time: d.created_at,
+        created_at: d.created_at,
+      });
+    });
+
+    // إضافة الفعاليات
+    events.forEach(ev => {
+      activities.push({
+        id: ev.id,
+        type: 'event',
+        title: ev.title,
+        time: ev.created_at,
+        created_at: ev.created_at,
+      });
+    });
+
+    // ترتيب حسب التاريخ (الأحدث أولاً) وأخذ آخر 5
+    const sorted = activities.sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    }).slice(0, 5);
+
+    setRecentActivities(sorted);
+    console.log('✅ تم حساب النشاطات الأخيرة:', sorted);
   };
 
   const handleDeleteContent = async (id: string) => {
@@ -379,6 +476,77 @@ const AdminDashboard = () => {
         return <span className="status-badge" style={{background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white'}}>محذوف</span>;
       default:
         return <span className="status-badge status-featured">{status}</span>;
+    }
+  };
+
+  // Helper function للحصول على أيقونة ولون النشاط
+  const getActivityIconAndColor = (type: 'content' | 'user' | 'expert' | 'discussion' | 'event') => {
+    switch (type) {
+      case 'content':
+        return {
+          icon: <Plus className="w-5 h-5 text-white" />,
+          gradient: 'from-[#10B981] to-[#059669]'
+        };
+      case 'expert':
+        return {
+          icon: <UserCog className="w-5 h-5 text-white" />,
+          gradient: 'from-[#8B5CF6] to-[#7C3AED]'
+        };
+      case 'user':
+        return {
+          icon: <Users className="w-5 h-5 text-white" />,
+          gradient: 'from-[#3B82F6] to-[#2563EB]'
+        };
+      case 'discussion':
+        return {
+          icon: <MessageSquare className="w-5 h-5 text-white" />,
+          gradient: 'from-[#F59E0B] to-[#D97706]'
+        };
+      case 'event':
+        return {
+          icon: <Bell className="w-5 h-5 text-white" />,
+          gradient: 'from-[#EF4444] to-[#DC2626]'
+        };
+    }
+  };
+
+  // Helper function لحساب الوقت النسبي
+  const getRelativeTime = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) {
+      return 'منذ لحظات';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `منذ ${minutes} ${minutes === 1 ? 'دقيقة' : 'دقائق'}`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `منذ ${hours} ${hours === 1 ? 'ساعة' : 'ساعات'}`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `منذ ${days} ${days === 1 ? 'يوم' : 'أيام'}`;
+    } else {
+      return date.toLocaleDateString('ar-SA');
+    }
+  };
+
+  // Helper function لتنسيق عنوان النشاط
+  const getActivityTitle = (activity: { type: string; title: string }) => {
+    switch (activity.type) {
+      case 'content':
+        return `تم إضافة محتوى جديد: "${activity.title}"`;
+      case 'expert':
+        return `انضم خبير جديد: ${activity.title}`;
+      case 'user':
+        return `انضم مستخدم جديد: ${activity.title}`;
+      case 'discussion':
+        return `نقاش جديد: "${activity.title}"`;
+      case 'event':
+        return `فعالية جديدة: "${activity.title}"`;
+      default:
+        return activity.title;
     }
   };
 
@@ -650,35 +818,29 @@ const AdminDashboard = () => {
               {/* Recent Activity */}
               <div className="content-card">
                 <h3 className="text-xl font-bold text-[#2D2D2D] mb-6">النشاط الأخير</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
-                      <Plus className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">تم إضافة محتوى جديد: "مهارات التفكير النقدي"</p>
-                      <p className="text-sm text-[#6B7280]">منذ 5 دقائق</p>
-                    </div>
+                {recentActivities.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Activity className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
+                    <p className="text-[#6B7280]">لا توجد نشاطات حديثة</p>
                   </div>
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
-                      <UserCog className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">انضم خبير جديد: د. محمد الأحمد</p>
-                      <p className="text-sm text-[#6B7280]">منذ 15 دقيقة</p>
-                    </div>
+                ) : (
+                  <div className="space-y-4">
+                    {recentActivities.map((activity) => {
+                      const { icon, gradient } = getActivityIconAndColor(activity.type);
+                      return (
+                        <div key={activity.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
+                          <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
+                            {icon}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-[#2D2D2D]">{getActivityTitle(activity)}</p>
+                            <p className="text-sm text-[#6B7280]">{getRelativeTime(activity.created_at)}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center gap-4 p-3 rounded-xl hover:bg-[#8B7355]/5 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#2D2D2D]">نقاش جديد: "دور التعليم في الأمن الفكري"</p>
-                      <p className="text-sm text-[#6B7280]">منذ 30 دقيقة</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}
