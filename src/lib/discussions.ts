@@ -96,11 +96,30 @@ export async function getAllDiscussions() {
           full_name,
           role
         ),
-        messages (count)
+        messages (
+          *,
+          sender:sender_id (
+            id,
+            full_name,
+            email,
+            role
+          )
+        )
       `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
+
+    // ترتيب الرسائل داخل كل نقاش حسب التاريخ (الأقدم أولاً)
+    if (data) {
+      data.forEach((discussion: any) => {
+        if (discussion.messages && Array.isArray(discussion.messages)) {
+          discussion.messages.sort((a: any, b: any) => {
+            return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          });
+        }
+      });
+    }
 
     return { success: true, data };
   } catch (error: any) {
