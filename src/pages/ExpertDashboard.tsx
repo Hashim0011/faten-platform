@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, CreditCard as Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell } from 'lucide-react';
+import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, CreditCard as Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell, Send } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
-import { addContent, getPublishedContent, deleteContent, type ContentType } from '../lib/content';
-import { getAllDiscussions, deleteMessage as deleteDiscussionMessage, createDiscussion, deleteDiscussion } from '../lib/discussions';
+import { addContent, getPublishedContent, deleteContent, updateContent, type ContentType } from '../lib/content';
+import { getAllDiscussions, deleteMessage as deleteDiscussionMessage, createDiscussion, deleteDiscussion, addMessage } from '../lib/discussions';
+import { banUserFromDiscussion } from '../lib/bans';
 import { addEvent, getAllEvents, deleteEvent, type EventData } from '../lib/events';
 import { getAllUsers, deleteUser } from '../lib/users';
 import { createNotificationForAll, getUnreadCount } from '../lib/notifications';
@@ -40,6 +41,8 @@ const ExpertDashboard = () => {
   const [activeSection, setActiveSection] = useState('discussions');
   const [selectedDiscussion, setSelectedDiscussion] = useState<Discussion | null>(null);
   const [showAddContent, setShowAddContent] = useState(false);
+  const [showEditContent, setShowEditContent] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -51,6 +54,7 @@ const ExpertDashboard = () => {
     content_type: 'article' as ContentType,
     description: '',
     image_url: '',
+    file_url: '',
   });
 
   const [discussions, setDiscussions] = useState<any[]>([]);
@@ -66,6 +70,9 @@ const ExpertDashboard = () => {
     title: '',
     description: '',
   });
+
+  // حقل إرسال الرسالة
+  const [newMessage, setNewMessage] = useState('');
 
   // تحميل جميع البيانات من الداتا بيس
   useEffect(() => {
@@ -137,14 +144,36 @@ const ExpertDashboard = () => {
     }
   };
 
-  const handleBlockUser = (userId: number) => {
-    console.log(`Blocking user ${userId}`);
-    alert('ميزة حظر المستخدم قيد التطوير');
+  const handleBlockUser = async (userId: string) => {
+    if (!selectedDiscussion) return;
+
+    const reason = prompt('السبب (اختياري):');
+    if (reason === null) return; // ألغى المستخدم
+
+    const result = await banUserFromDiscussion(userId, selectedDiscussion.id, reason || undefined);
+
+    if (result.success) {
+      alert('تم حظر المستخدم من النقاش بنجاح');
+      // إعادة تحميل البيانات
+      await loadAllData();
+    } else {
+      alert('حدث خطأ أثناء حظر المستخدم: ' + result.error);
+    }
   };
 
-  const handleRemoveUser = (userId: number) => {
-    console.log(`Removing user ${userId}`);
-    alert('ميزة إزالة المستخدم قيد التطوير');
+  const handleRemoveUser = async (userId: string) => {
+    if (!selectedDiscussion) return;
+
+    if (confirm('هل أنت متأكد من حذف جميع رسائل هذا المستخدم من النقاش؟')) {
+      // حذف جميع رسائل المستخدم في هذا النقاش
+      const userMessages = selectedDiscussion.messages?.filter((m: any) => m.sender_id === userId) || [];
+
+      for (const message of userMessages) {
+        await handleDeleteMessage(message.id);
+      }
+
+      alert('تم حذف جميع رسائل المستخدم من النقاش');
+    }
   };
 
   const handleDeleteContent = async (contentId: string) => {
@@ -238,6 +267,33 @@ const ExpertDashboard = () => {
     }
   };
 
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedDiscussion || !newMessage.trim()) {
+      return;
+    }
+
+    setLoading(true);
+    const result = await addMessage(selectedDiscussion.id, newMessage.trim());
+
+    if (result.success) {
+      // إعادة تحميل النقاشات
+      await loadAllData();
+      // تحديث النقاش المحدد
+      const updatedDiscussion = discussions.find(d => d.id === selectedDiscussion.id);
+      if (updatedDiscussion) {
+        setSelectedDiscussion(updatedDiscussion);
+      }
+      // مسح حقل الإدخال
+      setNewMessage('');
+    } else {
+      alert('حدث خطأ أثناء إرسال الرسالة: ' + result.error);
+    }
+
+    setLoading(false);
+  };
+
   const getContentIcon = (type: string) => {
     switch (type) {
       case 'book': return <Book className="w-5 h-5" />;
@@ -254,6 +310,46 @@ const ExpertDashboard = () => {
       case 'article': return 'مقال';
       default: return 'محتوى';
     }
+  };
+
+  const handleEditContent = (content: any) => {
+    setSelectedContent(content);
+    setNewContent({
+      title: content.title,
+      content_type: content.content_type,
+      description: content.description || '',
+      image_url: content.image_url || '',
+      file_url: content.file_url || '',
+    });
+    setShowEditContent(true);
+  };
+
+  const handleUpdateContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedContent) return;
+
+    setLoading(true);
+    setError('');
+
+    const result = await updateContent(selectedContent.id, newContent);
+
+    if (result.success) {
+      await loadAllData();
+      setShowEditContent(false);
+      setSelectedContent(null);
+      setNewContent({
+        title: '',
+        content_type: 'article',
+        description: '',
+        image_url: '',
+        file_url: '',
+      });
+      alert('تم تعديل المحتوى بنجاح');
+    } else {
+      setError(result.error || 'حدث خطأ أثناء تعديل المحتوى');
+    }
+
+    setLoading(false);
   };
 
   const handleLogout = () => {
@@ -437,14 +533,14 @@ const ExpertDashboard = () => {
               </div>
 
               {/* Discussion Messages */}
-              <div className="content-card">
+              <div className="content-card flex flex-col">
                 {selectedDiscussion ? (
                   <>
                     <div className="flex items-center justify-between mb-6">
                       <h3 className="text-xl font-bold text-[#2D2D2D]">{selectedDiscussion.title}</h3>
                       <span className="text-sm text-[#6B7280]">{selectedDiscussion.messages?.length || 0} رسالة</span>
                     </div>
-                    <div className="space-y-4 max-h-96 overflow-y-auto">
+                    <div className="space-y-4 max-h-96 overflow-y-auto flex-1 mb-4">
                       {(!selectedDiscussion.messages || selectedDiscussion.messages.length === 0) ? (
                         <div className="text-center py-12">
                           <MessageSquare className="w-12 h-12 mx-auto text-[#8B5CF6]/30 mb-3" />
@@ -503,6 +599,28 @@ const ExpertDashboard = () => {
                         })
                       )}
                     </div>
+
+                    {/* حقل إرسال الرسالة */}
+                    <div className="border-t border-[#8B5CF6]/20 pt-4">
+                      <form onSubmit={handleSendMessage} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={newMessage}
+                          onChange={(e) => setNewMessage(e.target.value)}
+                          placeholder="اكتب رسالتك هنا..."
+                          className="input-modern flex-1"
+                          disabled={loading}
+                        />
+                        <button
+                          type="submit"
+                          disabled={loading || !newMessage.trim()}
+                          className="btn-primary flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Send className="w-4 h-4" />
+                          <span>إرسال</span>
+                        </button>
+                      </form>
+                    </div>
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-64 text-[#6B7280]">
@@ -553,12 +671,17 @@ const ExpertDashboard = () => {
                         <span className="status-badge status-new">{getContentTypeLabel(content.content_type)}</span>
                       </div>
                       <div className="absolute top-3 left-3 flex gap-2">
-                        <button className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B5CF6] transition-colors">
+                        <button
+                          onClick={() => handleEditContent(content)}
+                          className="p-2 rounded-lg bg-white/90 hover:bg-white text-[#8B5CF6] transition-colors"
+                          title="تعديل المحتوى"
+                        >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteContent(content.id)}
                           className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
+                          title="حذف المحتوى"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -734,6 +857,19 @@ const ExpertDashboard = () => {
                     onChange={(e) => setNewContent({ ...newContent, image_url: e.target.value })}
                   />
                 </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط المحتوى/التحميل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/file.pdf أو رابط فيديو"
+                    value={newContent.file_url}
+                    onChange={(e) => setNewContent({ ...newContent, file_url: e.target.value })}
+                  />
+                  <p className="text-xs text-[#6B7280] mt-2">
+                    أدخل رابط الملف للتحميل (كتاب PDF) أو رابط المشاهدة (فيديو YouTube)
+                  </p>
+                </div>
               </form>
             </div>
             <div className="p-6 border-t border-[#8B5CF6]/20 flex gap-3 flex-shrink-0">
@@ -754,6 +890,7 @@ const ExpertDashboard = () => {
                     content_type: 'article',
                     description: '',
                     image_url: '',
+                    file_url: '',
                   });
                 }}
                 className="btn-secondary flex-1"
@@ -880,6 +1017,110 @@ const ExpertDashboard = () => {
                 className="btn-secondary"
               >
                 إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Content Modal */}
+      {showEditContent && selectedContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-[#8B5CF6]/20 flex-shrink-0">
+              <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل المحتوى</h3>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleUpdateContent} className="space-y-6">
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="أدخل عنوان المحتوى"
+                    value={newContent.title}
+                    onChange={(e) => setNewContent({ ...newContent, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">نوع المحتوى</label>
+                  <select
+                    className="input-modern w-full"
+                    value={newContent.content_type}
+                    onChange={(e) => setNewContent({ ...newContent, content_type: e.target.value as ContentType })}
+                  >
+                    <option value="book">كتاب</option>
+                    <option value="video">فيديو</option>
+                    <option value="article">مقال</option>
+                    <option value="course">دورة</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
+                  <textarea
+                    className="input-modern w-full h-24 resize-none"
+                    placeholder="أدخل وصف المحتوى"
+                    value={newContent.description}
+                    onChange={(e) => setNewContent({ ...newContent, description: e.target.value })}
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/image.jpg"
+                    value={newContent.image_url}
+                    onChange={(e) => setNewContent({ ...newContent, image_url: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط المحتوى/التحميل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/file.pdf أو رابط فيديو"
+                    value={newContent.file_url}
+                    onChange={(e) => setNewContent({ ...newContent, file_url: e.target.value })}
+                  />
+                  <p className="text-xs text-[#6B7280] mt-2">
+                    أدخل رابط الملف للتحميل (كتاب PDF) أو رابط المشاهدة (فيديو YouTube)
+                  </p>
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-[#8B5CF6]/20 flex gap-3 flex-shrink-0">
+              <button
+                onClick={(e) => handleUpdateContent(e as any)}
+                disabled={loading}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                {loading ? 'جاري التعديل...' : 'حفظ التعديلات'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditContent(false);
+                  setSelectedContent(null);
+                  setError('');
+                  setNewContent({
+                    title: '',
+                    content_type: 'article',
+                    description: '',
+                    image_url: '',
+                    file_url: '',
+                  });
+                }}
+                className="btn-secondary flex-1"
+                disabled={loading}
+              >
+                إلغاء
               </button>
             </div>
           </div>

@@ -1,14 +1,16 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, Clock, Filter, Users, Star } from 'lucide-react';
+import { Brain, Search, Book, Video, FileText, Mail, LogOut, MessageCircle, Bell, Settings, Clock, Filter, Users, Star, Heart } from 'lucide-react';
 import DiscussionModal from '../components/DiscussionModal';
 import AiChatModal from '../components/AiChatModal';
 import NotificationModal from '../components/NotificationModal';
+import ContentDetailModal from '../components/ContentDetailModal';
 import { getPublishedContent } from '../lib/content';
 import { getAllDiscussions } from '../lib/discussions';
 import { getUpcomingEvents } from '../lib/events';
 import { getAllUsers } from '../lib/users';
 import { getUnreadCount } from '../lib/notifications';
+import { likeContent, unlikeContent, getAllContentLikes, getUserLikesStatus } from '../lib/likes';
 
 type Topic = { id: number; title: string; date: string };
 
@@ -30,6 +32,10 @@ const Dashboard = () => {
   const [discussionTopics, setDiscussionTopics] = useState<any[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [selectedContent, setSelectedContent] = useState<any>(null);
+  const [showContentDetail, setShowContentDetail] = useState(false);
+  const [likesCount, setLikesCount] = useState<{ [key: string]: number }>({});
+  const [likedContent, setLikedContent] = useState<string[]>([]);
 
   // تحميل جميع البيانات من الداتا بيس
   useEffect(() => {
@@ -55,6 +61,18 @@ const Dashboard = () => {
         course: contentResult.data.filter((item: any) => item.content_type === 'course'),
       };
       setLibraryContent(content);
+
+      // تحميل اللايكات
+      const contentIds = contentResult.data.map((item: any) => item.id);
+      const likesResult = await getAllContentLikes(contentIds);
+      if (likesResult.success) {
+        setLikesCount(likesResult.likesCount);
+      }
+
+      const userLikesResult = await getUserLikesStatus(contentIds);
+      if (userLikesResult.success) {
+        setLikedContent(userLikesResult.likedContent);
+      }
     }
 
     // تحميل النقاشات
@@ -69,8 +87,13 @@ const Dashboard = () => {
 
     // تحميل الفعاليات القادمة
     const eventsResult = await getUpcomingEvents();
+    console.log('📅 Events result (Dashboard):', eventsResult);
     if (eventsResult.success && eventsResult.data) {
+      console.log('✅ Setting events:', eventsResult.data.length, 'events');
+      console.log('Events data:', eventsResult.data);
       setUpcomingEvents(eventsResult.data.slice(0, 3)); // أقرب 3 فعاليات
+    } else {
+      console.error('❌ Failed to load events:', eventsResult.error);
     }
 
     // تحميل عدد المستخدمين
@@ -111,6 +134,31 @@ const Dashboard = () => {
   const handleTopicClick = (topic: Topic) => {
     setSelectedTopic(topic);
     setShowDiscussion(true);
+  };
+
+  const handleLikeToggle = async (contentId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // منع فتح التفاصيل
+
+    const isLiked = likedContent.includes(contentId);
+
+    if (isLiked) {
+      const result = await unlikeContent(contentId);
+      if (result.success) {
+        setLikedContent(prev => prev.filter(id => id !== contentId));
+        setLikesCount(prev => ({ ...prev, [contentId]: Math.max(0, (prev[contentId] || 0) - 1) }));
+      }
+    } else {
+      const result = await likeContent(contentId);
+      if (result.success) {
+        setLikedContent(prev => [...prev, contentId]);
+        setLikesCount(prev => ({ ...prev, [contentId]: (prev[contentId] || 0) + 1 }));
+      }
+    }
+  };
+
+  const handleContentClick = (content: any) => {
+    setSelectedContent(content);
+    setShowContentDetail(true);
   };
 
   const handleLogout = () => {
@@ -270,11 +318,18 @@ const Dashboard = () => {
                 const isNew = daysDiff <= 30 && daysDiff >= 0;
                 const formattedDate = createdAt.toLocaleDateString('ar-SA');
 
+                const isLiked = likedContent.includes(item.id);
+                const likes = likesCount[item.id] || 0;
+
                 return (
-                  <div key={item.id} className="content-card card-hover group overflow-hidden">
+                  <div
+                    key={item.id}
+                    onClick={() => handleContentClick(item)}
+                    className="content-card card-hover group overflow-hidden cursor-pointer"
+                  >
                     <div className="relative h-40 sm:h-48 mb-4 rounded-xl overflow-hidden">
                       <img
-                        src={item.image_url || '/placeholder.jpg'}
+                        src={item.image_url || 'https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg'}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
@@ -291,10 +346,17 @@ const Dashboard = () => {
                           <Clock className="w-4 h-4" />
                           <span>{formattedDate}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs sm:text-sm">
-                          <span className="text-[#8B7355] font-semibold">0</span>
-                          <span className="text-red-500">❤️</span>
-                        </div>
+                        <button
+                          onClick={(e) => handleLikeToggle(item.id, e)}
+                          className={`flex items-center gap-2 text-xs sm:text-sm px-3 py-1.5 rounded-lg transition-all ${
+                            isLiked
+                              ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                              : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+                          }`}
+                        >
+                          <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                          <span className="font-semibold">{likes}</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -346,23 +408,46 @@ const Dashboard = () => {
                 <Bell className="w-5 h-5 text-[#8B7355]" />
               </div>
               <div className="space-y-4">
-                {upcomingEvents.map(event => (
-                  <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className={`status-badge ${
-                        event.type === 'ورشة' ? 'status-new' : 
-                        event.type === 'دورة' ? 'status-featured' : 'status-popular'
-                      }`}>
-                        {event.type}
-                      </span>
-                      <span className="text-sm text-[#6B7280] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {event.date}
-                      </span>
-                    </div>
-                    <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
+                {upcomingEvents.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Bell className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
+                    <p className="text-sm text-[#6B7280]">لا توجد فعاليات قادمة</p>
                   </div>
-                ))}
+                ) : (
+                  upcomingEvents.map(event => {
+                    const eventDate = new Date(event.start_date);
+                    const formattedDate = eventDate.toLocaleDateString('ar-SA', {
+                      month: 'short',
+                      day: 'numeric'
+                    });
+
+                    const eventTypeLabel =
+                      event.event_type === 'course' ? 'دورة' :
+                      event.event_type === 'workshop' ? 'ورشة عمل' :
+                      event.event_type === 'seminar' ? 'ندوة' : 'ويبينار';
+
+                    return (
+                      <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className={`status-badge ${
+                            event.event_type === 'workshop' ? 'status-new' :
+                            event.event_type === 'course' ? 'status-featured' : 'status-popular'
+                          }`}>
+                            {eventTypeLabel}
+                          </span>
+                          <span className="text-sm text-[#6B7280] flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formattedDate}
+                          </span>
+                        </div>
+                        <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
+                        {event.instructor_name && (
+                          <p className="text-xs text-[#6B7280] mt-2">المدرب: {event.instructor_name}</p>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </aside>
@@ -401,6 +486,19 @@ const Dashboard = () => {
         onClose={() => setShowNotifications(false)}
         userRole="user"
       />
+
+      {selectedContent && (
+        <ContentDetailModal
+          isOpen={showContentDetail}
+          onClose={() => {
+            setShowContentDetail(false);
+            setSelectedContent(null);
+            // إعادة تحميل اللايكات بعد إغلاق المودال
+            loadAllData();
+          }}
+          content={selectedContent}
+        />
+      )}
     </div>
   );
 };
