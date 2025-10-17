@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, Edit, Settings, LogOut, Bell, TrendingUp, MessageSquare, Star, Activity, Download, RefreshCw, Video, FileText, Book, Mail, Lock, Phone } from 'lucide-react';
+import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, Edit, Settings, LogOut, Bell, TrendingUp, MessageSquare, Star, Activity, Download, RefreshCw, Video, FileText, Book, Mail, Lock, Phone, Calendar, MapPin, Globe } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
-import { getPublishedContent, deleteContent, addContent, type ContentType } from '../lib/content';
+import { getPublishedContent, deleteContent, addContent, updateContent, type ContentType } from '../lib/content';
 import { getAllDiscussions } from '../lib/discussions';
-import { getAllEvents } from '../lib/events';
+import { getAllEvents, addEvent, updateEvent, deleteEvent, type EventData, type EventType } from '../lib/events';
 import { getAllUsers, getAllExperts, deleteUser, updateUserRole, type UserRole } from '../lib/users';
 import { createExpertByAdmin } from '../lib/auth';
 import { getUnreadCount } from '../lib/notifications';
@@ -65,7 +65,12 @@ const AdminDashboard = () => {
   const [activeSection, setActiveSection] = useState('summary');
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddContent, setShowAddContent] = useState(false);
+  const [showEditContent, setShowEditContent] = useState(false);
+  const [selectedContent, setSelectedContent] = useState<any | null>(null);
   const [showAddExpert, setShowAddExpert] = useState(false);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -114,6 +119,7 @@ const AdminDashboard = () => {
     content_type: 'article' as ContentType,
     description: '',
     image_url: '',
+    file_url: '',
   });
   const [newExpert, setNewExpert] = useState({
     email: '',
@@ -122,6 +128,20 @@ const AdminDashboard = () => {
     specialization: '',
     phone: '',
     bio: '',
+  });
+  const [newEvent, setNewEvent] = useState({
+    title: '',
+    description: '',
+    event_type: 'course' as EventType,
+    image_url: '',
+    location: '',
+    is_online: false,
+    start_date: '',
+    end_date: '',
+    organizer: '',
+    registration_link: '',
+    contact_info: '',
+    instructor_name: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -395,10 +415,51 @@ const AdminDashboard = () => {
         content_type: 'article',
         description: '',
         image_url: '',
+        file_url: '',
       });
       alert('تم إضافة المحتوى بنجاح');
     } else {
       setError(result.error || 'حدث خطأ أثناء إضافة المحتوى');
+    }
+
+    setLoading(false);
+  };
+
+  const handleEditContent = (content: any) => {
+    setSelectedContent(content);
+    setNewContent({
+      title: content.title,
+      content_type: content.content_type,
+      description: content.description || '',
+      image_url: content.image_url || '',
+      file_url: content.file_url || '',
+    });
+    setShowEditContent(true);
+  };
+
+  const handleUpdateContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedContent) return;
+
+    setLoading(true);
+    setError('');
+
+    const result = await updateContent(selectedContent.id, newContent);
+
+    if (result.success) {
+      await loadAllData();
+      setShowEditContent(false);
+      setSelectedContent(null);
+      setNewContent({
+        title: '',
+        content_type: 'article',
+        description: '',
+        image_url: '',
+        file_url: '',
+      });
+      alert('تم تعديل المحتوى بنجاح');
+    } else {
+      setError(result.error || 'حدث خطأ أثناء تعديل المحتوى');
     }
 
     setLoading(false);
@@ -442,6 +503,104 @@ const AdminDashboard = () => {
     }
 
     setLoading(false);
+  };
+
+  const handleAddEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const result = await addEvent(newEvent);
+
+    if (result.success) {
+      await loadAllData();
+      setShowAddEvent(false);
+      setNewEvent({
+        title: '',
+        description: '',
+        event_type: 'course',
+        image_url: '',
+        location: '',
+        is_online: false,
+        start_date: '',
+        end_date: '',
+        organizer: '',
+        registration_link: '',
+        contact_info: '',
+        instructor_name: '',
+      });
+      alert('تم إضافة الفعالية بنجاح');
+    } else {
+      setError(result.error || 'حدث خطأ أثناء إضافة الفعالية');
+    }
+
+    setLoading(false);
+  };
+
+  const handleEditEvent = (event: any) => {
+    setSelectedEvent(event);
+    setNewEvent({
+      title: event.title,
+      description: event.description || '',
+      event_type: event.event_type,
+      image_url: event.image_url || '',
+      location: event.location || '',
+      is_online: event.is_online || false,
+      start_date: event.start_date ? new Date(event.start_date).toISOString().slice(0, 16) : '',
+      end_date: event.end_date ? new Date(event.end_date).toISOString().slice(0, 16) : '',
+      organizer: event.organizer || '',
+      registration_link: event.registration_link || '',
+      contact_info: event.contact_info || '',
+      instructor_name: event.instructor_name || '',
+    });
+    setShowEditEvent(true);
+  };
+
+  const handleUpdateEvent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedEvent) return;
+
+    setLoading(true);
+    setError('');
+
+    const result = await updateEvent(selectedEvent.id, newEvent);
+
+    if (result.success) {
+      await loadAllData();
+      setShowEditEvent(false);
+      setSelectedEvent(null);
+      setNewEvent({
+        title: '',
+        description: '',
+        event_type: 'course',
+        image_url: '',
+        location: '',
+        is_online: false,
+        start_date: '',
+        end_date: '',
+        organizer: '',
+        registration_link: '',
+        contact_info: '',
+        instructor_name: '',
+      });
+      alert('تم تعديل الفعالية بنجاح');
+    } else {
+      setError(result.error || 'حدث خطأ أثناء تعديل الفعالية');
+    }
+
+    setLoading(false);
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    if (confirm('هل أنت متأكد من حذف هذه الفعالية؟')) {
+      const result = await deleteEvent(id);
+      if (result.success) {
+        await loadAllData();
+        alert('تم حذف الفعالية بنجاح');
+      } else {
+        alert('حدث خطأ أثناء الحذف');
+      }
+    }
   };
 
   const topUsers = users.slice(0, 5);
@@ -619,6 +778,18 @@ const AdminDashboard = () => {
             </button>
 
             <button
+              onClick={() => setActiveSection('events')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
+                activeSection === 'events'
+                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+              }`}
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">إدارة الفعاليات</span>
+            </button>
+
+            <button
               onClick={() => setActiveSection('analytics')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
                 activeSection === 'analytics'
@@ -661,6 +832,7 @@ const AdminDashboard = () => {
                 {activeSection === 'content' && 'إدارة المحتوى'}
                 {activeSection === 'experts' && 'إدارة الخبراء'}
                 {activeSection === 'users' && 'إدارة المستخدمين'}
+                {activeSection === 'events' && 'إدارة الفعاليات'}
                 {activeSection === 'analytics' && 'التحليلات والتقارير'}
               </h2>
               <p className="text-[#6B7280] mt-1">
@@ -668,6 +840,7 @@ const AdminDashboard = () => {
                 {activeSection === 'content' && 'إضافة وحذف وإدارة المحتوى التعليمي'}
                 {activeSection === 'experts' && 'مراقبة وإدارة حسابات الخبراء'}
                 {activeSection === 'users' && 'مراقبة وإدارة حسابات المستخدمين'}
+                {activeSection === 'events' && 'إضافة وإدارة الفعاليات القادمة'}
                 {activeSection === 'analytics' && 'تقارير مفصلة وإحصائيات المنصة'}
               </p>
             </div>
@@ -705,6 +878,15 @@ const AdminDashboard = () => {
                 >
                   <Plus className="w-4 h-4" />
                   <span>إضافة خبير</span>
+                </button>
+              )}
+              {activeSection === 'events' && (
+                <button
+                  onClick={() => setShowAddEvent(true)}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>إضافة فعالية</span>
                 </button>
               )}
             </div>
@@ -884,13 +1066,18 @@ const AdminDashboard = () => {
                           alt={content.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
-                        <div className="absolute top-3 right-3">
-                          <span className="status-badge status-new">منشور</span>
-                        </div>
                         <div className="absolute top-3 left-3 flex gap-2">
+                          <button
+                            onClick={() => handleEditContent(content)}
+                            className="p-2 rounded-lg bg-white/90 hover:bg-blue-500 hover:text-white text-blue-600 transition-colors"
+                            title="تعديل المحتوى"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => handleDeleteContent(content.id)}
                             className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
+                            title="حذف المحتوى"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -904,7 +1091,6 @@ const AdminDashboard = () => {
                         <p className="text-sm text-[#6B7280] line-clamp-2">{content.description || 'لا يوجد وصف'}</p>
                         <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
                           <span className="text-sm text-[#6B7280]">{new Date(content.created_at).toLocaleDateString('ar-SA')}</span>
-                          <span className="text-sm text-[#8B7355] font-semibold">من الداتا بيس</span>
                         </div>
                       </div>
                     </div>
@@ -1064,57 +1250,157 @@ const AdminDashboard = () => {
                         </td>
                       </tr>
                     ) : (
-                      users.map(user => (
-                        <tr key={user.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B7355]/5 transition-colors">
-                          <td className="p-4">
-                            <div>
-                              <div className="font-semibold text-[#2D2D2D]">{user.full_name || user.email}</div>
-                              <div className="text-sm text-[#6B7280]">{user.email}</div>
-                            </div>
-                          </td>
-                          <td className="p-4 text-[#2D2D2D] font-semibold">-</td>
-                          <td className="p-4 text-[#2D2D2D]">-</td>
-                          <td className="p-4 text-[#2D2D2D]">-</td>
-                          <td className="p-4 text-[#2D2D2D]">-</td>
-                          <td className="p-4">
-                            <span className="status-badge status-trending">نشط</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowUserDetails(true);
-                                }}
-                                className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors"
-                                title="عرض التفاصيل"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-                                    const result = await deleteUser(user.id);
-                                    if (result.success) {
-                                      alert('تم حذف المستخدم بنجاح');
-                                      await loadAllData();
-                                    } else {
-                                      alert('حدث خطأ أثناء حذف المستخدم: ' + result.error);
+                      users.map(user => {
+                        // حساب الوقت منذ التسجيل
+                        const daysAgo = Math.floor((new Date().getTime() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24));
+                        // افتراض ساعات الاستخدام (متوسط ساعة يومياً)
+                        const hoursSpent = Math.max(0, daysAgo);
+
+                        return (
+                          <tr key={user.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B7355]/5 transition-colors">
+                            <td className="p-4">
+                              <div>
+                                <div className="font-semibold text-[#2D2D2D]">{user.full_name || user.email}</div>
+                                <div className="text-sm text-[#6B7280]">{user.email}</div>
+                                <div className="text-xs text-[#8B7355] mt-1">
+                                  عضو منذ {daysAgo === 0 ? 'اليوم' : `${daysAgo} يوم`}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-[#2D2D2D] font-semibold">{hoursSpent} ساعة</td>
+                            <td className="p-4 text-[#2D2D2D]">{Math.min(hoursSpent * 5, 100)}%</td>
+                            <td className="p-4 text-[#2D2D2D]">0%</td>
+                            <td className="p-4 text-[#2D2D2D]">0</td>
+                            <td className="p-4">
+                              <span className="status-badge status-trending">نشط</span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setShowUserDetails(true);
+                                  }}
+                                  className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors"
+                                  title="عرض التفاصيل"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+                                      const result = await deleteUser(user.id);
+                                      if (result.success) {
+                                        alert('تم حذف المستخدم بنجاح');
+                                        await loadAllData();
+                                      } else {
+                                        alert('حدث خطأ أثناء حذف المستخدم: ' + result.error);
+                                      }
                                     }
-                                  }
-                                }}
-                                className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
-                                title="حذف المستخدم"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                                  }}
+                                  className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
+                                  title="حذف المستخدم"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* Events Management */}
+          {activeSection === 'events' && (
+            <div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="البحث في الفعاليات..."
+                    className="input-modern w-full has-right-icon"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                </div>
+                <button className="btn-secondary flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  <span>تصفية</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {eventsList.length === 0 ? (
+                  <div className="col-span-full text-center py-12">
+                    <Calendar className="w-16 h-16 mx-auto text-[#8B7355]/30 mb-4" />
+                    <p className="text-[#6B7280]">لا توجد فعاليات في قاعدة البيانات</p>
+                  </div>
+                ) : (
+                  eventsList.map(event => (
+                    <div key={event.id} className="content-card card-hover group">
+                      <div className="relative h-48 mb-4 rounded-xl overflow-hidden">
+                        <img
+                          src={event.image_url || 'https://images.pexels.com/photos/1181403/pexels-photo-1181403.jpeg'}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute top-3 left-3 flex gap-2">
+                          <button
+                            onClick={() => handleEditEvent(event)}
+                            className="p-2 rounded-lg bg-white/90 hover:bg-blue-500 hover:text-white text-blue-600 transition-colors"
+                            title="تعديل الفعالية"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteEvent(event.id)}
+                            className="p-2 rounded-lg bg-white/90 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
+                            title="حذف الفعالية"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="absolute top-3 right-3">
+                          <span className={`status-badge ${
+                            event.event_type === 'course' ? 'status-new' :
+                            event.event_type === 'workshop' ? 'status-trending' : 'status-featured'
+                          }`}>
+                            {event.event_type === 'course' ? 'دورة' :
+                             event.event_type === 'workshop' ? 'ورشة عمل' :
+                             event.event_type === 'seminar' ? 'ندوة' : 'ويبينار'}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <h3 className="text-[#2D2D2D] font-bold text-lg leading-tight">{event.title}</h3>
+                        <p className="text-sm text-[#6B7280] line-clamp-2">{event.description || 'لا يوجد وصف'}</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                            <Calendar className="w-4 h-4" />
+                            <span>{new Date(event.start_date).toLocaleDateString('ar-SA')}</span>
+                          </div>
+                          {event.location && (
+                            <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+                              {event.is_online ? <Globe className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+                              <span>{event.is_online ? 'عبر الإنترنت' : event.location}</span>
+                            </div>
+                          )}
+                          {event.instructor_name && (
+                            <div className="text-sm text-[#8B7355] font-semibold">
+                              المدرب: {event.instructor_name}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -1376,6 +1662,19 @@ const AdminDashboard = () => {
                     onChange={(e) => setNewContent({ ...newContent, image_url: e.target.value })}
                   />
                 </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط المحتوى/التحميل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/file.pdf أو رابط فيديو"
+                    value={newContent.file_url}
+                    onChange={(e) => setNewContent({ ...newContent, file_url: e.target.value })}
+                  />
+                  <p className="text-xs text-[#6B7280] mt-2">
+                    أدخل رابط الملف للتحميل (كتاب PDF) أو رابط المشاهدة (فيديو YouTube)
+                  </p>
+                </div>
               </form>
             </div>
             <div className="p-6 border-t border-[#8B7355]/20 flex gap-3 flex-shrink-0">
@@ -1396,6 +1695,111 @@ const AdminDashboard = () => {
                     content_type: 'article',
                     description: '',
                     image_url: '',
+                    file_url: '',
+                  });
+                }}
+                disabled={loading}
+                className="btn-secondary flex-1"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Content Modal */}
+      {showEditContent && selectedContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-[#8B7355]/20 flex-shrink-0">
+              <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل المحتوى</h3>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleUpdateContent} className="space-y-6">
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان المحتوى</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="أدخل عنوان المحتوى"
+                    value={newContent.title}
+                    onChange={(e) => setNewContent({ ...newContent, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">نوع المحتوى</label>
+                  <select
+                    className="input-modern w-full"
+                    value={newContent.content_type}
+                    onChange={(e) => setNewContent({ ...newContent, content_type: e.target.value as ContentType })}
+                  >
+                    <option value="book">كتاب</option>
+                    <option value="video">فيديو</option>
+                    <option value="article">مقال</option>
+                    <option value="course">دورة</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
+                  <textarea
+                    className="input-modern w-full h-24 resize-none"
+                    placeholder="أدخل وصف المحتوى"
+                    value={newContent.description}
+                    onChange={(e) => setNewContent({ ...newContent, description: e.target.value })}
+                  ></textarea>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/image.jpg"
+                    value={newContent.image_url}
+                    onChange={(e) => setNewContent({ ...newContent, image_url: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط المحتوى/التحميل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/file.pdf أو رابط فيديو"
+                    value={newContent.file_url}
+                    onChange={(e) => setNewContent({ ...newContent, file_url: e.target.value })}
+                  />
+                  <p className="text-xs text-[#6B7280] mt-2">
+                    أدخل رابط الملف للتحميل (كتاب PDF) أو رابط المشاهدة (فيديو YouTube)
+                  </p>
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3 flex-shrink-0">
+              <button
+                onClick={(e) => handleUpdateContent(e as any)}
+                disabled={loading}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                {loading ? 'جاري التعديل...' : 'حفظ التعديلات'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditContent(false);
+                  setSelectedContent(null);
+                  setError('');
+                  setNewContent({
+                    title: '',
+                    content_type: 'article',
+                    description: '',
+                    image_url: '',
+                    file_url: '',
                   });
                 }}
                 disabled={loading}
@@ -1575,6 +1979,369 @@ const AdminDashboard = () => {
                     specialization: '',
                     phone: '',
                     bio: '',
+                  });
+                }}
+                disabled={loading}
+                className="btn-secondary flex-1"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Event Modal */}
+      {showAddEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-[#8B7355]/20 flex-shrink-0">
+              <h3 className="text-xl font-bold text-[#2D2D2D]">إضافة فعالية جديدة</h3>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleAddEvent} className="space-y-6">
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان الفعالية</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="أدخل عنوان الفعالية"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">نوع الفعالية</label>
+                  <select
+                    className="input-modern w-full"
+                    value={newEvent.event_type}
+                    onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value as EventType })}
+                  >
+                    <option value="course">دورة</option>
+                    <option value="workshop">ورشة عمل</option>
+                    <option value="seminar">ندوة</option>
+                    <option value="webinar">ويبينار</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
+                  <textarea
+                    className="input-modern w-full h-24 resize-none"
+                    placeholder="أدخل وصف الفعالية"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  ></textarea>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">تاريخ البدء</label>
+                    <input
+                      type="datetime-local"
+                      className="input-modern w-full"
+                      value={newEvent.start_date}
+                      onChange={(e) => setNewEvent({ ...newEvent, start_date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">تاريخ الانتهاء (اختياري)</label>
+                    <input
+                      type="datetime-local"
+                      className="input-modern w-full"
+                      value={newEvent.end_date}
+                      onChange={(e) => setNewEvent({ ...newEvent, end_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newEvent.is_online}
+                      onChange={(e) => setNewEvent({ ...newEvent, is_online: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-[#2D2D2D] font-semibold">فعالية عبر الإنترنت</span>
+                  </label>
+                </div>
+                {!newEvent.is_online && (
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">الموقع</label>
+                    <input
+                      type="text"
+                      className="input-modern w-full"
+                      placeholder="أدخل موقع الفعالية"
+                      value={newEvent.location}
+                      onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">اسم المدرب (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="د. أحمد محمد"
+                    value={newEvent.instructor_name}
+                    onChange={(e) => setNewEvent({ ...newEvent, instructor_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الجهة المنظمة (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="اسم الجهة المنظمة"
+                    value={newEvent.organizer}
+                    onChange={(e) => setNewEvent({ ...newEvent, organizer: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط التسجيل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/register"
+                    value={newEvent.registration_link}
+                    onChange={(e) => setNewEvent({ ...newEvent, registration_link: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">معلومات الاتصال (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="بريد إلكتروني أو رقم هاتف"
+                    value={newEvent.contact_info}
+                    onChange={(e) => setNewEvent({ ...newEvent, contact_info: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/image.jpg"
+                    value={newEvent.image_url}
+                    onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3 flex-shrink-0">
+              <button
+                onClick={(e) => handleAddEvent(e as any)}
+                disabled={loading}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                {loading ? 'جاري الإضافة...' : 'إضافة الفعالية'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowAddEvent(false);
+                  setError('');
+                  setNewEvent({
+                    title: '',
+                    description: '',
+                    event_type: 'course',
+                    image_url: '',
+                    location: '',
+                    is_online: false,
+                    start_date: '',
+                    end_date: '',
+                    organizer: '',
+                    registration_link: '',
+                    contact_info: '',
+                    instructor_name: '',
+                  });
+                }}
+                disabled={loading}
+                className="btn-secondary flex-1"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Event Modal */}
+      {showEditEvent && selectedEvent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="glass-effect rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-[#8B7355]/20 flex-shrink-0">
+              <h3 className="text-xl font-bold text-[#2D2D2D]">تعديل الفعالية</h3>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {error && (
+                <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              <form onSubmit={handleUpdateEvent} className="space-y-6">
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">عنوان الفعالية</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="أدخل عنوان الفعالية"
+                    value={newEvent.title}
+                    onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">نوع الفعالية</label>
+                  <select
+                    className="input-modern w-full"
+                    value={newEvent.event_type}
+                    onChange={(e) => setNewEvent({ ...newEvent, event_type: e.target.value as EventType })}
+                  >
+                    <option value="course">دورة</option>
+                    <option value="workshop">ورشة عمل</option>
+                    <option value="seminar">ندوة</option>
+                    <option value="webinar">ويبينار</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الوصف</label>
+                  <textarea
+                    className="input-modern w-full h-24 resize-none"
+                    placeholder="أدخل وصف الفعالية"
+                    value={newEvent.description}
+                    onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
+                  ></textarea>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">تاريخ البدء</label>
+                    <input
+                      type="datetime-local"
+                      className="input-modern w-full"
+                      value={newEvent.start_date}
+                      onChange={(e) => setNewEvent({ ...newEvent, start_date: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">تاريخ الانتهاء (اختياري)</label>
+                    <input
+                      type="datetime-local"
+                      className="input-modern w-full"
+                      value={newEvent.end_date}
+                      onChange={(e) => setNewEvent({ ...newEvent, end_date: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newEvent.is_online}
+                      onChange={(e) => setNewEvent({ ...newEvent, is_online: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-300"
+                    />
+                    <span className="text-[#2D2D2D] font-semibold">فعالية عبر الإنترنت</span>
+                  </label>
+                </div>
+                {!newEvent.is_online && (
+                  <div>
+                    <label className="block text-[#2D2D2D] font-semibold mb-3">الموقع</label>
+                    <input
+                      type="text"
+                      className="input-modern w-full"
+                      placeholder="أدخل موقع الفعالية"
+                      value={newEvent.location}
+                      onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">اسم المدرب (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="د. أحمد محمد"
+                    value={newEvent.instructor_name}
+                    onChange={(e) => setNewEvent({ ...newEvent, instructor_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">الجهة المنظمة (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="اسم الجهة المنظمة"
+                    value={newEvent.organizer}
+                    onChange={(e) => setNewEvent({ ...newEvent, organizer: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط التسجيل (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/register"
+                    value={newEvent.registration_link}
+                    onChange={(e) => setNewEvent({ ...newEvent, registration_link: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">معلومات الاتصال (اختياري)</label>
+                  <input
+                    type="text"
+                    className="input-modern w-full"
+                    placeholder="بريد إلكتروني أو رقم هاتف"
+                    value={newEvent.contact_info}
+                    onChange={(e) => setNewEvent({ ...newEvent, contact_info: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#2D2D2D] font-semibold mb-3">رابط الصورة (اختياري)</label>
+                  <input
+                    type="url"
+                    className="input-modern w-full"
+                    placeholder="https://example.com/image.jpg"
+                    value={newEvent.image_url}
+                    onChange={(e) => setNewEvent({ ...newEvent, image_url: e.target.value })}
+                  />
+                </div>
+              </form>
+            </div>
+            <div className="p-6 border-t border-[#8B7355]/20 flex gap-3 flex-shrink-0">
+              <button
+                onClick={(e) => handleUpdateEvent(e as any)}
+                disabled={loading}
+                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+              >
+                {loading ? 'جاري التعديل...' : 'حفظ التعديلات'}
+              </button>
+              <button
+                onClick={() => {
+                  setShowEditEvent(false);
+                  setSelectedEvent(null);
+                  setError('');
+                  setNewEvent({
+                    title: '',
+                    description: '',
+                    event_type: 'course',
+                    image_url: '',
+                    location: '',
+                    is_online: false,
+                    start_date: '',
+                    end_date: '',
+                    organizer: '',
+                    registration_link: '',
+                    contact_info: '',
+                    instructor_name: '',
                   });
                 }}
                 disabled={loading}

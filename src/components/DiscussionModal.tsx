@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Send, MessageSquare } from 'lucide-react';
+import { X, Send, MessageSquare, Ban } from 'lucide-react';
 import { getDiscussion, addMessage } from '../lib/discussions';
+import { isUserBanned } from '../lib/bans';
 import { supabase } from '../lib/supabase';
 
 interface Message {
@@ -31,6 +32,8 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isBanned, setIsBanned] = useState(false);
+  const [banReason, setBanReason] = useState('');
 
   // جلب بيانات المستخدم الحالي
   useEffect(() => {
@@ -52,8 +55,21 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
   useEffect(() => {
     if (isOpen && topic.id) {
       loadMessages();
+      checkBanStatus();
     }
   }, [isOpen, topic.id]);
+
+  const checkBanStatus = async () => {
+    if (currentUser) {
+      const result = await isUserBanned(currentUser.id, String(topic.id));
+      if (result.success) {
+        setIsBanned(result.isBanned);
+        if (result.banData) {
+          setBanReason(result.banData.reason || 'مخالفة قواعد النقاش');
+        }
+      }
+    }
+  };
 
   const loadMessages = async () => {
     setLoading(true);
@@ -69,7 +85,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isBanned) return;
 
     setSending(true);
     setError('');
@@ -184,29 +200,44 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
         </div>
 
         <form onSubmit={handleSendMessage} className="p-4 sm:p-6 border-t border-[#8B7355]/20 flex-shrink-0 bg-white/50">
-          {error && !loading && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {error}
+          {isBanned ? (
+            <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl text-center">
+              <Ban className="w-12 h-12 mx-auto text-red-500 mb-3" />
+              <h4 className="text-lg font-bold text-red-700 mb-2">تم تجميدك من هذا النقاش</h4>
+              <p className="text-sm text-red-600">
+                السبب: {banReason}
+              </p>
+              <p className="text-xs text-gray-600 mt-2">
+                للمزيد من المعلومات، يرجى التواصل مع إدارة المنصة
+              </p>
             </div>
+          ) : (
+            <>
+              {error && !loading && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+              <div className="flex gap-2 sm:gap-3">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="شارك في النقاش..."
+                  disabled={sending}
+                  className="flex-1 input-modern disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !newMessage.trim()}
+                  className="btn-primary px-4 sm:px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">{sending ? 'إرسال...' : 'إرسال'}</span>
+                </button>
+              </div>
+            </>
           )}
-          <div className="flex gap-2 sm:gap-3">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="شارك في النقاش..."
-              disabled={sending}
-              className="flex-1 input-modern disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <button
-              type="submit"
-              disabled={sending || !newMessage.trim()}
-              className="btn-primary px-4 sm:px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              <Send className="w-4 h-4" />
-              <span className="hidden sm:inline">{sending ? 'إرسال...' : 'إرسال'}</span>
-            </button>
-          </div>
         </form>
       </div>
     </div>

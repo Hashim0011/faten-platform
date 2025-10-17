@@ -81,18 +81,18 @@ export async function getAllEvents() {
  */
 export async function getUpcomingEvents() {
   try {
-    const now = new Date().toISOString();
-
     const { data, error } = await supabase
       .from('events')
       .select('*')
-      .eq('status', 'upcoming')
-      .gte('start_date', now)
       .order('start_date', { ascending: true })
       .limit(10);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
 
+    console.log('✅ Fetched events from database:', data);
     return { success: true, data };
   } catch (error: any) {
     console.error('Error fetching upcoming events:', error);
