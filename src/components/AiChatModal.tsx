@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, Brain, Sparkles, Minimize2 } from 'lucide-react';
+import { X, Send, Brain, Sparkles, Minimize2, Loader2 } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -24,6 +24,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // إغلاق الشات عند النقر خارج المساحة
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -32,9 +33,9 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: messages.length + 1,
@@ -43,22 +44,58 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       timestamp: new Date().toLocaleTimeString('ar-SA')
     };
 
-    const assistantResponses: { [key: string]: string } = {
-      'ما هو الأمن الفكري؟': 'الأمن الفكري هو حماية وتحصين العقل من الأفكار المنحرفة والمعتقدات الخاطئة، وتعزيز القيم والمبادئ الإسلامية والوطنية. يهدف إلى بناء شخصية متوازنة قادرة على التفكير النقدي والتمييز بين الصواب والخطأ.',
-      'كيف يمكن تحقيق الأمن الفكري؟': 'يمكن تحقيق الأمن الفكري من خلال:\n1. التربية الإسلامية الصحيحة\n2. تعزيز الهوية الوطنية\n3. تنمية مهارات التفكير النقدي\n4. التواصل المستمر مع العلماء والمختصين\n5. الحوار المفتوح داخل الأسرة والمجتمع',
-      'ما هي مهددات الأمن الفكري؟': 'من أبرز مهددات الأمن الفكري:\n1. التطرف والغلو\n2. الشائعات والمعلومات المضللة\n3. الغزو الثقافي\n4. ضعف الهوية الوطنية\n5. التقليد الأعمى للثقافات الأخرى',
-      'ما هي خدمات منصة فطن؟': 'تقدم منصة فطن العديد من الخدمات:\n1. محتوى تعليمي موثوق\n2. استشارات مع خبراء متخصصين\n3. ورش عمل ودورات تدريبية\n4. نقاشات تفاعلية\n5. مكتبة رقمية متخصصة'
-    };
-
-    const assistantMessage: Message = {
-      id: messages.length + 2,
-      role: 'assistant',
-      content: assistantResponses[newMessage] || 'عذراً، لم أفهم سؤالك. هل يمكنك إعادة صياغته بطريقة أخرى؟',
-      timestamp: new Date().toLocaleTimeString('ar-SA')
-    };
-
-    setMessages([...messages, userMessage, assistantMessage]);
+    // Add user message to chat
+    setMessages(prev => [...prev, userMessage]);
     setNewMessage('');
+    setIsLoading(true);
+
+    try {
+      // Get webhook URL from environment variable
+      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://your-n8n-instance.app.n8n.cloud/webhook/REDACTED';
+
+      // Send message to n8n webhook
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          timestamp: userMessage.timestamp,
+          userId: 'user_' + Date.now()
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('فشل في الحصول على الرد');
+      }
+
+      const data = await response.json();
+
+      // Add assistant response to chat
+      const assistantMessage: Message = {
+        id: messages.length + 2,
+        role: 'assistant',
+        content: data.response || data.message || 'عذراً، حدث خطأ في معالجة طلبك.',
+        timestamp: new Date().toLocaleTimeString('ar-SA')
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+
+      // Add error message
+      const errorMessage: Message = {
+        id: messages.length + 2,
+        role: 'assistant',
+        content: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
+        timestamp: new Date().toLocaleTimeString('ar-SA')
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -136,13 +173,18 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب سؤالك هنا..."
                     className="input-modern flex-1 text-sm"
+                    disabled={isLoading}
                   />
                   <button
                     type="submit"
-                    disabled={!newMessage.trim()}
+                    disabled={!newMessage.trim() || isLoading}
                     className="btn-primary px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <Send className="w-4 h-4" />
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </form>
