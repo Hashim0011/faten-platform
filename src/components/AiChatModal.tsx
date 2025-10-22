@@ -50,14 +50,15 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
-      // Get webhook URL from environment variable
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://your-n8n-instance.app.n8n.cloud/webhook/REDACTED';
+      // Use Supabase Edge Function as proxy to avoid CORS issues
+      const edgeFunctionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat-proxy`;
 
-      // Send message to n8n webhook
-      const response = await fetch(webhookUrl, {
+      // Send message through edge function
+      const response = await fetch(edgeFunctionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({
           message: userMessage.content,
