@@ -72,11 +72,36 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
 
       const data = await response.json();
 
+      // Log the response for debugging
+      console.log('N8N Response:', data);
+
+      // Extract the response text from various possible formats
+      let responseText = '';
+
+      if (typeof data === 'string') {
+        responseText = data;
+      } else if (data.response) {
+        responseText = data.response;
+      } else if (data.message) {
+        responseText = data.message;
+      } else if (data.output) {
+        responseText = data.output;
+      } else if (data.text) {
+        responseText = data.text;
+      } else if (data.result) {
+        responseText = data.result;
+      } else if (data.data) {
+        responseText = typeof data.data === 'string' ? data.data : JSON.stringify(data.data);
+      } else {
+        // If no known field, try to use the whole response
+        responseText = JSON.stringify(data);
+      }
+
       // Add assistant response to chat
       const assistantMessage: Message = {
         id: messages.length + 2,
         role: 'assistant',
-        content: data.response || data.message || 'عذراً، حدث خطأ في معالجة طلبك.',
+        content: responseText || 'عذراً، لم أتمكن من معالجة الرد.',
         timestamp: new Date().toLocaleTimeString('ar-SA')
       };
 
