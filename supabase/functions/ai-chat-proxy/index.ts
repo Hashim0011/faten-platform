@@ -19,6 +19,8 @@ Deno.serve(async (req: Request) => {
   try {
     const body = await req.json();
 
+    console.log("Forwarding to n8n:", body);
+
     // Forward the request to n8n webhook
     const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
@@ -28,7 +30,17 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify(body),
     });
 
-    const responseData = await n8nResponse.json();
+    const responseText = await n8nResponse.text();
+    console.log("N8N raw response:", responseText);
+
+    let responseData;
+    try {
+      responseData = JSON.parse(responseText);
+    } catch {
+      responseData = { text: responseText };
+    }
+
+    console.log("Parsed response:", responseData);
 
     return new Response(
       JSON.stringify(responseData),
