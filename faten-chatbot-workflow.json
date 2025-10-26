@@ -1,0 +1,187 @@
+{
+  "name": "Faten AI Chatbot - Simple Version",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "faten-chat",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook - Receive Chat Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "faten-chat-webhook"
+    },
+    {
+      "parameters": {
+        "url": "https://zwqpabxpeagerfanpmpm.supabase.co/rest/v1/content?select=id,title,content_type,description&status=eq.منشور&limit=20",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "REDACTED_JWT"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer REDACTED_JWT"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "fetch-content",
+      "name": "Fetch Published Content",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get user message and content from database\nconst firstInput = $input.first();\nconst webhookData = firstInput && firstInput.json ? firstInput.json : {};\nconst userMessage = webhookData.message || webhookData.body?.message || '';\nconst userName = webhookData.userName || webhookData.body?.userName || 'مستخدم';\nconst userId = webhookData.userId || webhookData.body?.userId || '';\n\n// Get content from second input (Supabase)\nconst allInputs = $input.all();\nconst contentData = allInputs.length > 1 && allInputs[1].json ? allInputs[1].json : [];\nconst contentList = Array.isArray(contentData) ? contentData : [];\n\n// Build context about available content\nlet contentContext = '';\nif (contentList && contentList.length > 0) {\n  contentContext = '\\n\\nالمحتوى المتاح في منصة فطن:\\n';\n  contentList.slice(0, 10).forEach(item => {\n    const type = item.content_type === 'book' ? 'كتاب' : \n                 item.content_type === 'video' ? 'فيديو' : \n                 item.content_type === 'article' ? 'مقال' : 'محتوى';\n    contentContext += `- ${type}: ${item.title}${item.description ? ' - ' + item.description.substring(0, 100) : ''}\\n`;\n  });\n}\n\n// System prompt for Gemini\nconst systemPrompt = `أنت مساعد ذكي في منصة \"فطن\" - منصة تعليمية متخصصة في الأمن الفكري.\n\nمهمتك:\n1. الإجابة على الأسئلة المتعلقة بالأمن الفكري فقط\n2. إذا سأل المستخدم عن موضوع غير متعلق بالأمن الفكري، قل له بأدب أنك متخصص في الأمن الفكري فقط\n3. استخدم اللغة العربية الفصحى المبسطة\n4. كن مهذباً ومحترماً\n5. إذا كان هناك محتوى متعلق بالسؤال في قاعدة البيانات، اقترحه على المستخدم\n\nالقواعد المهمة:\n- لا تجيب على أسئلة لا علاقة لها بالأمن الفكري\n- لا تعطي معلومات طبية أو قانونية أو مالية\n- ركز فقط على: المفاهيم الفكرية، الحماية من التطرف، التفكير الناقد، الوعي الفكري\n- أجب دائماً بالعربية\n\n${contentContext}`;\n\nconst fullPrompt = `${systemPrompt}\\n\\nالمستخدم (${userName}): ${userMessage}\\n\\nالمساعد:`;\n\nreturn [{\n  json: {\n    prompt: fullPrompt,\n    userMessage: userMessage,\n    userName: userName,\n    userId: userId,\n    contentAvailable: contentList.length > 0,\n    contentList: contentList.slice(0, 5)\n  }\n}];"
+      },
+      "id": "build-prompt",
+      "name": "Build AI Prompt with Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "key",
+              "value": "REDACTED_GOOGLE_KEY"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  contents: [{\n    parts: [{\n      text: $json.prompt\n    }]\n  }],\n  generationConfig: {\n    temperature: 0.7,\n    topK: 40,\n    topP: 0.95,\n    maxOutputTokens: 1024\n  }\n}) }}",
+        "options": {}
+      },
+      "id": "gemini-api",
+      "name": "Google Gemini API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract response from Gemini API\nconst geminiResponse = $input.first().json;\nconst previousData = $input.first().json;\n\nlet aiResponse = '';\n\ntry {\n  // Extract text from Gemini response\n  if (geminiResponse.candidates && geminiResponse.candidates.length > 0) {\n    const candidate = geminiResponse.candidates[0];\n    if (candidate.content && candidate.content.parts && candidate.content.parts.length > 0) {\n      aiResponse = candidate.content.parts[0].text;\n    }\n  }\n  \n  // If no response, use fallback\n  if (!aiResponse) {\n    aiResponse = 'عذراً، لم أتمكن من معالجة سؤالك. يرجى المحاولة مرة أخرى.';\n  }\n\n  // Check if we should suggest content\n  const userMessage = previousData.userMessage?.toLowerCase() || '';\n  const contentList = previousData.contentList || [];\n  \n  // Add content suggestions if relevant\n  if (contentList.length > 0 && aiResponse.length > 50) {\n    const relevantContent = contentList.filter(item => {\n      const title = item.title?.toLowerCase() || '';\n      const desc = item.description?.toLowerCase() || '';\n      return title.includes('أمن') || title.includes('فكر') || \n             desc.includes('أمن') || desc.includes('فكر');\n    });\n\n    if (relevantContent.length > 0) {\n      aiResponse += '\\n\\n📚 محتوى مقترح قد يفيدك:\\n';\n      relevantContent.slice(0, 3).forEach((item, index) => {\n        const type = item.content_type === 'book' ? '📖' : \n                     item.content_type === 'video' ? '🎥' : '📄';\n        aiResponse += `${index + 1}. ${type} ${item.title}\\n`;\n      });\n    }\n  }\n\n} catch (error) {\n  aiResponse = 'عذراً، حدث خطأ في معالجة الرد. يرجى المحاولة مرة أخرى.';\n}\n\nreturn [{\n  json: {\n    response: aiResponse,\n    timestamp: new Date().toISOString(),\n    userId: previousData.userId,\n    userName: previousData.userName\n  }\n}];"
+      },
+      "id": "process-response",
+      "name": "Process AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"response\": $json.response, \"timestamp\": $json.timestamp, \"success\": true } }}",
+        "options": {}
+      },
+      "id": "success-response",
+      "name": "Return Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { \"response\": \"عذراً، حدث خطأ في معالجة طلبك. يرجى المحاولة مرة أخرى.\", \"timestamp\": new Date().toISOString(), \"success\": false, \"error\": $json.error || \"unknown_error\" } }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "error-response",
+      "name": "Return Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 450]
+    }
+  ],
+  "connections": {
+    "Webhook - Receive Chat Message": {
+      "main": [
+        [
+          {
+            "node": "Fetch Published Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Published Content": {
+      "main": [
+        [
+          {
+            "node": "Build AI Prompt with Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI Prompt with Context": {
+      "main": [
+        [
+          {
+            "node": "Google Gemini API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini API": {
+      "main": [
+        [
+          {
+            "node": "Process AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process AI Response": {
+      "main": [
+        [
+          {
+            "node": "Return Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-10-23T00:00:00.000Z",
+  "versionId": "3"
+}
