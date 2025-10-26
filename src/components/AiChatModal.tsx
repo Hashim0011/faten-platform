@@ -50,6 +50,21 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     setIsLoading(true);
 
     try {
+      // Get current user from Supabase
+      const { supabase } = await import('../lib/supabase');
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
+      }
+
+      // Get user details
+      const { data: userData } = await supabase
+        .from('users')
+        .select('id, email, full_name')
+        .eq('id', user.id)
+        .single();
+
       // Get webhook URL from environment variable
       const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://your-n8n-instance.app.n8n.cloud/webhook/REDACTED';
 
@@ -61,8 +76,10 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         },
         body: JSON.stringify({
           message: userMessage.content,
-          timestamp: userMessage.timestamp,
-          userId: 'user_' + Date.now()
+          timestamp: new Date().toISOString(),
+          userId: user.id,
+          userEmail: userData?.email || user.email,
+          userName: userData?.full_name || 'مستخدم'
         })
       });
 
