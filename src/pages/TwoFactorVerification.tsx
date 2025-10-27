@@ -58,7 +58,7 @@ const TwoFactorVerification = () => {
   };
 
   const handleResendCode = async () => {
-    if (!contact) return;
+    if (!userId || !contact) return;
 
     setIsResending(true);
     setError('');
@@ -66,37 +66,14 @@ const TwoFactorVerification = () => {
     const fullName = searchParams.get('name') || 'المستخدم';
 
     try {
-      // Generate new OTP
-      const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem('otp', newOtp);
+      const { success } = await sendVerificationCode(
+        userId,
+        selectedMethod,
+        contact,
+        fullName
+      );
 
-      // Print to console
-      console.log('═══════════════════════════════════');
-      console.log('🔐 رمز التحقق الجديد:');
-      console.log('📱 OTP Code:', newOtp);
-      console.log('═══════════════════════════════════');
-
-      // Send via email
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/send-otp-email`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          to: contact,
-          otp: newOtp,
-          fullName: fullName,
-        }),
-      });
-
-      const emailResult = await response.json();
-
-      if (emailResult.success) {
-        console.log('✅ OTP resent successfully');
+      if (success) {
         setIsResending(false);
         handleSendCode(); // Start countdown
       } else {
@@ -104,7 +81,6 @@ const TwoFactorVerification = () => {
         setIsResending(false);
       }
     } catch (err) {
-      console.error('Resend error:', err);
       setError('حدث خطأ أثناء إعادة الإرسال');
       setIsResending(false);
     }
