@@ -114,6 +114,15 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         responseText = JSON.stringify(data);
       }
 
+      // Clean up the response text by removing formatting instructions
+      responseText = responseText
+        .replace(/^output:\s*/i, '')          // Remove "output:" prefix
+        .replace(/^الإخراج:\s*/i, '')         // Remove Arabic "output:" prefix
+        .replace(/\\n/g, '\n')                // Convert escaped newlines to actual newlines
+        .replace(/\\\//g, '/')                // Unescape forward slashes
+        .replace(/\s*\/\s*$/, '')             // Remove trailing slash
+        .trim();                              // Remove extra whitespace
+
       // Add assistant response to chat
       const assistantMessage: Message = {
         id: messages.length + 2,
