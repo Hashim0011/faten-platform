@@ -114,17 +114,33 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         responseText = JSON.stringify(data);
       }
 
-      // Clean up the response text by removing formatting instructions
+      // Clean up the response text by removing ALL formatting artifacts
       responseText = responseText
-        .replace(/^output:\s*/gi, '')         // Remove "output:" prefix (case insensitive)
-        .replace(/output:\s*/gi, '')          // Remove "output:" anywhere in text
-        .replace(/^الإخراج:\s*/gi, '')        // Remove Arabic "output:" prefix
-        .replace(/الإخراج:\s*/gi, '')         // Remove Arabic "output:" anywhere
-        .replace(/\\n/g, '\n')                // Convert escaped newlines to actual newlines
-        .replace(/\\\//g, '/')                // Unescape forward slashes
-        .replace(/\s*\/\s*$/, '')             // Remove trailing slash
-        .replace(/^\s*["']|["']\s*$/g, '')    // Remove surrounding quotes
-        .trim();                              // Remove extra whitespace
+        // Remove JSON structure and keys
+        .replace(/^\s*\{\s*/g, '')                    // Remove opening curly brace
+        .replace(/\s*\}\s*$/g, '')                    // Remove closing curly brace
+        .replace(/^\s*\[\s*/g, '')                    // Remove opening square bracket
+        .replace(/\s*\]\s*$/g, '')                    // Remove closing square bracket
+        .replace(/"output":\s*/gi, '')                // Remove "output" JSON key
+        .replace(/"response":\s*/gi, '')              // Remove "response" JSON key
+        .replace(/"message":\s*/gi, '')               // Remove "message" JSON key
+        .replace(/"text":\s*/gi, '')                  // Remove "text" JSON key
+        .replace(/"result":\s*/gi, '')                // Remove "result" JSON key
+        .replace(/output:\s*/gi, '')                  // Remove "output:" anywhere
+        .replace(/الإخراج:\s*/gi, '')                 // Remove Arabic "output:" anywhere
+        // Unescape characters
+        .replace(/\\n/g, '\n')                        // Convert \n to newline
+        .replace(/\\r/g, '')                          // Remove \r
+        .replace(/\\t/g, ' ')                         // Convert \t to space
+        .replace(/\\\//g, '/')                        // Unescape forward slashes
+        .replace(/\\"/g, '"')                         // Unescape quotes
+        .replace(/\\/g, '')                           // Remove remaining backslashes
+        // Remove quotes and extra formatting
+        .replace(/^\s*["'`]+|["'`]+\s*$/g, '')        // Remove surrounding quotes
+        .replace(/\s*\/\s*$/g, '')                    // Remove trailing slash
+        // Clean up whitespace
+        .replace(/\n{3,}/g, '\n\n')                   // Max 2 consecutive newlines
+        .trim();                                      // Remove extra whitespace
 
       // Add assistant response to chat
       const assistantMessage: Message = {
