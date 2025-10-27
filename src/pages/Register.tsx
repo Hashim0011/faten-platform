@@ -51,6 +51,37 @@ const Register = () => {
       console.log('📱 OTP Code:', otp);
       console.log('═══════════════════════════════════');
 
+      // Send OTP via email using Edge Function
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        const response = await fetch(`${supabaseUrl}/functions/v1/send-otp-email`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: email,
+            otp: otp,
+            fullName: fullName,
+          }),
+        });
+
+        const emailResult = await response.json();
+
+        if (emailResult.success) {
+          console.log('✅ OTP sent to email successfully');
+        } else {
+          console.warn('⚠️ Failed to send OTP to email:', emailResult.error);
+        }
+      } catch (emailError) {
+        console.warn('⚠️ Email sending error:', emailError);
+        // Continue even if email fails
+      }
+
       // Navigate to verification page
       navigate(`/two-factor-verification?email=${encodeURIComponent(email)}`);
     } else {
