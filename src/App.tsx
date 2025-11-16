@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { ToastProvider } from './contexts/ToastContext';
 import RoleSelection from './pages/RoleSelection';
 import Register from './pages/Register';
 import Login from './pages/Login';
@@ -11,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import ExpertDashboard from './pages/ExpertDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import TwoFactorVerification from './pages/TwoFactorVerification';
+import SettingsSimple from './pages/SettingsSimple';
 
 // مكون صغير يغير العنوان حسب الصفحة
 function PageTitleUpdater() {
@@ -45,6 +47,9 @@ function PageTitleUpdater() {
       case '/admin-dashboard':
         document.title = 'لوحة الإدارة | Faten';
         break;
+      case '/settings':
+        document.title = 'الإعدادات | Faten';
+        break;
       default:
         document.title = 'Faten';
     }
@@ -56,23 +61,26 @@ function PageTitleUpdater() {
 function App() {
   return (
     <Router>
-      <PageTitleUpdater />
+      <ToastProvider>
+        <PageTitleUpdater />
 
-      <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
-        <Routes>
-          <Route path="/" element={<RoleSelection />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/expert-register" element={<ExpertRegister />} />
-          <Route path="/expert-login" element={<ExpertLogin />} />
-          <Route path="/admin-register" element={<AdminRegister />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/expert-dashboard" element={<ExpertDashboard />} />
-          <Route path="/admin-dashboard" element={<AdminDashboard />} />
-        </Routes>
-      </div>
+        <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
+          <Routes>
+            <Route path="/" element={<RoleSelection />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/expert-register" element={<ExpertRegister />} />
+            <Route path="/expert-login" element={<ExpertLogin />} />
+            <Route path="/admin-register" element={<AdminRegister />} />
+            <Route path="/admin-login" element={<AdminLogin />} />
+            <Route path="/two-factor-verification" element={<TwoFactorVerification />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/expert-dashboard" element={<ExpertDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/settings" element={<SettingsSimple />} />
+          </Routes>
+        </div>
+      </ToastProvider>
     </Router>
   );
 }

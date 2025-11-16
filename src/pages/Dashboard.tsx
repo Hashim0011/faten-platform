@@ -199,7 +199,11 @@ const Dashboard = () => {
               <Mail className="w-4 h-4" />
               <span className="hidden sm:inline">تواصل معنا</span>
             </button>
-            <button className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors hidden sm:block">
+            <button
+              onClick={() => navigate('/settings')}
+              className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors hidden sm:block"
+              title="الإعدادات"
+            >
               <Settings className="w-5 h-5 text-[#8B7355]" />
             </button>
             <button 
