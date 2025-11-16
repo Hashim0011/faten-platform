@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Brain } from 'lucide-react';
 import { loginUser } from '../lib/auth';
+import { useToast } from '../contexts/ToastContext';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError: showErrorToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -21,12 +23,16 @@ const Login = () => {
     const result = await loginUser(email, password);
 
     if (result.success) {
-      navigate('/dashboard');
+      showSuccess('تم تسجيل الدخول بنجاح! جاري التوجيه...');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
     } else {
-      setError(result.error || 'حدث خطأ أثناء تسجيل الدخول');
+      const errorMsg = result.error || 'حدث خطأ أثناء تسجيل الدخول';
+      setError(errorMsg);
+      showErrorToast(errorMsg);
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

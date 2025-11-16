@@ -21,11 +21,13 @@ export async function registerUser(
           phone: phone || '',
           role: 'user' as UserRole,
         },
-        emailRedirectTo: window.location.origin + '/dashboard',
+        // تعطيل تأكيد الإيميل - سنستخدم نظام OTP الخاص بنا
       },
     });
 
     if (authError) throw authError;
+
+    console.log('✅ Auth user created:', authData.user?.id);
 
     // 2. إضافة بيانات المستخدم في جدول users
     if (authData.user) {
@@ -35,14 +37,20 @@ export async function registerUser(
         full_name: fullName,
         phone: phone || null,
         role: 'user' as UserRole,
+        is_verified: false, // سيتم التحقق عبر OTP
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error('❌ Database insert error:', dbError);
+        throw dbError;
+      }
+
+      console.log('✅ User inserted into database');
     }
 
     return { success: true, user: authData.user };
   } catch (error: any) {
-    console.error('Registration error:', error);
+    console.error('❌ Registration error:', error);
     return { success: false, error: error.message };
   }
 }

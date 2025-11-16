@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Shield, Mail, Phone, ArrowRight, Brain, Sparkles, RefreshCw, Clock } from 'lucide-react';
+import { useToast } from '../contexts/ToastContext';
+import { supabase } from '../lib/supabase';
 
 // Temporary auth functions (replace with real API calls)
 const verifyOTPCode = async (userId: string, code: string) => {
@@ -27,6 +29,7 @@ const TwoFactorVerification = () => {
   const userId = searchParams.get('userId');
   const contact = searchParams.get('contact') || searchParams.get('email'); // Support both contact and email params
   const type = (searchParams.get('type') as 'email' | 'phone') || 'email';
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   const [selectedMethod, setSelectedMethod] = useState<'email' | 'phone'>(type);
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
@@ -35,6 +38,8 @@ const TwoFactorVerification = () => {
   const [isResending, setIsResending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState('');
+  const [inputError, setInputError] = useState(false);
+  const codeInputsRef = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleMethodSelect = (method: 'email' | 'phone') => {
     setSelectedMethod(method);
@@ -58,31 +63,32 @@ const TwoFactorVerification = () => {
   };
 
   const handleResendCode = async () => {
-    if (!userId || !contact) return;
+    if (!contact) return;
 
     setIsResending(true);
     setError('');
 
-    const fullName = searchParams.get('name') || 'المستخدم';
-
     try {
-      const { success } = await sendVerificationCode(
-        userId,
-        selectedMethod,
-        contact,
-        fullName
-      );
+      // إعادة إرسال OTP من Supabase
+      const { error } = await supabase.auth.signInWithOtp({
+        email: contact,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
 
-      if (success) {
-        setIsResending(false);
-        handleSendCode(); // Start countdown
-      } else {
-        setError('فشل إعادة إرسال الرمز');
-        setIsResending(false);
-      }
-    } catch (err) {
-      setError('حدث خطأ أثناء إعادة الإرسال');
+      if (error) throw error;
+
       setIsResending(false);
+      handleSendCode(); // Start countdown
+      showSuccess('تم إعادة إرسال رمز التحقق إلى بريدك الإلكتروني');
+      console.log('✅ OTP resent to:', contact);
+    } catch (err: any) {
+      const errorMsg = err.message || 'حدث خطأ أثناء إعادة الإرسال';
+      setError(errorMsg);
+      setIsResending(false);
+      showError(errorMsg);
+      console.error('❌ Resend error:', err);
     }
   };
 
@@ -107,12 +113,20 @@ const TwoFactorVerification = () => {
     }
   };
 
+  const triggerInputError = () => {
+    setInputError(true);
+    // Reset animation after it completes
+    setTimeout(() => setInputError(false), 500);
+  };
+
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = verificationCode.join('');
 
     if (code.length !== 6) {
       setError('يرجى إدخال رمز التحقق كاملاً');
+      showWarning('يرجى إدخال رمز التحقق المكون من 6 أرقام');
+      triggerInputError();
       return;
     }
 
@@ -120,34 +134,84 @@ const TwoFactorVerification = () => {
     setError('');
 
     try {
-      // Get saved OTP from localStorage
-      const savedOTP = localStorage.getItem('otp');
-      const savedUserId = localStorage.getItem('userId');
+      // Get email from URL params or localStorage
+      const email = contact || localStorage.getItem('userEmail') || '';
 
-      if (!savedOTP) {
-        setError('رمز التحقق غير موجود. يرجى إعادة التسجيل');
+      if (!email) {
+        setError('لم يتم العثور على البريد الإلكتروني');
         setIsVerifying(false);
+        showError('لم يتم العثور على البريد الإلكتروني. يرجى إعادة التسجيل');
+        triggerInputError();
         return;
       }
 
-      // Verify OTP
-      if (code !== savedOTP) {
-        setError('رمز التحقق غير صحيح');
-        setIsVerifying(false);
-        return;
+      console.log('🔍 Verifying OTP for email:', email, 'Code:', code);
+
+      // التحقق من OTP باستخدام Supabase
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: code,
+        type: 'email',
+      });
+
+      if (error) throw error;
+
+      console.log('✅ OTP verified successfully!', data);
+
+      // إذا كان هذا تسجيل جديد، نضيف البيانات في جدول users
+      if (data.user) {
+        const fullName = localStorage.getItem('userFullName') || '';
+        const phone = localStorage.getItem('userPhone') || '';
+
+        // التحقق من وجود المستخدم في جدول users
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', data.user.id)
+          .single();
+
+        if (!existingUser) {
+          // إضافة المستخدم لجدول users
+          const { error: insertError } = await supabase.from('users').insert({
+            id: data.user.id,
+            email: email,
+            full_name: fullName,
+            phone: phone || null,
+            role: 'user',
+            is_verified: true,
+          });
+
+          if (insertError) {
+            console.error('⚠️ Error inserting user:', insertError);
+          } else {
+            console.log('✅ User added to database');
+          }
+        }
       }
 
-      console.log('✅ OTP verified successfully');
+      // Clear localStorage
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userFullName');
+      localStorage.removeItem('userPhone');
 
-      // Clear OTP from localStorage
-      localStorage.removeItem('otp');
+      // Show success message
+      showSuccess('تم التحقق بنجاح! جاري توجيهك إلى لوحة التحكم...');
 
-      // Navigate to dashboard (user is already registered in DB)
-      navigate('/dashboard');
+      // Navigate to dashboard after a short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1000);
+
     } catch (err: any) {
       console.error('❌ Verification error:', err);
-      setError(err.message || 'حدث خطأ غير متوقع');
+      const errorMsg = err.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية';
+      setError(errorMsg);
       setIsVerifying(false);
+      showError(errorMsg);
+      triggerInputError();
+      // Clear the code inputs
+      setVerificationCode(['', '', '', '', '', '']);
+      codeInputsRef.current[0]?.focus();
     }
   };
 
@@ -278,6 +342,9 @@ const TwoFactorVerification = () => {
               <p className="text-[#8B7355] text-sm font-medium mt-1">
                 {contact || 'user@example.com'}
               </p>
+              <p className="text-[#6B7280] text-xs mt-2">
+                أدخل الرمز من اليسار إلى اليمين كما هو في الإيميل
+              </p>
             </div>
 
             <form onSubmit={handleVerify} className="space-y-8">
@@ -287,19 +354,27 @@ const TwoFactorVerification = () => {
                 </div>
               )}
 
-              {/* Code Input */}
-              <div className="flex justify-center gap-3">
+              {/* Code Input - من اليسار لليمين */}
+              <div className={`flex justify-center gap-3 ${inputError ? 'animate-shake' : ''}`} dir="ltr">
                 {verificationCode.map((digit, index) => (
                   <input
                     key={index}
+                    ref={(el) => (codeInputsRef.current[index] = el)}
                     id={`code-${index}`}
                     type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     maxLength={1}
                     value={digit}
                     onChange={(e) => handleCodeChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className="w-12 h-12 sm:w-14 sm:h-14 text-center text-xl font-bold border-2 border-[#8B7355]/20 rounded-xl focus:border-[#8B7355] focus:outline-none focus:ring-4 focus:ring-[#8B7355]/10 transition-all"
+                    className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl font-bold border-2 rounded-xl focus:outline-none focus:ring-4 transition-all ${
+                      inputError
+                        ? 'border-red-500 bg-red-50'
+                        : 'border-[#8B7355]/20 focus:border-[#8B7355] focus:ring-[#8B7355]/10'
+                    }`}
                     placeholder="0"
+                    autoComplete="off"
                   />
                 ))}
               </div>

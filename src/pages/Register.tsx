@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, ArrowRight, Phone } from 'lucide-react';
-import { registerUser } from '../lib/auth';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../contexts/ToastContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { showSuccess, showError: showErrorToast, showWarning } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -24,37 +26,57 @@ const Register = () => {
 
     // Validation
     if (password !== confirmPassword) {
-      setError('كلمات المرور غير متطابقة');
+      const errorMsg = 'كلمات المرور غير متطابقة';
+      setError(errorMsg);
+      showErrorToast(errorMsg);
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      const errorMsg = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      setError(errorMsg);
+      showErrorToast(errorMsg);
       setLoading(false);
       return;
     }
 
-    // Register user
-    const result = await registerUser(email, password, fullName, phone);
+    try {
+      // استخدام Supabase Email OTP للتسجيل
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          data: {
+            full_name: fullName,
+            phone: phone,
+            role: 'user',
+          },
+          shouldCreateUser: true,
+        },
+      });
 
-    if (result.success) {
-      // Generate OTP and save to localStorage
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem('otp', otp);
+      if (error) throw error;
+
+      console.log('✅ OTP sent successfully to:', email);
+
+      // حفظ البيانات للصفحة التالية
       localStorage.setItem('userEmail', email);
-      localStorage.setItem('userId', result.user?.id || '');
+      localStorage.setItem('userFullName', fullName);
+      localStorage.setItem('userPhone', phone);
 
-      // Print OTP to console for testing
-      console.log('═══════════════════════════════════');
-      console.log('🔐 رمز التحقق الخاص بك:');
-      console.log('📱 OTP Code:', otp);
-      console.log('═══════════════════════════════════');
+      // عرض رسالة نجاح
+      showSuccess('تم إرسال رمز التحقق إلى بريدك الإلكتروني! تفقد بريدك.');
 
-      // Navigate to verification page
-      navigate(`/two-factor-verification?email=${encodeURIComponent(email)}`);
-    } else {
-      setError(result.error || 'حدث خطأ أثناء التسجيل');
+      // الانتقال لصفحة التحقق
+      setTimeout(() => {
+        navigate(`/two-factor-verification?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}`);
+      }, 1500);
+
+    } catch (error: any) {
+      console.error('❌ Registration error:', error);
+      const errorMsg = error.message || 'حدث خطأ أثناء التسجيل';
+      setError(errorMsg);
+      showErrorToast(errorMsg);
     }
 
     setLoading(false);

@@ -416,7 +416,10 @@ const ExpertDashboard = () => {
         {/* Footer */}
         <div className="p-4 border-t border-[#8B5CF6]/20">
           <div className="flex gap-2">
-            <button className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2">
+            <button
+              onClick={() => navigate('/settings')}
+              className="flex-1 btn-secondary text-sm flex items-center justify-center gap-2"
+            >
               <Settings className="w-4 h-4" />
               <span>الإعدادات</span>
             </button>
