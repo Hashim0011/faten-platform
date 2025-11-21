@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { Brain, Users, UserCog, BookOpen, BarChart3, Home, Search, Filter, Plus, Trash2, Ban, Eye, Edit, Settings, LogOut, Bell, TrendingUp, MessageSquare, Star, Activity, Download, RefreshCw, Video, FileText, Book, Mail, Lock, Phone, Calendar, MapPin, Globe } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
 import { getPublishedContent, deleteContent, addContent, updateContent, type ContentType } from '../lib/content';
-import { getAllDiscussions } from '../lib/discussions';
+import { getAllDiscussions, deleteDiscussion, deleteMessage } from '../lib/discussions';
+import { banUserFromDiscussion, unbanUserFromDiscussion } from '../lib/bans';
 import { getAllEvents, addEvent, updateEvent, deleteEvent, type EventData, type EventType } from '../lib/events';
 import { getAllUsers, getAllExperts, deleteUser, updateUserRole, type UserRole } from '../lib/users';
 import { createExpertByAdmin } from '../lib/auth';
@@ -603,6 +604,43 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleDeleteDiscussion = async (id: string) => {
+    if (confirm('Are you sure you want to delete this discussion? All messages will be deleted as well.')) {
+      const result = await deleteDiscussion(id);
+      if (result.success) {
+        await loadAllData();
+        alert('Discussion deleted successfully');
+      } else {
+        alert('Error deleting discussion');
+      }
+    }
+  };
+
+  const handleDeleteMessage = async (messageId: string, discussionId: string) => {
+    if (confirm('Are you sure you want to delete this message?')) {
+      const result = await deleteMessage(messageId);
+      if (result.success) {
+        await loadAllData();
+        alert('Message deleted successfully');
+      } else {
+        alert('Error deleting message');
+      }
+    }
+  };
+
+  const handleBanUser = async (userId: string, discussionId: string, userName: string) => {
+    const reason = prompt(`Enter ban reason for ${userName}:`);
+    if (reason !== null) {
+      const result = await banUserFromDiscussion(userId, discussionId, reason || 'Violation of discussion rules');
+      if (result.success) {
+        await loadAllData();
+        alert('User banned successfully');
+      } else {
+        alert('Error banning user: ' + (result.error || 'Unknown error'));
+      }
+    }
+  };
+
   const topUsers = users.slice(0, 5);
   const topExperts = experts.slice(0, 5);
 
@@ -790,6 +828,18 @@ const AdminDashboard = () => {
             </button>
 
             <button
+              onClick={() => setActiveSection('discussions')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
+                activeSection === 'discussions'
+                  ? 'bg-gradient-to-r from-[#DC2626] to-[#B91C1C] text-white shadow-lg'
+                  : 'text-[#8B7355] hover:bg-[#8B7355]/10'
+              }`}
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="font-medium">إدارة النقاشات</span>
+            </button>
+
+            <button
               onClick={() => setActiveSection('analytics')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
                 activeSection === 'analytics'
@@ -836,6 +886,7 @@ const AdminDashboard = () => {
                 {activeSection === 'experts' && 'إدارة الخبراء'}
                 {activeSection === 'users' && 'إدارة المستخدمين'}
                 {activeSection === 'events' && 'إدارة الفعاليات'}
+                {activeSection === 'discussions' && 'إدارة النقاشات'}
                 {activeSection === 'analytics' && 'التحليلات والتقارير'}
               </h2>
               <p className="text-[#6B7280] mt-1">
@@ -844,6 +895,7 @@ const AdminDashboard = () => {
                 {activeSection === 'experts' && 'مراقبة وإدارة حسابات الخبراء'}
                 {activeSection === 'users' && 'مراقبة وإدارة حسابات المستخدمين'}
                 {activeSection === 'events' && 'إضافة وإدارة الفعاليات القادمة'}
+                {activeSection === 'discussions' && 'عرض ومراقبة جميع النقاشات والرسائل'}
                 {activeSection === 'analytics' && 'تقارير مفصلة وإحصائيات المنصة'}
               </p>
             </div>
@@ -1401,6 +1453,138 @@ const AdminDashboard = () => {
                           )}
                         </div>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Discussions Management */}
+          {activeSection === 'discussions' && (
+            <div>
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="البحث في النقاشات..."
+                    className="input-modern w-full has-right-icon"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                </div>
+                <button className="btn-secondary flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  <span>تصفية</span>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {discussionsList.length === 0 ? (
+                  <div className="text-center py-12">
+                    <MessageSquare className="w-16 h-16 mx-auto text-[#8B7355]/30 mb-4" />
+                    <p className="text-[#6B7280]">لا توجد نقاشات في قاعدة البيانات</p>
+                  </div>
+                ) : (
+                  discussionsList.map(discussion => (
+                    <div key={discussion.id} className="content-card">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <MessageSquare className="w-5 h-5 text-[#8B7355]" />
+                            <h3 className="text-xl font-bold text-[#2D2D2D]">{discussion.title}</h3>
+                          </div>
+                          {discussion.description && (
+                            <p className="text-sm text-[#6B7280] mb-3">{discussion.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-[#6B7280]">
+                            <span className="flex items-center gap-1">
+                              <Users className="w-4 h-4" />
+                              {discussion.creator?.full_name || 'مستخدم محذوف'}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-4 h-4" />
+                              {new Date(discussion.created_at).toLocaleDateString('ar-SA')}
+                            </span>
+                            <span className="flex items-center gap-1 text-[#8B7355] font-semibold">
+                              <MessageSquare className="w-4 h-4" />
+                              {discussion.messageCount || 0} رسالة
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteDiscussion(discussion.id)}
+                          className="p-2 rounded-lg bg-red-50 hover:bg-red-500 hover:text-white text-red-500 transition-colors"
+                          title="Delete Discussion"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {discussion.messages && discussion.messages.length > 0 && (
+                        <div className="mt-4 space-y-3 pt-4 border-t border-[#8B7355]/10">
+                          <h4 className="font-semibold text-[#2D2D2D] mb-3">الرسائل:</h4>
+                          <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {discussion.messages.map((message: any) => {
+                              const isExpert = message.sender?.role === 'expert';
+                              const senderName = message.sender?.full_name || 'مستخدم محذوف';
+                              const messageTime = new Date(message.created_at).toLocaleString('ar-SA', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+
+                              return (
+                                <div key={message.id} className={`p-4 rounded-xl ${
+                                  isExpert
+                                    ? 'bg-gradient-to-br from-[#8B5CF6]/10 to-[#7C3AED]/10 border-2 border-[#8B5CF6]/20'
+                                    : 'bg-[#F4EFE9] border-2 border-[#8B7355]/10'
+                                }`}>
+                                  <div className="flex items-start gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${
+                                      isExpert ? 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]' : 'bg-gradient-to-br from-[#8B7355] to-[#654321]'
+                                    }`}>
+                                      {senderName.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className={`font-semibold text-sm ${isExpert ? 'text-[#8B5CF6]' : 'text-[#654321]'}`}>
+                                          {senderName}
+                                        </span>
+                                        {isExpert && (
+                                          <span className="text-xs bg-[#8B5CF6]/20 text-[#8B5CF6] px-2 py-0.5 rounded-full font-semibold">
+                                            خبير
+                                          </span>
+                                        )}
+                                        <span className="text-xs text-[#6B7280]">{messageTime}</span>
+                                      </div>
+                                      <p className="text-[#2D2D2D] text-sm leading-relaxed break-words">{message.content}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                      <button
+                                        onClick={() => handleBanUser(message.sender_id, discussion.id, senderName)}
+                                        className="p-1.5 rounded-lg hover:bg-orange-100 text-orange-600 transition-colors"
+                                        title="Ban User"
+                                      >
+                                        <Ban className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        onClick={() => handleDeleteMessage(message.id, discussion.id)}
+                                        className="p-1.5 rounded-lg hover:bg-red-100 text-red-500 transition-colors"
+                                        title="Delete Message"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}

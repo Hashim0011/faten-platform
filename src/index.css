@@ -14,6 +14,17 @@
   --text-secondary: #6B7280;
 }
 
+/* Dark Mode Variables */
+:root.dark {
+  --primary-brown: #A89379;
+  --light-brown: #C4A575;
+  --dark-brown: #7A5C3F;
+  --bg-cream: #1A1A1A;
+  --accent-gold: #E5C248;
+  --text-primary: #E5E5E5;
+  --text-secondary: #A0A0A0;
+}
+
 * {
   scroll-behavior: smooth;
 }
@@ -25,6 +36,11 @@ body {
   line-height: 1.6;
   font-feature-settings: "liga" 1, "calt" 1;
   text-rendering: optimizeLegibility;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+:root.dark body {
+  background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%);
 }
 
 .animate-marquee {
@@ -117,9 +133,16 @@ body {
 
 .bg-pattern {
   background: linear-gradient(135deg, #F8F6F3 0%, #F4EFE9 100%);
-  background-image: 
+  background-image:
     radial-gradient(circle at 25% 25%, rgba(139, 115, 85, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
+}
+
+:root.dark .bg-pattern {
+  background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%);
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(168, 147, 121, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(229, 194, 72, 0.05) 0%, transparent 50%);
 }
 
 .glass-effect {
@@ -127,6 +150,12 @@ body {
   backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+:root.dark .glass-effect {
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .card-hover {
@@ -436,6 +465,46 @@ body {
 .scrollbar-hide::-webkit-scrollbar-thumb {
   background: rgba(139, 115, 85, 0.3);
   border-radius: 2px;
+}
+
+/* Dark Mode Additional Styles */
+:root.dark .content-card {
+  background: rgba(40, 40, 40, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+:root.dark .input-modern {
+  background: rgba(40, 40, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+:root.dark .input-modern::placeholder {
+  color: var(--text-secondary);
+}
+
+:root.dark .input-modern:focus {
+  border-color: var(--primary-brown);
+  background: rgba(40, 40, 40, 0.95);
+}
+
+:root.dark .status-badge {
+  background: rgba(168, 147, 121, 0.2);
+  color: var(--accent-gold);
+}
+
+:root.dark .card-hover:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+:root.dark .btn-secondary {
+  background: rgba(168, 147, 121, 0.15);
+  border-color: rgba(168, 147, 121, 0.3);
+}
+
+:root.dark .btn-secondary:hover {
+  background: rgba(168, 147, 121, 0.25);
+  border-color: var(--primary-brown);
 }
 
 .scrollbar-hide::-webkit-scrollbar-thumb:hover {

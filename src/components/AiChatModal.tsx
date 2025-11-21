@@ -44,7 +44,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       timestamp: new Date().toLocaleTimeString('ar-SA')
     };
 
-    // Add user message to chat
+    // User message to chat
     setMessages(prev => [...prev, userMessage]);
     setNewMessage('');
     setIsLoading(true);
@@ -117,32 +117,32 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       // Clean up the response text by removing ALL formatting artifacts
       responseText = responseText
         // Remove JSON structure and keys
-        .replace(/^\s*\{\s*/g, '')                    // Remove opening curly brace
-        .replace(/\s*\}\s*$/g, '')                    // Remove closing curly brace
-        .replace(/^\s*\[\s*/g, '')                    // Remove opening square bracket
-        .replace(/\s*\]\s*$/g, '')                    // Remove closing square bracket
-        .replace(/"output":\s*/gi, '')                // Remove "output" JSON key
-        .replace(/"response":\s*/gi, '')              // Remove "response" JSON key
-        .replace(/"message":\s*/gi, '')               // Remove "message" JSON key
-        .replace(/"text":\s*/gi, '')                  // Remove "text" JSON key
-        .replace(/"result":\s*/gi, '')                // Remove "result" JSON key
-        .replace(/output:\s*/gi, '')                  // Remove "output:" anywhere
-        .replace(/الإخراج:\s*/gi, '')                 // Remove Arabic "output:" anywhere
+        .replace(/^\s*\{\s*/g, '')                    
+        .replace(/\s*\}\s*$/g, '')                    
+        .replace(/^\s*\[\s*/g, '')                    
+        .replace(/\s*\]\s*$/g, '')                    
+        .replace(/"output":\s*/gi, '')                
+        .replace(/"response":\s*/gi, '')              
+        .replace(/"message":\s*/gi, '')               
+        .replace(/"text":\s*/gi, '')                  
+        .replace(/"result":\s*/gi, '')                
+        .replace(/output:\s*/gi, '')                  
+        .replace(/الإخراج:\s*/gi, '')                 
         // Unescape characters
-        .replace(/\\n/g, '\n')                        // Convert \n to newline
-        .replace(/\\r/g, '')                          // Remove \r
-        .replace(/\\t/g, ' ')                         // Convert \t to space
-        .replace(/\\\//g, '/')                        // Unescape forward slashes
-        .replace(/\\"/g, '"')                         // Unescape quotes
-        .replace(/\\/g, '')                           // Remove remaining backslashes
+        .replace(/\\n/g, '\n')                        
+        .replace(/\\r/g, '')                          
+        .replace(/\\t/g, ' ')                         
+        .replace(/\\\//g, '/')                        
+        .replace(/\\"/g, '"')                         
+        .replace(/\\/g, '')                           
         // Remove quotes and extra formatting
-        .replace(/^\s*["'`]+|["'`]+\s*$/g, '')        // Remove surrounding quotes
-        .replace(/\s*\/\s*$/g, '')                    // Remove trailing slash
+        .replace(/^\s*["'`]+|["'`]+\s*$/g, '')        
+        .replace(/\s*\/\s*$/g, '')                    
         // Clean up whitespace
-        .replace(/\n{3,}/g, '\n\n')                   // Max 2 consecutive newlines
-        .trim();                                      // Remove extra whitespace
+        .replace(/\n{3,}/g, '\n\n')                   
+        .trim();                                      
 
-      // Add assistant response to chat
+      // Assistant response to chat
       const assistantMessage: Message = {
         id: messages.length + 2,
         role: 'assistant',
@@ -154,7 +154,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('Error sending message:', error);
 
-      // Add error message
+      // error message
       const errorMessage: Message = {
         id: messages.length + 2,
         role: 'assistant',
@@ -173,8 +173,8 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Backdrop للإغلاق عند النقر خارج المساحة */}
-      <div 
-        className="fixed inset-0 z-40" 
+      <div
+        className="fixed inset-0 z-40"
         onClick={handleBackdropClick}
       />
       
@@ -211,7 +211,7 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
           </div>
-          
+
           {/* Messages Area - يظهر فقط عندما لا يكون مصغراً */}
           {!isMinimized && (
             <>

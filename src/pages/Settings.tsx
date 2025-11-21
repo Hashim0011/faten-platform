@@ -90,6 +90,21 @@ const Settings = () => {
       try {
         const userSettings = await getUserSettings(authUser.id);
         setSettings(userSettings);
+
+        // Apply theme from settings
+        if (userSettings?.theme) {
+          const root = document.documentElement;
+          const currentTheme = userSettings.theme === 'auto'
+            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : userSettings.theme;
+
+          if (currentTheme === 'dark') {
+            root.classList.add('dark');
+          } else {
+            root.classList.remove('dark');
+          }
+          localStorage.setItem('theme', currentTheme);
+        }
       } catch (settingsError) {
         console.warn('Settings not available:', settingsError);
         // استخدام إعدادات افتراضية
@@ -112,6 +127,21 @@ const Settings = () => {
 
     try {
       setSaving(true);
+
+      // If theme is being updated, apply it immediately to DOM
+      if (updates.theme) {
+        const root = document.documentElement;
+        const newTheme = updates.theme === 'auto'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : updates.theme;
+
+        if (newTheme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+        localStorage.setItem('theme', newTheme);
+      }
 
       // Try to update settings in database
       const updatedSettings = await updateUserSettings(user.id, updates);

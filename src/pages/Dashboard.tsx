@@ -80,7 +80,7 @@ const Dashboard = () => {
     console.log('💬 Discussions result (Dashboard):', discussionsResult);
     if (discussionsResult.success && discussionsResult.data) {
       console.log('✅ Setting discussions:', discussionsResult.data.length, 'discussions');
-      setDiscussionTopics(discussionsResult.data.slice(0, 3)); // أحدث 3 نقاشات
+      setDiscussionTopics(discussionsResult.data); // عرض جميع النقاشات
     } else {
       console.error('❌ Failed to load discussions:', discussionsResult.error);
     }
@@ -91,7 +91,7 @@ const Dashboard = () => {
     if (eventsResult.success && eventsResult.data) {
       console.log('✅ Setting events:', eventsResult.data.length, 'events');
       console.log('Events data:', eventsResult.data);
-      setUpcomingEvents(eventsResult.data.slice(0, 3)); // أقرب 3 فعاليات
+      setUpcomingEvents(eventsResult.data); // عرض جميع الفعاليات
     } else {
       console.error('❌ Failed to load events:', eventsResult.error);
     }
@@ -374,10 +374,17 @@ const Dashboard = () => {
             {/* Discussion Topics */}
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
+                  {discussionTopics.length > 0 && (
+                    <span className="px-2 py-1 text-xs font-semibold bg-[#8B7355] text-white rounded-full">
+                      {discussionTopics.length}
+                    </span>
+                  )}
+                </div>
                 <MessageCircle className="w-5 h-5 text-[#8B7355]" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-hide">
                 {discussionTopics.length === 0 ? (
                   <div className="text-center py-8">
                     <MessageCircle className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
@@ -408,10 +415,17 @@ const Dashboard = () => {
             {/* Upcoming Events */}
             <div className="content-card">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
+                  {upcomingEvents.length > 0 && (
+                    <span className="px-2 py-1 text-xs font-semibold bg-[#8B7355] text-white rounded-full">
+                      {upcomingEvents.length}
+                    </span>
+                  )}
+                </div>
                 <Bell className="w-5 h-5 text-[#8B7355]" />
               </div>
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-hide">
                 {upcomingEvents.length === 0 ? (
                   <div className="text-center py-8">
                     <Bell className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />

@@ -51,7 +51,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
     getCurrentUser();
   }, []);
 
-  // جلب رسائل النقاش عند فتح المودال
+  // جلب رسائل النقاش عند فتح المودل
   useEffect(() => {
     if (isOpen && topic.id) {
       loadMessages();
@@ -98,7 +98,7 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
         setMessages([...messages, result.data]);
       }
       setNewMessage('');
-      // إعادة تحميل الرسائل للحصول على أحدث البيانات
+      // إعادة تحميل الرسائل 
       await loadMessages();
     } else {
       setError(result.error || 'فشل إرسال الرسالة');

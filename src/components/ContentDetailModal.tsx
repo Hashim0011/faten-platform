@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Heart, Download, ExternalLink, Book, Video, FileText, Calendar, User } from 'lucide-react';
+import { X, Heart, Download, ExternalLink, Book, Video, FileText, Calendar, User, Eye } from 'lucide-react';
 import { likeContent, unlikeContent, isContentLiked, getContentLikesCount } from '../lib/likes';
 
 interface ContentDetailModalProps {
@@ -149,8 +149,51 @@ const ContentDetailModal: React.FC<ContentDetailModalProps> = ({ isOpen, onClose
             </p>
           </div>
 
+          {/* Content Viewer */}
+          {content.file_url && content.file_url !== '#' && (
+            <div className="mb-8">
+              <h3 className="text-xl font-bold text-[#654321] mb-4 flex items-center gap-2">
+                <Eye className="w-5 h-5" />
+                معاينة المحتوى
+              </h3>
+
+              {/* Video Content */}
+              {content.content_type === 'video' && content.file_url.includes('youtube') && (
+                <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                  <iframe
+                    src={content.file_url.replace('watch?v=', 'embed/')}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                </div>
+              )}
+
+              {/* PDF Content */}
+              {(content.content_type === 'book' || content.content_type === 'article') && content.file_url.endsWith('.pdf') && (
+                <div className="rounded-xl overflow-hidden border-2 border-[#8B7355]/20" style={{ height: '600px' }}>
+                  <iframe
+                    src={content.file_url}
+                    className="w-full h-full"
+                    title={content.title}
+                  ></iframe>
+                </div>
+              )}
+
+              {/* Other Video Platforms */}
+              {content.content_type === 'video' && !content.file_url.includes('youtube') && (
+                <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                  <video controls className="w-full h-full">
+                    <source src={content.file_url} type="video/mp4" />
+                    متصفحك لا يدعم تشغيل الفيديو
+                  </video>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* Like Button */}
             <button
               onClick={handleLikeToggle}
@@ -165,33 +208,44 @@ const ContentDetailModal: React.FC<ContentDetailModalProps> = ({ isOpen, onClose
               <span className="font-semibold">{isLiked ? 'تم الإعجاب' : 'أعجبني'}</span>
             </button>
 
-            {/* View/Download Button */}
-            {content.file_url ? (
+            {/* View Button */}
+            {content.file_url && content.file_url !== '#' ? (
               <a
                 href={content.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-primary flex items-center justify-center gap-3 py-4 text-lg"
+                className="btn-secondary flex items-center justify-center gap-3 py-4 text-lg hover:bg-[#8B7355]/20"
               >
-                {content.content_type === 'book' ? (
-                  <>
-                    <Download className="w-5 h-5" />
-                    <span className="font-semibold">تحميل {getContentTypeLabel(content.content_type)}</span>
-                  </>
-                ) : (
-                  <>
-                    <ExternalLink className="w-5 h-5" />
-                    <span className="font-semibold">مشاهدة {getContentTypeLabel(content.content_type)}</span>
-                  </>
-                )}
+                <Eye className="w-5 h-5" />
+                <span className="font-semibold">عرض</span>
               </a>
             ) : (
               <button
                 disabled
                 className="btn-secondary flex items-center justify-center gap-3 py-4 text-lg opacity-50 cursor-not-allowed"
               >
-                <ExternalLink className="w-5 h-5" />
-                <span className="font-semibold">الرابط غير متوفر</span>
+                <Eye className="w-5 h-5" />
+                <span className="font-semibold">غير متوفر</span>
+              </button>
+            )}
+
+            {/* Download Button */}
+            {content.file_url && content.file_url !== '#' ? (
+              <a
+                href={content.file_url}
+                download
+                className="btn-primary flex items-center justify-center gap-3 py-4 text-lg"
+              >
+                <Download className="w-5 h-5" />
+                <span className="font-semibold">تحميل</span>
+              </a>
+            ) : (
+              <button
+                disabled
+                className="btn-secondary flex items-center justify-center gap-3 py-4 text-lg opacity-50 cursor-not-allowed"
+              >
+                <Download className="w-5 h-5" />
+                <span className="font-semibold">غير متوفر</span>
               </button>
             )}
           </div>
