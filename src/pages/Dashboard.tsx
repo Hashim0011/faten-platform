@@ -446,22 +446,37 @@ const Dashboard = () => {
 
                     return (
                       <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
-                        <div className="flex items-center gap-3 mb-3">
-                          <span className={`status-badge ${
-                            event.event_type === 'workshop' ? 'status-new' :
-                            event.event_type === 'course' ? 'status-featured' : 'status-popular'
-                          }`}>
-                            {eventTypeLabel}
-                          </span>
-                          <span className="text-sm text-[#6B7280] flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formattedDate}
-                          </span>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <span className={`status-badge ${
+                              event.event_type === 'workshop' ? 'status-trending' :
+                              event.event_type === 'course' ? 'status-new' : 'status-featured'
+                            }`}>
+                              {eventTypeLabel}
+                            </span>
+                            <span className="text-sm text-[#6B7280] flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formattedDate}
+                            </span>
+                          </div>
                         </div>
-                        <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors">{event.title}</h4>
+                        <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors mb-2">{event.title}</h4>
                         {event.instructor_name && (
-                          <p className="text-xs text-[#6B7280] mt-2">المدرب: {event.instructor_name}</p>
+                          <p className="text-xs text-[#6B7280] mb-3">المدرب: {event.instructor_name}</p>
                         )}
+                        <button
+                          onClick={() => {
+                            if (event.registration_link) {
+                              window.open(event.registration_link, '_blank');
+                            } else {
+                              alert('رابط التسجيل غير متوفر حالياً');
+                            }
+                          }}
+                          className="btn-primary w-full text-sm py-2"
+                        >
+                          {event.event_type === 'course' ? 'دورة' :
+                           event.event_type === 'workshop' ? 'ورشة عمل' : 'ندوة'}
+                        </button>
                       </div>
                     );
                   })
