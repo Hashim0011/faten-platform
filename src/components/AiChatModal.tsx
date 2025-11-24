@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Brain, Sparkles, Minimize2, Loader2 } from 'lucide-react';
+import { sendChatMessage, validateChatMessage } from '../lib/aiService';
 
 interface Message {
   id: number;
@@ -20,11 +21,33 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       id: 1,
       role: 'assistant',
       content: 'مرحباً بك في فطن! كيف يمكنني مساعدتك اليوم؟',
-      timestamp: new Date().toLocaleTimeString('ar-SA')
+      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Ref for messages container to enable auto-scroll
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll to bottom when messages change
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      scrollToBottom();
+    }
+  }, [isOpen, isMinimized]);
 
   // إغلاق الشات عند النقر خارج المساحة
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -37,15 +60,29 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     if (!newMessage.trim() || isLoading) return;
 
+    // Validate message
+    const validation = validateChatMessage(newMessage);
+    if (!validation.valid) {
+      const errorMessage: Message = {
+        id: messages.length + 1,
+        role: 'assistant',
+        content: validation.error || 'خطأ في الرسالة',
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
     const userMessage: Message = {
       id: messages.length + 1,
       role: 'user',
       content: newMessage,
-      timestamp: new Date().toLocaleTimeString('ar-SA')
+      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
     };
 
-    // User message to chat
+    // Add user message to chat
     setMessages(prev => [...prev, userMessage]);
+    const currentMessage = newMessage;
     setNewMessage('');
     setIsLoading(true);
 
@@ -65,106 +102,54 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         .eq('id', user.id)
         .single();
 
-      // Get webhook URL from environment variable
-      const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL || 'https://your-n8n-instance.app.n8n.cloud/webhook/REDACTED';
+      // Prepare conversation history (last 10 messages for context)
+      const conversationHistory = messages.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
-      // Send message to n8n webhook
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          timestamp: new Date().toISOString(),
+      // Send message to AI service
+      const result = await sendChatMessage({
+        message: currentMessage,
+        userContext: {
           userId: user.id,
-          userEmail: userData?.email || user.email,
+          userEmail: userData?.email || user.email || '',
           userName: userData?.full_name || 'مستخدم'
-        })
+        },
+        conversationHistory
       });
 
-      if (!response.ok) {
-        throw new Error('فشل في الحصول على الرد');
+      if (!result.success) {
+        throw new Error(result.error || 'فشل في الحصول على الرد');
       }
 
-      const data = await response.json();
-
-      // Log the response for debugging
-      console.log('N8N Response:', data);
-
-      // Extract the response text from various possible formats
-      let responseText = '';
-
-      if (typeof data === 'string') {
-        responseText = data;
-      } else if (data.response) {
-        responseText = data.response;
-      } else if (data.message) {
-        responseText = data.message;
-      } else if (data.output) {
-        responseText = data.output;
-      } else if (data.text) {
-        responseText = data.text;
-      } else if (data.result) {
-        responseText = data.result;
-      } else if (data.data) {
-        responseText = typeof data.data === 'string' ? data.data : JSON.stringify(data.data);
-      } else {
-        // If no known field, try to use the whole response
-        responseText = JSON.stringify(data);
-      }
-
-      // Clean up the response text by removing ALL formatting artifacts
-      responseText = responseText
-        // Remove JSON structure and keys
-        .replace(/^\s*\{\s*/g, '')                    
-        .replace(/\s*\}\s*$/g, '')                    
-        .replace(/^\s*\[\s*/g, '')                    
-        .replace(/\s*\]\s*$/g, '')                    
-        .replace(/"output":\s*/gi, '')                
-        .replace(/"response":\s*/gi, '')              
-        .replace(/"message":\s*/gi, '')               
-        .replace(/"text":\s*/gi, '')                  
-        .replace(/"result":\s*/gi, '')                
-        .replace(/output:\s*/gi, '')                  
-        .replace(/الإخراج:\s*/gi, '')                 
-        // Unescape characters
-        .replace(/\\n/g, '\n')                        
-        .replace(/\\r/g, '')                          
-        .replace(/\\t/g, ' ')                         
-        .replace(/\\\//g, '/')                        
-        .replace(/\\"/g, '"')                         
-        .replace(/\\/g, '')                           
-        // Remove quotes and extra formatting
-        .replace(/^\s*["'`]+|["'`]+\s*$/g, '')        
-        .replace(/\s*\/\s*$/g, '')                    
-        // Clean up whitespace
-        .replace(/\n{3,}/g, '\n\n')                   
-        .trim();                                      
-
-      // Assistant response to chat
+      // Add assistant response to chat
       const assistantMessage: Message = {
         id: messages.length + 2,
         role: 'assistant',
-        content: responseText || 'عذراً، لم أتمكن من معالجة الرد.',
-        timestamp: new Date().toLocaleTimeString('ar-SA')
+        content: result.response || 'عذراً، لم أتمكن من معالجة الرد.',
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending message:', error);
 
-      // error message
+      // Add error message
       const errorMessage: Message = {
         id: messages.length + 2,
         role: 'assistant',
-        content: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
-        timestamp: new Date().toLocaleTimeString('ar-SA')
+        content: error.message || 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      // Re-focus input after sending message
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -215,13 +200,13 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
           {/* Messages Area - يظهر فقط عندما لا يكون مصغراً */}
           {!isMinimized && (
             <>
-              <div className="h-80 sm:h-96 overflow-y-auto p-4 scrollbar-hide bg-gradient-to-b from-white/50 to-white/30">
+              <div ref={messagesContainerRef} className="h-80 sm:h-96 overflow-y-scroll p-4 bg-gradient-to-b from-white/50 to-white/30" style={{ scrollbarWidth: 'thin', scrollbarColor: '#8B7355 transparent' }}>
                 <div className="space-y-4">
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
                       <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
-                        message.role === 'assistant' 
-                          ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20' 
+                        message.role === 'assistant'
+                          ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20'
                           : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
                       }`}>
                         <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
@@ -231,6 +216,8 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
                       </div>
                     </div>
                   ))}
+                  {/* Auto-scroll marker */}
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
 
@@ -238,11 +225,13 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
               <form onSubmit={handleSendMessage} className="p-4 border-t border-[#8B7355]/10 bg-white/80">
                 <div className="flex gap-3">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب سؤالك هنا..."
                     className="input-modern flex-1 text-sm"
+                    style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem', lineHeight: '1.5' }}
                     disabled={isLoading}
                   />
                   <button

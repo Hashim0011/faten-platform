@@ -11,7 +11,7 @@ import { createExpertByAdmin } from '../lib/auth';
 import { getUnreadCount } from '../lib/notifications';
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: 'user' | 'expert';
@@ -1344,12 +1344,20 @@ const AdminDashboard = () => {
                                 <button
                                   onClick={async () => {
                                     if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-                                      const result = await deleteUser(user.id);
-                                      if (result.success) {
-                                        alert('تم حذف المستخدم بنجاح');
-                                        await loadAllData();
-                                      } else {
-                                        alert('حدث خطأ أثناء حذف المستخدم: ' + result.error);
+                                      try {
+                                        const result = await deleteUser(user.id);
+
+                                        if (result.success) {
+                                          // Immediately update UI by removing user from state
+                                          setUsers(prevUsers => prevUsers.filter(u => u.id !== user.id));
+                                          alert('تم حذف المستخدم بنجاح');
+                                          // Reload all data in background to update analytics
+                                          loadAllData();
+                                        } else {
+                                          alert('حدث خطأ أثناء حذف المستخدم: ' + result.error);
+                                        }
+                                      } catch (err) {
+                                        alert('حدث خطأ غير متوقع: ' + err);
                                       }
                                     }
                                   }}

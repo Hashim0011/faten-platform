@@ -100,13 +100,71 @@ export async function updateUserRole(userId: string, newRole: UserRole) {
  */
 export async function deleteUser(userId: string) {
   try {
+    console.log('Attempting to delete user with ID:', userId);
+
+    // First, delete user's related data to avoid foreign key constraints
+    // Delete user's messages
+    const { error: messagesError } = await supabase
+      .from('messages')
+      .delete()
+      .eq('user_id', userId);
+
+    if (messagesError) {
+      console.error('Error deleting user messages:', messagesError);
+    }
+
+    // Delete user's discussions
+    const { error: discussionsError } = await supabase
+      .from('discussions')
+      .delete()
+      .eq('user_id', userId);
+
+    if (discussionsError) {
+      console.error('Error deleting user discussions:', discussionsError);
+    }
+
+    // Delete user's likes
+    const { error: likesError } = await supabase
+      .from('likes')
+      .delete()
+      .eq('user_id', userId);
+
+    if (likesError) {
+      console.error('Error deleting user likes:', likesError);
+    }
+
+    // Delete user's notifications
+    const { error: notificationsError } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('user_id', userId);
+
+    if (notificationsError) {
+      console.error('Error deleting user notifications:', notificationsError);
+    }
+
+    // Delete user's bans
+    const { error: bansError } = await supabase
+      .from('banned_users')
+      .delete()
+      .eq('user_id', userId);
+
+    if (bansError) {
+      console.error('Error deleting user bans:', bansError);
+    }
+
+    // Finally, delete the user
     const { error } = await supabase
       .from('users')
       .delete()
       .eq('id', userId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting user from users table:', error);
+      throw error;
+    }
 
+    console.log('User deleted successfully:', userId);
     return { success: true };
   } catch (error: any) {
     console.error('Error deleting user:', error);
