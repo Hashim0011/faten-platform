@@ -1,11 +1,11 @@
 /**
- * AI Chatbot Service - Faten Platform
- * Direct integration with Google Gemini API
+ * Chat Assistant Service - Faten Platform
+ * Direct integration with generative model API
  */
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Concise system prompt for Gemini
+// Concise system prompt for the model
 const FATEN_SYSTEM_PROMPT = `أنت "فطن"، مساعد تعليمي ذكي لمنصة فطن التعليمية العربية.
 
 **قواعد أساسية:**
@@ -84,10 +84,10 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
 
     if (!apiKey) {
       console.error('API key missing!');
-      throw new Error('Google Gemini API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
+      throw new Error('generative model API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
     }
 
-    // ✅ Initialize Google Gemini with a CURRENT model
+    // ✅ Initialize generative model with a CURRENT model
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
       // أفضل تشتغل على gemini-2.0-flash (موديل حديث وسريع)

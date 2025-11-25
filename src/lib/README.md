@@ -186,7 +186,6 @@ const channel = supabase
 import { config } from '../lib/supabase';
 
 console.log('Supabase URL:', config.supabaseUrl);
-console.log('n8n Webhook:', config.n8nWebhookUrl);
 ```
 
 ## نصائح مهمة
