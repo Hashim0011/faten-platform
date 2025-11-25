@@ -110,43 +110,43 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="glass-effect rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-        <div className="p-4 sm:p-6 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 text-[#654321] flex justify-between items-center border-b border-[#8B7355]/20 flex-shrink-0">
-          <div>
-            <h2 className="text-lg sm:text-xl font-bold">{topic.title}</h2>
-            <p className="text-sm text-[#6B7280] mt-1">{messages.length} رسالة</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="glass-effect rounded-xl sm:rounded-2xl w-full max-w-3xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="p-3 sm:p-4 lg:p-6 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 text-[#654321] flex justify-between items-start sm:items-center gap-2 border-b border-[#8B7355]/20 flex-shrink-0">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold line-clamp-2">{topic.title}</h2>
+            <p className="text-xs sm:text-sm text-[#6B7280] mt-1">{messages.length} رسالة</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-[#8B7355]/20 rounded-xl transition-colors"
+            className="p-1.5 sm:p-2 hover:bg-[#8B7355]/20 rounded-xl transition-colors flex-shrink-0"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#8B7355]"></div>
+            <div className="flex items-center justify-center py-8 sm:py-12">
+              <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-[#8B7355]"></div>
             </div>
           ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-600">{error}</p>
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-red-600 text-sm sm:text-base mb-3 sm:mb-4">{error}</p>
               <button
                 onClick={loadMessages}
-                className="btn-primary mt-4"
+                className="btn-primary text-sm sm:text-base"
               >
                 إعادة المحاولة
               </button>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {messages.length === 0 ? (
-                <div className="text-center text-[#8B7355] py-12">
-                  <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                  <p className="text-lg font-semibold mb-2">لا توجد رسائل بعد</p>
-                  <p className="text-sm text-[#6B7280]">كن أول من يبدأ النقاش حول هذا الموضوع</p>
+                <div className="text-center text-[#8B7355] py-8 sm:py-12">
+                  <MessageSquare className="w-12 h-12 sm:w-16 sm:h-16 mx-auto mb-3 sm:mb-4 opacity-30" />
+                  <p className="text-base sm:text-lg font-semibold mb-2">لا توجد رسائل بعد</p>
+                  <p className="text-xs sm:text-sm text-[#6B7280]">كن أول من يبدأ النقاش حول هذا الموضوع</p>
                 </div>
               ) : (
                 messages.map((message) => {
@@ -162,34 +162,34 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
 
                   return (
                     <div key={message.id} className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[85%] sm:max-w-[70%] ${
+                      <div className={`max-w-[90%] sm:max-w-[85%] lg:max-w-[70%] ${
                         isExpert
                           ? 'bg-gradient-to-br from-[#8B5CF6]/10 to-[#7C3AED]/10 border-[#8B5CF6]/20'
                           : isCurrentUser
                           ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 border-[#8B7355]/20'
                           : 'bg-[#F4EFE9] border-[#8B7355]/10'
-                      } border-2 rounded-2xl p-4 shadow-sm`}>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${
+                      } border-2 rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm`}>
+                        <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0 ${
                             isExpert ? 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]' : 'bg-gradient-to-br from-[#8B7355] to-[#654321]'
                           }`}>
                             {senderName.charAt(0)}
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-semibold text-sm ${isExpert ? 'text-[#8B5CF6]' : 'text-[#654321]'}`}>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`font-semibold text-xs sm:text-sm ${isExpert ? 'text-[#8B5CF6]' : 'text-[#654321]'} truncate`}>
                                 {senderName}
                               </span>
                               {isExpert && (
-                                <span className="text-xs bg-[#8B5CF6]/20 text-[#8B5CF6] px-2 py-0.5 rounded-full font-semibold">
+                                <span className="text-[10px] sm:text-xs bg-[#8B5CF6]/20 text-[#8B5CF6] px-1.5 sm:px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
                                   خبير
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs text-[#6B7280]">{messageTime}</span>
+                            <span className="text-[10px] sm:text-xs text-[#6B7280]">{messageTime}</span>
                           </div>
                         </div>
-                        <p className="text-[#2D2D2D] leading-relaxed">{message.content}</p>
+                        <p className="text-[#2D2D2D] leading-relaxed text-xs sm:text-sm">{message.content}</p>
                       </div>
                     </div>
                   );
@@ -199,22 +199,22 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
           )}
         </div>
 
-        <form onSubmit={handleSendMessage} className="p-4 sm:p-6 border-t border-[#8B7355]/20 flex-shrink-0 bg-white/50">
+        <form onSubmit={handleSendMessage} className="p-3 sm:p-4 lg:p-6 border-t border-[#8B7355]/20 flex-shrink-0 bg-white/50">
           {isBanned ? (
-            <div className="p-4 bg-red-50 border-2 border-red-200 rounded-xl text-center">
-              <Ban className="w-12 h-12 mx-auto text-red-500 mb-3" />
-              <h4 className="text-lg font-bold text-red-700 mb-2">تم تجميدك من هذا النقاش</h4>
-              <p className="text-sm text-red-600">
+            <div className="p-3 sm:p-4 bg-red-50 border-2 border-red-200 rounded-xl text-center">
+              <Ban className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-red-500 mb-2 sm:mb-3" />
+              <h4 className="text-base sm:text-lg font-bold text-red-700 mb-2">تم تجميدك من هذا النقاش</h4>
+              <p className="text-xs sm:text-sm text-red-600">
                 السبب: {banReason}
               </p>
-              <p className="text-xs text-gray-600 mt-2">
+              <p className="text-[10px] sm:text-xs text-gray-600 mt-2">
                 للمزيد من المعلومات، يرجى التواصل مع إدارة المنصة
               </p>
             </div>
           ) : (
             <>
               {error && !loading && (
-                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                <div className="mb-3 p-2 sm:p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-xs sm:text-sm">
                   {error}
                 </div>
               )}
@@ -225,14 +225,15 @@ const DiscussionModal: React.FC<DiscussionModalProps> = ({ isOpen, onClose, topi
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="شارك في النقاش..."
                   disabled={sending}
-                  className="flex-1 input-modern disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 input-modern disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm min-w-0"
+                  style={{ paddingTop: '0.625rem', paddingBottom: '0.625rem', paddingRight: '0.75rem', paddingLeft: '0.75rem' }}
                 />
                 <button
                   type="submit"
                   disabled={sending || !newMessage.trim()}
-                  className="btn-primary px-4 sm:px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="btn-primary px-3 sm:px-4 lg:px-6 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 flex-shrink-0 text-xs sm:text-sm"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">{sending ? 'إرسال...' : 'إرسال'}</span>
                 </button>
               </div>

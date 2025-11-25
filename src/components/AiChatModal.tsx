@@ -162,37 +162,37 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         className="fixed inset-0 z-40"
         onClick={handleBackdropClick}
       />
-      
-      <div className={`fixed bottom-4 sm:bottom-6 left-4 right-4 sm:left-6 sm:right-auto w-auto sm:w-[420px] z-50 transition-all duration-300 ${
-        isMinimized ? 'h-16' : 'h-auto'
+
+      <div className={`fixed bottom-3 sm:bottom-6 left-3 right-3 sm:left-6 sm:right-auto w-auto sm:w-[420px] lg:w-[460px] z-50 transition-all duration-300 ${
+        isMinimized ? 'h-14 sm:h-16' : 'h-auto'
       }`}>
-        <div className="glass-effect rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20 backdrop-blur-xl">
+        <div className="glass-effect rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20 backdrop-blur-xl">
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative shadow-lg">
-                <Brain className="w-5 h-5 text-white" />
-                <Sparkles className="w-3 h-3 text-[#D4AF37] absolute -top-1 -right-1 animate-pulse" />
+          <div className="p-3 sm:p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative shadow-lg flex-shrink-0">
+                <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 text-[#D4AF37] absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 animate-pulse" />
               </div>
-              <div>
-                <h3 className="font-bold text-base text-[#2D2D2D]">المساعد الذكي</h3>
-                <p className="text-xs text-[#6B7280]">متاح الآن للمساعدة</p>
+              <div className="min-w-0">
+                <h3 className="font-bold text-sm sm:text-base text-[#2D2D2D] truncate">المساعد الذكي</h3>
+                <p className="text-[10px] sm:text-xs text-[#6B7280] truncate">متاح الآن للمساعدة</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button 
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors"
                 title={isMinimized ? "توسيع" : "تصغير"}
               >
-                <Minimize2 className="w-4 h-4 text-[#8B7355]" />
+                <Minimize2 className="w-3 h-3 sm:w-4 sm:h-4 text-[#8B7355]" />
               </button>
-              <button 
-                onClick={onClose} 
-                className="p-2 hover:bg-red-100 hover:text-red-600 rounded-xl transition-colors"
+              <button
+                onClick={onClose}
+                className="p-1.5 sm:p-2 hover:bg-red-100 hover:text-red-600 rounded-xl transition-colors"
                 title="إغلاق"
               >
-                <X className="w-4 h-4 text-[#8B7355]" />
+                <X className="w-3 h-3 sm:w-4 sm:h-4 text-[#8B7355]" />
               </button>
             </div>
           </div>
@@ -200,17 +200,17 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
           {/* Messages Area - يظهر فقط عندما لا يكون مصغراً */}
           {!isMinimized && (
             <>
-              <div ref={messagesContainerRef} className="h-80 sm:h-96 overflow-y-scroll p-4 bg-gradient-to-b from-white/50 to-white/30" style={{ scrollbarWidth: 'thin', scrollbarColor: '#8B7355 transparent' }}>
-                <div className="space-y-4">
+              <div ref={messagesContainerRef} className="h-64 sm:h-80 lg:h-96 overflow-y-scroll p-3 sm:p-4 bg-gradient-to-b from-white/50 to-white/30" style={{ scrollbarWidth: 'thin', scrollbarColor: '#8B7355 transparent' }}>
+                <div className="space-y-3 sm:space-y-4">
                   {messages.map((message) => (
                     <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
-                      <div className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
+                      <div className={`max-w-[90%] sm:max-w-[85%] rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm ${
                         message.role === 'assistant'
                           ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20'
                           : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
                       }`}>
-                        <p className="text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
-                        <span className={`text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
+                        <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
+                        <span className={`text-[10px] sm:text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
                           {message.timestamp}
                         </span>
                       </div>
@@ -222,27 +222,27 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Input Form */}
-              <form onSubmit={handleSendMessage} className="p-4 border-t border-[#8B7355]/10 bg-white/80">
-                <div className="flex gap-3">
+              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-[#8B7355]/10 bg-white/80">
+                <div className="flex gap-2 sm:gap-3">
                   <input
                     ref={inputRef}
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب سؤالك هنا..."
-                    className="input-modern flex-1 text-sm"
-                    style={{ paddingTop: '0.75rem', paddingBottom: '0.75rem', lineHeight: '1.5' }}
+                    className="input-modern flex-1 text-xs sm:text-sm min-w-0"
+                    style={{ paddingTop: '0.625rem', paddingBottom: '0.625rem', paddingRight: '0.75rem', paddingLeft: '0.75rem', lineHeight: '1.5' }}
                     disabled={isLoading}
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() || isLoading}
-                    className="btn-primary px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="btn-primary px-3 sm:px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
                   >
                     {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                     ) : (
-                      <Send className="w-4 h-4" />
+                      <Send className="w-3 h-3 sm:w-4 sm:h-4" />
                     )}
                   </button>
                 </div>

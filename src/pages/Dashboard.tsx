@@ -169,50 +169,52 @@ const Dashboard = () => {
     <div className="min-h-screen bg-pattern">
       {/* Header */}
       <div className="glass-effect border-b border-[#8B7355]/10 sticky top-0 z-40">
-        <div className="container mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full sm:w-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
+        <div className="container mx-auto px-3 sm:px-6 py-3 sm:py-4">
+          {/* الصف الأول: الشعار والأزرار */}
+          <div className="flex items-center justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
+                <Brain className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold gradient-text" style={{fontFeatureSettings: '"liga" 1, "calt" 1'}}>فطن</h1>
+              <h1 className="text-lg sm:text-2xl font-bold gradient-text" style={{fontFeatureSettings: '"liga" 1, "calt" 1'}}>فطن</h1>
             </div>
-            <div className="bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 rounded-xl py-2 px-4 max-w-xl overflow-hidden border border-[#8B7355]/20 hidden sm:block">
-              <p className="animate-marquee whitespace-nowrap text-sm text-[#654321] font-medium">
-                🎓 ورشة عمل: "تعزيز الأمن الفكري" - السبت القادم | 📚 دورة: "مهارات التفكير النقدي" - التسجيل مفتوح | 🌟 محاضرة: "الهوية الوطنية" - الأربعاء القادم
-              </p>
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0">
+              <button
+                onClick={() => setShowNotifications(true)}
+                className="p-1.5 sm:p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
+              >
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B7355]" />
+                {unreadNotifications > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
+                    {unreadNotifications}
+                  </span>
+                )}
+              </button>
+              <button className="btn-secondary text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2">
+                <Mail className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden md:inline">تواصل معنا</span>
+              </button>
+              <button
+                onClick={() => navigate('/settings')}
+                className="p-1.5 sm:p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors hidden md:block"
+                title="الإعدادات"
+              >
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B7355]" />
+              </button>
+              <button
+                onClick={handleLogout}
+                className="btn-secondary text-[10px] sm:text-sm flex items-center gap-1 sm:gap-2 px-2 py-1.5 sm:px-4 sm:py-2"
+              >
+                <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">خروج</span>
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-            <button 
-              onClick={() => setShowNotifications(true)}
-              className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors relative"
-            >
-              <Bell className="w-5 h-5 text-[#8B7355]" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold animate-pulse">
-                  {unreadNotifications}
-                </span>
-              )}
-            </button>
-            <button className="btn-secondary text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-4">
-              <Mail className="w-4 h-4" />
-              <span className="hidden sm:inline">تواصل معنا</span>
-            </button>
-            <button
-              onClick={() => navigate('/settings')}
-              className="p-2 rounded-xl hover:bg-[#8B7355]/10 transition-colors hidden sm:block"
-              title="الإعدادات"
-            >
-              <Settings className="w-5 h-5 text-[#8B7355]" />
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="btn-secondary text-xs sm:text-sm flex items-center gap-2 px-2 sm:px-4"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">خروج</span>
-            </button>
+          {/* الصف الثاني: شريط الأخبار - يظهر على الموبايل والديسكتوب */}
+          <div className="bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 rounded-lg sm:rounded-xl py-1.5 sm:py-2 px-3 sm:px-4 overflow-hidden border border-[#8B7355]/20 w-full">
+            <p className="animate-marquee whitespace-nowrap text-[11px] sm:text-sm text-[#654321] font-medium">
+              🎓 ورشة عمل: "تعزيز الأمن الفكري" - السبت القادم | 📚 دورة: "مهارات التفكير النقدي" - التسجيل مفتوح | 🌟 محاضرة: "الهوية الوطنية" - الأربعاء القادم
+            </p>
           </div>
         </div>
       </div>
@@ -222,52 +224,49 @@ const Dashboard = () => {
           {/* Main Content - المحتوى الرئيسي */}
           <main className="flex-1 min-w-0">
             {/* Search Bar */}
-            <div className="content-card mb-8">
-              <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
-                <div className="flex gap-2 order-2 sm:order-1">
-                  <button className="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2">
+            <div className="content-card mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-center">
+                <div className="flex gap-2 order-2 sm:order-1 w-full sm:w-auto">
+                  <button className="btn-primary text-xs sm:text-sm px-3 sm:px-4 py-2 sm:py-2.5 whitespace-nowrap flex-1 sm:flex-none">
                     جميع المحتويات
                   </button>
-                  <button className="btn-secondary text-xs sm:text-sm px-3 sm:px-4 py-2 flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">تصفية</span>
-                  </button>
                 </div>
-                <div className="flex-1 relative order-1 sm:order-2">
+                <div className="flex-1 relative order-1 sm:order-2 min-w-0">
                   <input
                     type="text"
                     placeholder="ابحث في المكتبة..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-modern w-full has-right-icon"
+                    className="input-modern w-full has-right-icon text-sm sm:text-base"
+                    style={{ paddingRight: '2.75rem', paddingLeft: '1rem', paddingTop: '0.625rem', paddingBottom: '0.625rem' }}
                   />
-                  <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-4 h-4 sm:w-5 sm:h-5 pointer-events-none" />
                 </div>
               </div>
             </div>
 
             {/* Stats Cards (dynamic & consistent) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              <div className="content-card text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
-                  <Book className="w-6 h-6 text-white" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
+              <div className="content-card text-center py-4 sm:py-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 rounded-xl bg-gradient-to-br from-[#10B981] to-[#059669] flex items-center justify-center">
+                  <Book className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#2D2D2D] mb-1">{formatInt(counts.total)}</h3>
-                <p className="text-[#6B7280] text-sm">محتوى تعليمي</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#2D2D2D] mb-1">{formatInt(counts.total)}</h3>
+                <p className="text-[#6B7280] text-xs sm:text-sm">محتوى تعليمي</p>
               </div>
-              <div className="content-card text-center">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
-                  <Star className="w-6 h-6 text-white" />
+              <div className="content-card text-center py-4 sm:py-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#D97706] flex items-center justify-center">
+                  <Star className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#2D2D2D] mb-1">{counts.rating.toFixed(1)}</h3>
-                <p className="text-[#6B7280] text-sm">تقييم المحتوى</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#2D2D2D] mb-1">{counts.rating.toFixed(1)}</h3>
+                <p className="text-[#6B7280] text-xs sm:text-sm">تقييم المحتوى</p>
               </div>
-              <div className="content-card text-center sm:col-span-2 lg:col-span-1">
-                <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
-                  <Users className="w-6 h-6 text-white" />
+              <div className="content-card text-center py-4 sm:py-6 sm:col-span-2 lg:col-span-1">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 rounded-xl bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED] flex items-center justify-center">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#2D2D2D] mb-1">{formatInt(counts.activeUsers)}</h3>
-                <p className="text-[#6B7280] text-sm">مستخدم نشط</p>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#2D2D2D] mb-1">{formatInt(counts.activeUsers)}</h3>
+                <p className="text-[#6B7280] text-xs sm:text-sm">مستخدم نشط</p>
               </div>
             </div>
 
@@ -276,45 +275,45 @@ const Dashboard = () => {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setActiveTab('books')}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                    activeTab === 'books' 
-                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all flex-1 sm:flex-none justify-center ${
+                    activeTab === 'books'
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                       : 'text-[#8B7355] hover:bg-[#8B7355]/10'
                   }`}
                 >
-                  <Book className="w-4 h-4" />
+                  <Book className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>الكتب</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs hidden sm:inline">{counts.books}</span>
+                  <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${activeTab === 'books' ? 'bg-white/20' : 'bg-[#8B7355]/10'}`}>{counts.books}</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('videos')}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                    activeTab === 'videos' 
-                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all flex-1 sm:flex-none justify-center ${
+                    activeTab === 'videos'
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                       : 'text-[#8B7355] hover:bg-[#8B7355]/10'
                   }`}
                 >
-                  <Video className="w-4 h-4" />
-                  <span>مقاطع الفيديو</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs hidden sm:inline">{counts.videos}</span>
+                  <Video className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span>الفيديو</span>
+                  <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${activeTab === 'videos' ? 'bg-white/20' : 'bg-[#8B7355]/10'}`}>{counts.videos}</span>
                 </button>
                 <button
                   onClick={() => setActiveTab('articles')}
-                  className={`flex items-center gap-2 px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm font-medium transition-all ${
-                    activeTab === 'articles' 
-                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg' 
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all flex-1 sm:flex-none justify-center ${
+                    activeTab === 'articles'
+                      ? 'bg-gradient-to-r from-[#8B7355] to-[#654321] text-white shadow-lg'
                       : 'text-[#8B7355] hover:bg-[#8B7355]/10'
                   }`}
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>المقالات</span>
-                  <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs hidden sm:inline">{counts.articles}</span>
+                  <span className={`px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs ${activeTab === 'articles' ? 'bg-white/20' : 'bg-[#8B7355]/10'}`}>{counts.articles}</span>
                 </button>
               </div>
             </div>
 
             {/* Content Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {filteredContent.map((item: any) => {
                 const createdAt = new Date(item.created_at);
                 const now = new Date();
@@ -331,34 +330,34 @@ const Dashboard = () => {
                     onClick={() => handleContentClick(item)}
                     className="content-card card-hover group overflow-hidden cursor-pointer"
                   >
-                    <div className="relative h-40 sm:h-48 mb-4 rounded-xl overflow-hidden">
+                    <div className="relative h-36 sm:h-40 lg:h-48 mb-3 sm:mb-4 rounded-xl overflow-hidden">
                       <img
                         src={item.image_url || 'https://images.pexels.com/photos/159866/books-book-pages-read-literature-159866.jpeg'}
                         alt={item.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute top-3 right-3">
-                        {isNew && <span className="status-badge status-new">جديد</span>}
+                      <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+                        {isNew && <span className="status-badge status-new text-[10px] sm:text-xs px-2 sm:px-3 py-1">جديد</span>}
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
-                    <div className="space-y-3">
-                      <h3 className="text-[#2D2D2D] font-bold text-base sm:text-lg leading-tight group-hover:text-[#8B7355] transition-colors">{item.title}</h3>
+                    <div className="space-y-2 sm:space-y-3">
+                      <h3 className="text-[#2D2D2D] font-bold text-sm sm:text-base lg:text-lg leading-tight group-hover:text-[#8B7355] transition-colors line-clamp-2">{item.title}</h3>
                       <p className="text-[#6B7280] text-xs sm:text-sm leading-relaxed line-clamp-2">{item.description || 'لا يوجد وصف'}</p>
                       <div className="flex justify-between items-center pt-2 border-t border-[#8B7355]/10">
-                        <div className="flex items-center gap-2 text-xs sm:text-sm text-[#6B7280]">
-                          <Clock className="w-4 h-4" />
-                          <span>{formattedDate}</span>
+                        <div className="flex items-center gap-1 sm:gap-2 text-xs text-[#6B7280]">
+                          <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                          <span className="truncate">{formattedDate}</span>
                         </div>
                         <button
                           onClick={(e) => handleLikeToggle(item.id, e)}
-                          className={`flex items-center gap-2 text-xs sm:text-sm px-3 py-1.5 rounded-lg transition-all ${
+                          className={`flex items-center gap-1 sm:gap-2 text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all flex-shrink-0 ${
                             isLiked
                               ? 'bg-red-50 text-red-600 hover:bg-red-100'
                               : 'text-[#8B7355] hover:bg-[#8B7355]/10'
                           }`}
                         >
-                          <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                          <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isLiked ? 'fill-current' : ''}`} />
                           <span className="font-semibold">{likes}</span>
                         </button>
                       </div>
@@ -370,39 +369,39 @@ const Dashboard = () => {
           </main>
 
           {/* Sidebar - النقاشات والفعاليات */}
-          <aside className="w-full lg:w-1/4 lg:min-w-[300px] space-y-6">
+          <aside className="w-full lg:w-1/4 lg:min-w-[280px] space-y-4 sm:space-y-6">
             {/* Discussion Topics */}
             <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#2D2D2D]">مواضيع النقاش</h3>
                   {discussionTopics.length > 0 && (
-                    <span className="px-2 py-1 text-xs font-semibold bg-[#8B7355] text-white rounded-full">
+                    <span className="px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold bg-[#8B7355] text-white rounded-full">
                       {discussionTopics.length}
                     </span>
                   )}
                 </div>
-                <MessageCircle className="w-5 h-5 text-[#8B7355]" />
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B7355] flex-shrink-0" />
               </div>
-              <div className="space-y-3 max-h-[500px] overflow-y-auto scrollbar-hide">
+              <div className="space-y-2 sm:space-y-3 max-h-[400px] sm:max-h-[500px] overflow-y-auto scrollbar-hide">
                 {discussionTopics.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MessageCircle className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
-                    <p className="text-sm text-[#6B7280]">لا توجد نقاشات حالياً</p>
+                  <div className="text-center py-6 sm:py-8">
+                    <MessageCircle className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-[#8B7355]/30 mb-2 sm:mb-3" />
+                    <p className="text-xs sm:text-sm text-[#6B7280]">لا توجد نقاشات حالياً</p>
                   </div>
                 ) : (
                   discussionTopics.map(topic => (
                     <button
                       key={topic.id}
                       onClick={() => handleTopicClick(topic)}
-                      className="w-full p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
+                      className="w-full p-3 sm:p-4 rounded-xl hover:bg-[#8B7355]/5 transition-all text-right group border border-transparent hover:border-[#8B7355]/20"
                     >
-                      <h4 className="font-semibold text-sm sm:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2">{topic.title}</h4>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-[#6B7280]">
+                      <h4 className="font-semibold text-xs sm:text-sm lg:text-base text-[#2D2D2D] group-hover:text-[#8B7355] transition-colors mb-2 line-clamp-2">{topic.title}</h4>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] sm:text-xs text-[#6B7280] truncate">
                           {new Date(topic.created_at).toLocaleDateString('ar-SA')}
                         </span>
-                        <span className="text-xs bg-[#8B7355]/10 text-[#8B7355] px-2 py-1 rounded-full">
+                        <span className="text-[10px] sm:text-xs bg-[#8B7355]/10 text-[#8B7355] px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full whitespace-nowrap">
                           {topic.messages?.length || 0} رسالة
                         </span>
                       </div>
@@ -414,22 +413,22 @@ const Dashboard = () => {
 
             {/* Upcoming Events */}
             <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#2D2D2D]">الفعاليات القادمة</h3>
                   {upcomingEvents.length > 0 && (
-                    <span className="px-2 py-1 text-xs font-semibold bg-[#8B7355] text-white rounded-full">
+                    <span className="px-2 py-0.5 sm:py-1 text-[10px] sm:text-xs font-semibold bg-[#8B7355] text-white rounded-full">
                       {upcomingEvents.length}
                     </span>
                   )}
                 </div>
-                <Bell className="w-5 h-5 text-[#8B7355]" />
+                <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-[#8B7355] flex-shrink-0" />
               </div>
-              <div className="space-y-4 max-h-[500px] overflow-y-auto scrollbar-hide">
+              <div className="space-y-3 sm:space-y-4 max-h-[400px] sm:max-h-[500px] overflow-y-auto scrollbar-hide">
                 {upcomingEvents.length === 0 ? (
-                  <div className="text-center py-8">
-                    <Bell className="w-12 h-12 mx-auto text-[#8B7355]/30 mb-3" />
-                    <p className="text-sm text-[#6B7280]">لا توجد فعاليات قادمة</p>
+                  <div className="text-center py-6 sm:py-8">
+                    <Bell className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-[#8B7355]/30 mb-2 sm:mb-3" />
+                    <p className="text-xs sm:text-sm text-[#6B7280]">لا توجد فعاليات قادمة</p>
                   </div>
                 ) : (
                   upcomingEvents.map(event => {
@@ -445,24 +444,22 @@ const Dashboard = () => {
                       event.event_type === 'seminar' ? 'ندوة' : 'ويبينار';
 
                     return (
-                      <div key={event.id} className="p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <span className={`status-badge ${
-                              event.event_type === 'workshop' ? 'status-trending' :
-                              event.event_type === 'course' ? 'status-new' : 'status-featured'
-                            }`}>
-                              {eventTypeLabel}
-                            </span>
-                            <span className="text-sm text-[#6B7280] flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {formattedDate}
-                            </span>
-                          </div>
+                      <div key={event.id} className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-[#8B7355]/5 to-[#D4AF37]/5 border border-[#8B7355]/10 hover:border-[#8B7355]/30 transition-all group">
+                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 sm:mb-3">
+                          <span className={`status-badge text-[10px] sm:text-xs px-2 py-1 ${
+                            event.event_type === 'workshop' ? 'status-trending' :
+                            event.event_type === 'course' ? 'status-new' : 'status-featured'
+                          }`}>
+                            {eventTypeLabel}
+                          </span>
+                          <span className="text-[10px] sm:text-sm text-[#6B7280] flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formattedDate}
+                          </span>
                         </div>
-                        <h4 className="text-sm sm:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors mb-2">{event.title}</h4>
+                        <h4 className="text-xs sm:text-sm lg:text-base text-[#2D2D2D] font-semibold group-hover:text-[#8B7355] transition-colors mb-2 line-clamp-2">{event.title}</h4>
                         {event.instructor_name && (
-                          <p className="text-xs text-[#6B7280] mb-3">المدرب: {event.instructor_name}</p>
+                          <p className="text-[10px] sm:text-xs text-[#6B7280] mb-2 sm:mb-3 truncate">المدرب: {event.instructor_name}</p>
                         )}
                         <button
                           onClick={() => {
@@ -472,7 +469,7 @@ const Dashboard = () => {
                               alert('رابط التسجيل غير متوفر حالياً');
                             }
                           }}
-                          className="btn-primary w-full text-sm py-2"
+                          className="btn-primary w-full text-xs sm:text-sm py-1.5 sm:py-2"
                         >
                           {event.event_type === 'course' ? 'دورة' :
                            event.event_type === 'workshop' ? 'ورشة عمل' : 'ندوة'}
@@ -490,12 +487,13 @@ const Dashboard = () => {
       {/* AI Chat Button */}
       <button
         onClick={() => setShowAiChat(true)}
-        className="fixed bottom-4 left-4 sm:bottom-8 sm:left-8 p-3 sm:p-4 glass-effect rounded-2xl shadow-xl hover:shadow-2xl transition-all group"
+        className="fixed bottom-3 left-3 sm:bottom-6 sm:left-6 lg:bottom-8 lg:left-8 p-2.5 sm:p-3 lg:p-4 glass-effect rounded-2xl shadow-xl hover:shadow-2xl transition-all group z-40"
+        aria-label="فتح المساعد الذكي"
       >
         <div className="relative">
-          <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-[#8B7355] group-hover:scale-110 transition-transform" />
-          <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center">
-            <Brain className="w-2 h-2 text-white" />
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#8B7355] group-hover:scale-110 transition-transform" />
+          <div className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center">
+            <Brain className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-white" />
           </div>
         </div>
       </button>

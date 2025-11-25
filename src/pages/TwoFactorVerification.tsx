@@ -423,17 +423,6 @@ const TwoFactorVerification = () => {
             </button>
           </>
         )}
-
-        <div className="section-divider"></div>
-
-        <div className="text-center">
-          <button
-            onClick={handleSkip}
-            className="text-[#6B7280] hover:text-[#8B7355] text-sm transition-colors"
-          >
-            تخطي التحقق مؤقتاً (غير مستحسن)
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -21,37 +21,37 @@ function PageTitleUpdater() {
   useEffect(() => {
     switch (location.pathname) {
       case '/':
-        document.title = 'Faten';
+        document.title = 'فطن';
         break;
       case '/register':
-        document.title = 'إنشاء حساب | Faten';
+        document.title = 'إنشاء حساب | فطن';
         break;
       case '/login':
-        document.title = 'تسجيل الدخول | Faten';
+        document.title = 'تسجيل الدخول | فطن';
         break;
       case '/two-factor-verification':
-        document.title = 'التحقق بخطوتين | Faten';
+        document.title = 'التحقق بخطوتين | فطن';
         break;
       case '/dashboard':
-        document.title = 'الواجهة الرئيسية | Faten';
+        document.title = 'الواجهة الرئيسية | فطن';
         break;
       case '/expert-register':
-        document.title = 'إنشاء حساب خبير | Faten';
+        document.title = 'إنشاء حساب خبير | فطن';
         break;
       case '/expert-dashboard':
-        document.title = 'لوحة الخبراء | Faten';
+        document.title = 'لوحة الخبراء | فطن';
         break;
       case '/admin-register':
-        document.title = 'إنشاء حساب مدير | Faten';
+        document.title = 'إنشاء حساب مدير | فطن';
         break;
       case '/admin-dashboard':
-        document.title = 'لوحة الإدارة | Faten';
+        document.title = 'لوحة الإدارة | فطن';
         break;
       case '/settings':
-        document.title = 'الإعدادات | Faten';
+        document.title = 'الإعدادات | فطن';
         break;
       default:
-        document.title = 'Faten';
+        document.title = 'فطن';
     }
   }, [location]);
 
