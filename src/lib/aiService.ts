@@ -1,20 +1,34 @@
 /**
  * Chat Assistant Service - Faten Platform
- * Direct integration with generative model API
+ * Direct integration with OpenAI API
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import OpenAI from 'openai';
+import { INTELLECTUAL_SECURITY_KNOWLEDGE } from './intellectualSecurityKnowledge';
 
-// Concise system prompt for the model
-const FATEN_SYSTEM_PROMPT = `أنت "فطن"، مساعد تعليمي ذكي لمنصة فطن التعليمية العربية.
+// Enhanced system prompt with intellectual security knowledge
+const FATEN_SYSTEM_PROMPT = `أنت "فطن"، مساعد تعليمي ذكي متخصص في الأمن الفكري لمنصة فطن التعليمية العربية.
 
 **قواعد أساسية:**
 - رد فقط بالعربية الفصحى المبسطة
 - كن محترماً، تعليمياً، وإيجابياً
-- ركز على الوعي الفكري والتراث السعودي
+- ركز على الوعي الفكري والأمن الفكري والتراث السعودي
 - احترم الثقافة العربية والإسلامية
+- أنت خبير في مواضيع الأمن الفكري وتستطيع الإجابة على جميع الأسئلة المتعلقة به
+
+**تخصصك الرئيسي: الأمن الفكري**
+أنت تمتلك معرفة واسعة وشاملة عن الأمن الفكري، بما في ذلك:
+- مفهوم الأمن الفكري وتطوره
+- أبعاد الأمن الفكري (السياسي، الديني، الحضاري، الاقتصادي، الاجتماعي، النفسي)
+- علاقة الأمن الفكري بالأمن الشامل
+- التهديدات والمخاطر على الأمن الفكري
+- طرق تحقيق وحماية الأمن الفكري
+- الأمن الفكري في الإسلام
 
 **يمكنك مساعدة المستخدمين بـ:**
+- شرح مفاهيم الأمن الفكري بطريقة واضحة ومبسطة
+- الإجابة على أسئلة حول التهديدات والمخاطر الفكرية
+- تقديم نصائح حول كيفية تعزيز الأمن الفكري
 - معلومات عن منصة فطن (التسجيل، الأقسام، الميزات)
 - المحتوى التعليمي (علوم، تاريخ، ثقافة، أدب، تكنولوجيا)
 - المهارات (التفكير النقدي، القراءة، التحليل)
@@ -22,9 +36,9 @@ const FATEN_SYSTEM_PROMPT = `أنت "فطن"، مساعد تعليمي ذكي ل
 - حجز نقاشات مع الخبراء
 
 **ممنوع الحديث عن:**
-- السياسة والانتخابات
-- الطائفية والتطرف
-- المواضيع المثيرة للجدل
+- السياسة والانتخابات بشكل متحيز
+- الطائفية والتطرف (يمكنك الحديث عنها كتهديدات للأمن الفكري)
+- المواضيع المثيرة للجدل غير التعليمية
 - النصائح الطبية/القانونية/المالية
 - المحتوى الضار أو المسيء
 
@@ -32,17 +46,22 @@ const FATEN_SYSTEM_PROMPT = `أنت "فطن"، مساعد تعليمي ذكي ل
 قل: "لست متأكداً، يمكنك التحقق من مصادر موثوقة أو التواصل مع خبراء المنصة"
 
 **أقسام المنصة:**
-- المحتوى التعليمي: كتب، فيديوهات، مقالات
+- المحتوى التعليمي: كتب، فيديوهات، مقالات (خاصة عن الأمن الفكري)
 - النقاشات: حجز جلسات مع الخبراء
-- الفعاليات: دورات، ورش عمل، ندوات
+- الفعاليات: دورات، ورش عمل، ندوات (خاصة عن الأمن الفكري)
 
 **أسلوبك:**
 - استخدم اسم المستخدم للترحيب الشخصي
 - كن صبوراً ومشجعاً
 - اقترح موارد من المنصة
-- رد بإيجاز (<500 كلمة)
+- رد بإيجاز (<500 كلمة) إلا إذا طلب المستخدم شرحاً مفصلاً
+- عند الحديث عن الأمن الفكري، كن دقيقاً ومرجعياً
 
-هدفك: إثراء المعرفة وتعزيز الوعي الفكري`;
+**قاعدة معرفتك عن الأمن الفكري:**
+
+${INTELLECTUAL_SECURITY_KNOWLEDGE}
+
+هدفك: إثراء المعرفة وتعزيز الوعي الفكري وحماية المجتمع من التهديدات الفكرية`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -73,7 +92,7 @@ interface ChatResponse {
 export async function sendChatMessage(request: ChatRequest): Promise<ChatResponse> {
   try {
     // Get API key from environment
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
     console.log('AI Service Debug:', {
       hasApiKey: !!apiKey,
@@ -84,14 +103,13 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
 
     if (!apiKey) {
       console.error('API key missing!');
-      throw new Error('generative model API key not configured. Please add VITE_GEMINI_API_KEY to your .env file.');
+      throw new Error('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your .env file.');
     }
 
-    // ✅ Initialize generative model with a CURRENT model
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      // أفضل تشتغل على gemini-2.0-flash (موديل حديث وسريع)
-      model: 'gemini-2.0-flash',
+    // Initialize OpenAI client
+    const openai = new OpenAI({
+      apiKey: apiKey,
+      dangerouslyAllowBrowser: true // Required for client-side usage
     });
 
     // Check if this is the first message (no conversation history)
@@ -101,18 +119,22 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
     const firstName = request.userContext.userName.split(' ')[0];
     const displayName = isFirstMessage ? request.userContext.userName : firstName;
 
-    // Build the full prompt with system instructions and conversation
-    let fullPrompt = `${FATEN_SYSTEM_PROMPT}
+    // Build system message
+    const systemMessage = `${FATEN_SYSTEM_PROMPT}
 
 معلومات المستخدم:
 - الاسم: ${displayName}
 - البريد: ${request.userContext.userEmail}
 
-${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من المستخدم. استخدم الاسم الكامل في الترحيب.' : '**تنبيه:** استخدم الاسم الأول فقط في الرد (الاسم المذكور أعلاه).'}
+${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من المستخدم. استخدم الاسم الكامل في الترحيب.' : '**تنبيه:** استخدم الاسم الأول فقط في الرد (الاسم المذكور أعلاه).'}`;
 
----
-
-`;
+    // Build messages array for OpenAI
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      {
+        role: 'system',
+        content: systemMessage
+      }
+    ];
 
     // Add conversation history
     if (request.conversationHistory && request.conversationHistory.length > 0) {
@@ -125,21 +147,28 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
       });
 
       filteredHistory.forEach(msg => {
-        if (msg.role === 'user') {
-          fullPrompt += `المستخدم: ${msg.content}\n`;
-        } else {
-          fullPrompt += `فطن: ${msg.content}\n`;
-        }
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
       });
     }
 
     // Add current message
-    fullPrompt += `المستخدم: ${request.message}\nفطن:`;
+    messages.push({
+      role: 'user',
+      content: request.message
+    });
 
-    // Generate response
-    const result = await model.generateContent(fullPrompt);
-    const response = await result.response;
-    const responseText = response.text();
+    // Generate response using GPT-4
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini', // or 'gpt-4' for better quality
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+
+    const responseText = completion.choices[0]?.message?.content;
 
     if (!responseText) {
       throw new Error('Empty response from AI');
@@ -161,14 +190,14 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
       };
     }
 
-    if (error.message?.includes('quota') || error.message?.includes('429')) {
+    if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
       return {
         success: false,
         error: 'عذراً، تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد قليل.'
       };
     }
 
-    if (error.message?.includes('Invalid API key')) {
+    if (error.message?.includes('Invalid API key') || error.message?.includes('Incorrect API key')) {
       return {
         success: false,
         error: 'مفتاح API غير صالح. يرجى التحقق من الإعدادات.'
