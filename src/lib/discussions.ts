@@ -84,85 +84,95 @@ async function createNotificationForAll(notification: {
 }
 
 /**
- * الحصول على جميع النقاشات
+ * الحصول على جميع النقاشات - نسخة محسّنة للأداء
  */
 export async function getAllDiscussions() {
   try {
-    // جلب النقاشات مع عدد الرسائل فقط (بدون تفاصيل الرسائل)
+    console.log('⚡ جلب النقاشات بطريقة محسّنة...');
+    const startTime = Date.now();
+
+    // جلب كل النقاشات
     const { data: discussions, error: discussionsError } = await supabase
       .from('discussions')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (discussionsError) throw discussionsError;
+    console.log('📊 نتيجة جلب النقاشات:', { discussions, error: discussionsError });
+
+    if (discussionsError) {
+      console.error('❌ خطأ في جلب النقاشات:', discussionsError);
+      throw discussionsError;
+    }
 
     if (!discussions || discussions.length === 0) {
+      console.log('✅ لا توجد نقاشات');
       return { success: true, data: [] };
     }
 
-    // جلب معلومات منشئ كل نقاش
-    const discussionsWithDetails = await Promise.all(
-      discussions.map(async (discussion) => {
-        // جلب معلومات المنشئ
-        const { data: creator } = await supabase
-          .from('users')
-          .select('full_name, role')
-          .eq('id', discussion.created_by)
-          .single();
+    // جلب جميع المنشئين دفعة واحدة
+    const creatorIds = [...new Set(discussions.map(d => d.created_by))];
+    const { data: creators } = await supabase
+      .from('users')
+      .select('id, full_name, role')
+      .in('id', creatorIds);
 
-        // جلب عدد الرسائل
-        const { count: messageCount } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('discussion_id', discussion.id);
+    const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
 
-        // جلب الرسائل مع بيانات المرسل
-        const { data: messages } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('discussion_id', discussion.id)
-          .order('created_at', { ascending: true });
+    // جلب كل الرسائل لجميع النقاشات دفعة واحدة
+    const discussionIds = discussions.map(d => d.id);
+    const { data: allMessages } = await supabase
+      .from('messages')
+      .select('*')
+      .in('discussion_id', discussionIds)
+      .order('created_at', { ascending: true });
 
-        // إضافة بيانات المرسل لكل رسالة
-        let messagesWithSender = [];
-        if (messages && messages.length > 0) {
-          messagesWithSender = await Promise.all(
-            messages.map(async (message) => {
-              const { data: sender } = await supabase
-                .from('users')
-                .select('id, full_name, email, role')
-                .eq('id', message.sender_id)
-                .single();
+    // جلب جميع المرسلين دفعة واحدة
+    const senderIds = [...new Set(allMessages?.map(m => m.sender_id) || [])];
+    const { data: senders } = await supabase
+      .from('users')
+      .select('id, full_name, email, role')
+      .in('id', senderIds);
 
-              return {
-                ...message,
-                sender: sender || { full_name: 'مستخدم محذوف', role: 'user' }
-              };
-            })
-          );
-        }
+    const sendersMap = new Map(senders?.map(s => [s.id, s]) || []);
 
-        return {
-          ...discussion,
-          creator: creator || { full_name: 'مستخدم محذوف', role: 'user' },
-          messages: messagesWithSender,
-          messageCount: messageCount || 0
-        };
-      })
-    );
+    // تجميع الرسائل حسب النقاش
+    const messagesByDiscussion: Record<string, any[]> = {};
+    allMessages?.forEach(message => {
+      if (!messagesByDiscussion[message.discussion_id]) {
+        messagesByDiscussion[message.discussion_id] = [];
+      }
+      messagesByDiscussion[message.discussion_id].push({
+        ...message,
+        sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' }
+      });
+    });
+
+    // دمج البيانات
+    const discussionsWithDetails = discussions.map(discussion => ({
+      ...discussion,
+      creator: creatorsMap.get(discussion.created_by) || { full_name: 'مستخدم محذوف', role: 'user' },
+      messages: messagesByDiscussion[discussion.id] || [],
+      messageCount: (messagesByDiscussion[discussion.id] || []).length
+    }));
+
+    const endTime = Date.now();
+    console.log(`✅ تم جلب ${discussions.length} نقاش في ${endTime - startTime}ms`);
 
     return { success: true, data: discussionsWithDetails };
   } catch (error: any) {
-    console.error('Error fetching discussions:', error);
+    console.error('💥 Error fetching discussions:', error);
     return { success: false, error: error.message, data: [] };
   }
 }
 
 /**
- * الحصول على نقاش معين مع رسائله
+ * الحصول على نقاش معين مع رسائله - نسخة محسّنة
  */
 export async function getDiscussion(id: string) {
   try {
+    console.log('⚡ جلب النقاش:', id);
+    const startTime = Date.now();
+
     // جلب النقاش
     const { data: discussion, error: discussionError } = await supabase
       .from('discussions')
@@ -186,30 +196,29 @@ export async function getDiscussion(id: string) {
       .eq('discussion_id', id)
       .order('created_at', { ascending: true });
 
-    // إضافة بيانات المرسل لكل رسالة
-    let messagesWithSender = [];
-    if (messages && messages.length > 0) {
-      messagesWithSender = await Promise.all(
-        messages.map(async (message) => {
-          const { data: sender } = await supabase
-            .from('users')
-            .select('id, full_name, email, role')
-            .eq('id', message.sender_id)
-            .single();
+    // جلب المرسلين دفعة واحدة
+    const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+    const { data: senders } = await supabase
+      .from('users')
+      .select('id, full_name, email, role')
+      .in('id', senderIds);
 
-          return {
-            ...message,
-            sender: sender || { full_name: 'مستخدم محذوف', role: 'user' }
-          };
-        })
-      );
-    }
+    const sendersMap = new Map(senders?.map(s => [s.id, s]) || []);
+
+    // إضافة بيانات المرسل لكل رسالة
+    const messagesWithSender = messages?.map(message => ({
+      ...message,
+      sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' }
+    })) || [];
 
     const discussionWithDetails = {
       ...discussion,
       creator: creator || { full_name: 'مستخدم محذوف', role: 'user' },
       messages: messagesWithSender
     };
+
+    const endTime = Date.now();
+    console.log(`✅ تم جلب النقاش في ${endTime - startTime}ms`);
 
     return { success: true, data: discussionWithDetails };
   } catch (error: any) {
@@ -273,16 +282,30 @@ export async function addMessage(discussionId: string, content: string) {
  */
 export async function deleteMessage(messageId: string) {
   try {
-    const { error } = await supabase
+    console.log('🔧 محاولة حذف الرسالة من قاعدة البيانات:', messageId);
+
+    const { data, error, count } = await supabase
       .from('messages')
       .delete()
-      .eq('id', messageId);
+      .eq('id', messageId)
+      .select();
 
-    if (error) throw error;
+    console.log('📋 نتيجة عملية الحذف:', { data, error, count });
 
+    if (error) {
+      console.error('❌ خطأ في الحذف:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn('⚠️ لم يتم حذف أي رسالة - قد تكون الرسالة غير موجودة أو لا توجد صلاحيات');
+      return { success: false, error: 'لم يتم العثور على الرسالة أو ليس لديك صلاحية لحذفها' };
+    }
+
+    console.log('✅ تم حذف الرسالة بنجاح من قاعدة البيانات');
     return { success: true };
   } catch (error: any) {
-    console.error('Error deleting message:', error);
+    console.error('💥 Error deleting message:', error);
     return { success: false, error: error.message };
   }
 }
