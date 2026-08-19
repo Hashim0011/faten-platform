@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, MessageSquare, BookOpen, Users, Plus, Trash2, Ban, UserX, CreditCard as Edit, Eye, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell, Send } from 'lucide-react';
+import { Brain, MessageSquare, BookOpen, Plus, Trash2, Ban, UserX, CreditCard as Edit, Video, FileText, Book, Search, Filter, Settings, LogOut, Bell, Send } from 'lucide-react';
 import NotificationModal from '../components/NotificationModal';
 import { addContent, getPublishedContent, deleteContent, updateContent, type ContentType } from '../lib/content';
 import { getAllDiscussions, deleteMessage as deleteDiscussionMessage, createDiscussion, deleteDiscussion, addMessage } from '../lib/discussions';
 import { banUserFromDiscussion } from '../lib/bans';
 import { addEvent, getAllEvents, deleteEvent, type EventData } from '../lib/events';
-import { getAllUsers, deleteUser } from '../lib/users';
 import { createNotificationForAll, getUnreadCount } from '../lib/notifications';
 
 interface Message {
@@ -60,9 +59,6 @@ const ExpertDashboard = () => {
   const [discussions, setDiscussions] = useState<any[]>([]);
   const [contentList, setContentList] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any | null>(null);
-  const [showUserDetails, setShowUserDetails] = useState(false);
 
   // بيانات نموذج إنشاء نقاش
   const [showAddDiscussion, setShowAddDiscussion] = useState(false);
@@ -115,13 +111,6 @@ const ExpertDashboard = () => {
     if (eventsResult.success && eventsResult.data) {
       setEvents(eventsResult.data);
     }
-
-    // تحميل المستخدمين
-    const usersResult = await getAllUsers();
-    if (usersResult.success && usersResult.data) {
-      const regularUsers = usersResult.data.filter((u: any) => u.role === 'user');
-      setUsers(regularUsers);
-    }
   };
 
   const loadContent = async () => {
@@ -132,15 +121,52 @@ const ExpertDashboard = () => {
   };
 
   const handleDeleteMessage = async (messageId: string) => {
-    const result = await deleteDiscussionMessage(messageId);
-    if (result.success) {
-      // إعادة تحميل النقاشات بعد الحذف
-      await loadAllData();
-      // إعادة تحديد النقاش الحالي
-      if (selectedDiscussion) {
-        const updatedDiscussion = discussions.find(d => d.id === selectedDiscussion.id);
-        setSelectedDiscussion(updatedDiscussion || null);
+    if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
+      return;
+    }
+
+    if (!selectedDiscussion) return;
+
+    console.log('🗑️ بدء حذف الرسالة:', messageId);
+
+    try {
+      // حذف الرسالة من قاعدة البيانات
+      const result = await deleteDiscussionMessage(messageId);
+      console.log('📝 نتيجة الحذف:', result);
+
+      if (result.success) {
+        console.log('✅ نجح الحذف من قاعدة البيانات');
+
+        // تحديث الواجهة مباشرة بحذف الرسالة من المصفوفة
+        const updatedMessages = selectedDiscussion.messages?.filter((m: any) => m.id !== messageId) || [];
+
+        // تحديث النقاش المحدد
+        const updatedDiscussion = {
+          ...selectedDiscussion,
+          messages: updatedMessages
+        };
+
+        // تحديث قائمة النقاشات
+        const updatedDiscussions = discussions.map((d: any) =>
+          d.id === selectedDiscussion.id ? updatedDiscussion : d
+        );
+
+        console.log('🔄 تحديث الواجهة...');
+        console.log('📊 عدد الرسائل قبل:', selectedDiscussion.messages?.length);
+        console.log('📊 عدد الرسائل بعد:', updatedMessages.length);
+
+        // تحديث الحالة
+        setDiscussions(updatedDiscussions);
+        setSelectedDiscussion(updatedDiscussion);
+
+        alert('تم حذف الرسالة بنجاح');
+      } else {
+        console.error('❌ فشل الحذف:', result.error);
+        alert('حدث خطأ أثناء حذف الرسالة: ' + (result.error || 'خطأ غير معروف'));
       }
+    } catch (error) {
+      console.error('💥 خطأ غير متوقع:', error);
+      alert('حدث خطأ غير متوقع: ' + error);
     }
   };
 
@@ -150,12 +176,32 @@ const ExpertDashboard = () => {
     const reason = prompt('السبب (اختياري):');
     if (reason === null) return; // ألغى المستخدم
 
-    const result = await banUserFromDiscussion(userId, selectedDiscussion.id, reason || undefined);
+    const currentDiscussionId = selectedDiscussion.id;
+    console.log('🚫 بدء حظر المستخدم:', userId);
+
+    const result = await banUserFromDiscussion(userId, currentDiscussionId, reason || undefined);
 
     if (result.success) {
+      console.log('✅ نجح الحظر، جاري تحديث البيانات...');
+
+      // مسح النقاش المحدد مؤقتاً
+      setSelectedDiscussion(null);
+
+      // إعادة تحميل النقاشات بعد الحظر
+      const discussionsResult = await getAllDiscussions();
+      if (discussionsResult.success && discussionsResult.data) {
+        const newDiscussions = [...discussionsResult.data];
+        setDiscussions(newDiscussions);
+
+        setTimeout(() => {
+          const updatedDiscussion = newDiscussions.find((d: any) => d.id === currentDiscussionId);
+          if (updatedDiscussion) {
+            setSelectedDiscussion({...updatedDiscussion});
+          }
+        }, 100);
+      }
+
       alert('تم حظر المستخدم من النقاش بنجاح');
-      // إعادة تحميل البيانات
-      await loadAllData();
     } else {
       alert('حدث خطأ أثناء حظر المستخدم: ' + result.error);
     }
@@ -164,15 +210,49 @@ const ExpertDashboard = () => {
   const handleRemoveUser = async (userId: string) => {
     if (!selectedDiscussion) return;
 
-    if (confirm('هل أنت متأكد من حذف جميع رسائل هذا المستخدم من النقاش؟')) {
+    if (!confirm('هل أنت متأكد من حذف جميع رسائل هذا المستخدم من النقاش؟')) {
+      return;
+    }
+
+    console.log('❌ بدء حذف جميع رسائل المستخدم:', userId);
+
+    try {
       // حذف جميع رسائل المستخدم في هذا النقاش
       const userMessages = selectedDiscussion.messages?.filter((m: any) => m.sender_id === userId) || [];
 
+      console.log('📝 عدد الرسائل المراد حذفها:', userMessages.length);
+
       for (const message of userMessages) {
-        await handleDeleteMessage(message.id);
+        await deleteDiscussionMessage(message.id);
       }
 
-      alert('تم حذف جميع رسائل المستخدم من النقاش');
+      console.log('✅ تم حذف', userMessages.length, 'رسالة من قاعدة البيانات');
+
+      // تحديث الواجهة مباشرة بحذف رسائل المستخدم
+      const updatedMessages = selectedDiscussion.messages?.filter((m: any) => m.sender_id !== userId) || [];
+
+      // تحديث النقاش المحدد
+      const updatedDiscussion = {
+        ...selectedDiscussion,
+        messages: updatedMessages
+      };
+
+      // تحديث قائمة النقاشات
+      const updatedDiscussions = discussions.map((d: any) =>
+        d.id === selectedDiscussion.id ? updatedDiscussion : d
+      );
+
+      console.log('📊 عدد الرسائل قبل:', selectedDiscussion.messages?.length);
+      console.log('📊 عدد الرسائل بعد:', updatedMessages.length);
+
+      // تحديث الحالة
+      setDiscussions(updatedDiscussions);
+      setSelectedDiscussion(updatedDiscussion);
+
+      alert('تم حذف جميع رسائل المستخدم من النقاش (' + userMessages.length + ' رسالة)');
+    } catch (error) {
+      console.error('💥 خطأ:', error);
+      alert('حدث خطأ أثناء حذف الرسائل');
     }
   };
 
@@ -398,18 +478,6 @@ const ExpertDashboard = () => {
               <BookOpen className="w-5 h-5" />
               <span className="font-medium">إدارة المحتوى</span>
             </button>
-
-            <button
-              onClick={() => setActiveSection('users')}
-              className={`w-full flex items-center gap-3 p-4 rounded-xl text-right transition-all ${
-                activeSection === 'users'
-                  ? 'bg-gradient-to-r from-[#8B5CF6] to-[#7C3AED] text-white shadow-lg'
-                  : 'text-[#8B5CF6] hover:bg-[#8B5CF6]/10'
-              }`}
-            >
-              <Users className="w-5 h-5" />
-              <span className="font-medium">قائمة المستخدمين</span>
-            </button>
           </nav>
         </div>
 
@@ -443,12 +511,10 @@ const ExpertDashboard = () => {
               <h2 className="text-2xl font-bold text-[#2D2D2D]">
                 {activeSection === 'discussions' && 'النقاشات الأسبوعية'}
                 {activeSection === 'content' && 'إدارة المحتوى'}
-                {activeSection === 'users' && 'قائمة المستخدمين'}
               </h2>
               <p className="text-[#6B7280] mt-1">
                 {activeSection === 'discussions' && 'إدارة ومراقبة النقاشات'}
                 {activeSection === 'content' && 'إضافة وحذف المحتوى التعليمي'}
-                {activeSection === 'users' && 'إدارة المستخدمين والصلاحيات'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -709,97 +775,6 @@ const ExpertDashboard = () => {
               </div>
             </div>
           )}
-
-          {/* Users Section */}
-          {activeSection === 'users' && (
-            <div className="content-card">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-[#2D2D2D]">قائمة المستخدمين</h3>
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="البحث عن مستخدم..."
-                     className="input-modern has-right-icon"
-                    />
-                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#8B5CF6] w-4 h-4 pointer-events-none" />
-                  </div>
-                  <button className="btn-secondary flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    <span>تصفية</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-[#8B7355]/20">
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">المستخدم</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">البريد الإلكتروني</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">تاريخ التسجيل</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الحالة</th>
-                      <th className="text-right p-4 font-semibold text-[#2D2D2D]">الإجراءات</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {users.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-12 text-center">
-                          <Users className="w-16 h-16 mx-auto text-[#8B5CF6]/30 mb-4" />
-                          <p className="text-[#6B7280]">لا يوجد مستخدمون في قاعدة البيانات</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      users.map(user => (
-                        <tr key={user.id} className="border-b border-[#8B7355]/10 hover:bg-[#8B5CF6]/5 transition-colors">
-                          <td className="p-4">
-                            <div className="font-semibold text-[#2D2D2D]">{user.full_name || 'مستخدم'}</div>
-                          </td>
-                          <td className="p-4 text-[#6B7280]">{user.email}</td>
-                          <td className="p-4 text-[#6B7280]">
-                            {new Date(user.created_at).toLocaleDateString('ar-SA')}
-                          </td>
-                          <td className="p-4">
-                            <span className="status-badge status-trending">نشط</span>
-                          </td>
-                          <td className="p-4">
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setShowUserDetails(true);
-                                }}
-                                className="p-2 rounded-lg hover:bg-blue-100 text-blue-600 transition-colors"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={async () => {
-                                  if (confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-                                    const result = await deleteUser(user.id);
-                                    if (result.success) {
-                                      alert('تم حذف المستخدم بنجاح');
-                                      await loadAllData();
-                                    } else {
-                                      alert('حدث خطأ أثناء حذف المستخدم: ' + result.error);
-                                    }
-                                  }
-                                }}
-                                className="p-2 rounded-lg hover:bg-red-100 text-red-600 transition-colors"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
@@ -964,62 +939,6 @@ const ExpertDashboard = () => {
                 className="btn-secondary flex-1"
               >
                 إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* User Details Modal */}
-      {showUserDetails && selectedUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass-effect rounded-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-6 border-b border-[#8B5CF6]/20">
-              <h3 className="text-xl font-bold text-[#2D2D2D]">تفاصيل المستخدم</h3>
-            </div>
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">الاسم الكامل</label>
-                <p className="text-[#2D2D2D] font-semibold">{selectedUser.full_name || 'غير محدد'}</p>
-              </div>
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">البريد الإلكتروني</label>
-                <p className="text-[#2D2D2D] font-semibold">{selectedUser.email}</p>
-              </div>
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">رقم الهاتف</label>
-                <p className="text-[#2D2D2D] font-semibold">{selectedUser.phone || 'غير محدد'}</p>
-              </div>
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">الدور</label>
-                <p className="text-[#2D2D2D] font-semibold">
-                  {selectedUser.role === 'user' ? 'مستخدم' : selectedUser.role === 'expert' ? 'خبير' : 'مدير'}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">تاريخ التسجيل</label>
-                <p className="text-[#2D2D2D] font-semibold">
-                  {new Date(selectedUser.created_at).toLocaleDateString('ar-SA', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
-              <div>
-                <label className="block text-sm text-[#6B7280] mb-1">الحالة</label>
-                <span className="status-badge status-trending">نشط</span>
-              </div>
-            </div>
-            <div className="p-6 border-t border-[#8B5CF6]/20 flex justify-end">
-              <button
-                onClick={() => {
-                  setShowUserDetails(false);
-                  setSelectedUser(null);
-                }}
-                className="btn-secondary"
-              >
-                إغلاق
               </button>
             </div>
           </div>
