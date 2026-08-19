@@ -1,2 +1,47 @@
-echo "🔍 فحص الملفات المعدّلة..."
-npx lint-staged
+#!/bin/sh
+# ═══════════════════════════════════════════════════════════
+#  pre-commit — فحص سريع للملفات المرحّلة فقط
+#  ميزانية الوقت: أقل من 15 ثانية. أي أبطأ ينتقل إلى pre-push.
+# ═══════════════════════════════════════════════════════════
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$STAGED" ] && exit 0
+
+# ─── ① فحص أسرار (الأهم — يمنع تكرار تسريب .env) ───
+echo "🔐 فحص الأسرار..."
+SECRETS=$(git diff --cached -U0 | grep -E "^\+" | grep -inE \
+  "sk-(proj-)?[A-Za-z0-9_-]{20,}|AIzaSy[A-Za-z0-9_-]{30,}|ghp_[A-Za-z0-9]{30,}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|eyJhbGciOi[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}" \
+  || true)
+if [ -n "$SECRETS" ]; then
+  echo ""
+  echo "🚨 يبدو أنك على وشك رفع سر إلى Git!"
+  echo "$SECRETS" | head -5
+  echo ""
+  echo "الحل: انقل القيمة إلى .env (مُتجاهَل) وضع اسم المتغير فقط في الكود."
+  echo "لو كان إنذاراً كاذباً: git commit --no-verify"
+  exit 1
+fi
+
+# ─── ② منع رفع ملفات بيئة ───
+if echo "$STAGED" | grep -qE "^\.env$|^\.env\.(local|production|development)$"; then
+  echo "🚨 محاولة رفع ملف بيئة! هذه الملفات يجب ألّا تدخل Git أبداً."
+  exit 1
+fi
+
+# ─── ③ تنسيق تلقائي ───
+FMT=$(echo "$STAGED" | grep -E "\.(ts|tsx|js|jsx|json|md|yml|yaml|css)$" || true)
+if [ -n "$FMT" ]; then
+  echo "🎨 تنسيق..."
+  echo "$FMT" | xargs npx prettier --write --ignore-unknown
+  echo "$FMT" | xargs git add
+fi
+
+# ─── ④ ESLint على ملفات المصدر المرحّلة ───
+SRC=$(echo "$STAGED" | grep -E "^(src|tests)/.*\.(ts|tsx)$" || true)
+if [ -n "$SRC" ]; then
+  echo "🔍 فحص ESLint..."
+  echo "$SRC" | xargs npx eslint --fix --no-warn-ignored || exit 1
+  echo "$SRC" | xargs git add
+fi
+
+echo "✅ الفحص السريع اكتمل"
