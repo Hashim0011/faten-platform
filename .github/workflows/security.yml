@@ -1,0 +1,418 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Security — فحوصات DevSecOps
+#
+#  يعمل على: كل PR + كل دفعة إلى main + جدولة أسبوعية
+#
+#  لماذا الجدولة؟ لأن الثغرات تُكتشف في مكتبات لم تتغيّر عندك.
+#  كودك اليوم آمن، وبعد أسبوع تُعلَن ثغرة في مكتبة تستخدمها.
+#  الفحص المجدول يمسك هذا بدون أن تدفع سطراً واحداً.
+#
+#  التغطية — الفئات الأربع المعيارية:
+#    ① Secrets Scanning — Gitleaks
+#    ② SCA (تبعيات)     — npm audit + OSV-Scanner + Snyk
+#    ③ SAST (كودك)      — Semgrep
+#    ④ Supply Chain     — Trivy + SBOM (CycloneDX)
+#
+#  ملاحظة: رفع نتائج SARIF إلى تبويب Security يتطلب GitHub Advanced
+#  Security على المستودعات الخاصة. لذا ننشر النتائج كـ Artifacts
+#  و Job Summary — نفس المعلومة بلا تكلفة.
+# ═══════════════════════════════════════════════════════════════════════
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # كل اثنين الساعة 6:00 صباحاً بتوقيت الرياض (03:00 UTC)
+    - cron: '0 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  #  ① فحص الأسرار — Gitleaks
+  #     الأهم في هذا المستودع تحديداً: .env سبق أن رُفع فعلاً.
+  # ═══════════════════════════════════════════════════════════
+  secrets:
+    name: 🔐 فحص الأسرار (Gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # التاريخ الكامل مطلوب: السر قد يكون في commit قديم
+          fetch-depth: 0
+
+      - name: تثبيت Gitleaks
+        run: |
+          VERSION=8.21.2
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" \
+            | tar -xz -C /tmp gitleaks
+          sudo mv /tmp/gitleaks /usr/local/bin/
+          gitleaks version
+
+      # على الـ PR: نفحص الـ commits الجديدة فقط (سريع وذو صلة)
+      - name: فحص commits الـ PR
+        if: github.event_name == 'pull_request'
+        run: |
+          gitleaks detect \
+            --source . \
+            --config .gitleaks.toml \
+            --log-opts "${{ github.event.pull_request.base.sha }}..${{ github.sha }}" \
+            --report-format sarif \
+            --report-path gitleaks-pr.sarif \
+            --redact \
+            --verbose
+
+      # على main/الجدولة: نفحص كامل التاريخ (تقرير فقط، لا يُفشل البناء
+      # لأن التسريبات التاريخية معروفة ومسجَّلة كدين أمني)
+      - name: فحص كامل التاريخ
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        run: |
+          gitleaks detect \
+            --source . \
+            --config .gitleaks.toml \
+            --report-format json \
+            --report-path gitleaks-history.json \
+            --redact || echo "GITLEAKS_FOUND=true" >> "$GITHUB_ENV"
+
+      - name: ملخّص
+        if: always()
+        run: |
+          {
+            echo "### 🔐 فحص الأسرار"
+            if [ -f gitleaks-history.json ]; then
+              COUNT=$(python3 -c "import json;print(len(json.load(open('gitleaks-history.json'))))" 2>/dev/null || echo 0)
+              echo "تسريبات في التاريخ الكامل: **$COUNT**"
+              echo ""
+              echo "> تسريبات التاريخ معروفة ومسجَّلة كدين أمني."
+              echo "> المطلوب: إلغاء المفاتيح (rotate)، لا تنظيف التاريخ فقط."
+            else
+              echo "✅ لا أسرار جديدة في commits هذا الـ PR"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: رفع تقارير Gitleaks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-reports
+          path: |
+            gitleaks-*.sarif
+            gitleaks-*.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ═══════════════════════════════════════════════════════════
+  #  ② SCA — تحليل تركيب البرمجيات (ثغرات التبعيات)
+  #     ثلاث أدوات متكاملة، كل واحدة لها قاعدة بيانات مختلفة.
+  # ═══════════════════════════════════════════════════════════
+  dependencies:
+    name: 📦 ثغرات التبعيات (SCA)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # على مستوى الـ job حتى يراه `if:` في الخطوة.
+      # (متغيّر معرّف داخل خطوة لا يكون مرئياً لشرط if الخاص بها)
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      # ─── npm audit ───
+      # مبدأ أساسي: سياسة الثغرات تختلف حسب النطاق.
+      #   • تبعيات الإنتاج  → تصل إلى المتصفح = سطح هجوم فعلي → بوابة صارمة
+      #   • تبعيات التطوير  → لا تُشحن أبداً = خطر على الـ runner فقط → تقرير
+      # ⚠️ استخدم --omit=dev مع audit فقط. مع audit fix سيحذف devDeps
+      #    من node_modules ويكسر بقية الـ job (مصيدة شائعة).
+      - name: npm audit
+        id: audit
+        continue-on-error: true
+        run: |
+          npm audit --json > npm-audit-all.json || true
+          npm audit --omit=dev --json > npm-audit-prod.json || true
+
+          read_v() { python3 -c "import json;print(json.load(open('$1'))['metadata']['vulnerabilities']['$2'])"; }
+
+          P_CRIT=$(read_v npm-audit-prod.json critical)
+          P_HIGH=$(read_v npm-audit-prod.json high)
+          P_MOD=$(read_v npm-audit-prod.json moderate)
+          D_CRIT=$(read_v npm-audit-all.json critical)
+          D_HIGH=$(read_v npm-audit-all.json high)
+
+          {
+            echo "prod_critical=$P_CRIT"
+            echo "prod_high=$P_HIGH"
+            echo "prod_moderate=$P_MOD"
+            echo "all_critical=$D_CRIT"
+            echo "all_high=$D_HIGH"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "إنتاج → حرجة:$P_CRIT عالية:$P_HIGH متوسطة:$P_MOD"
+          echo "الكل   → حرجة:$D_CRIT عالية:$D_HIGH"
+
+      # ─── OSV-Scanner: من Google، قاعدة osv.dev (أشمل من npm audit) ───
+      - name: OSV-Scanner
+        continue-on-error: true
+        run: |
+          curl -sSL -o /tmp/osv-scanner \
+            https://github.com/google/osv-scanner/releases/download/v1.9.1/osv-scanner_linux_amd64
+          chmod +x /tmp/osv-scanner
+          /tmp/osv-scanner --lockfile=package-lock.json --format=json > osv-report.json || true
+          /tmp/osv-scanner --lockfile=package-lock.json || true
+
+      # ─── Snyk: تجاري، أدق تصنيف واستغلالية، اختياري ───
+      - name: Snyk
+        if: env.SNYK_TOKEN != ''
+        continue-on-error: true
+        run: |
+          npm install -g snyk
+          snyk test --severity-threshold=high --json > snyk-report.json || true
+          snyk test --severity-threshold=high || true
+
+      # ─── بوابة السياسة الأمنية ───
+      #  الإنتاج : حرجة = 0، عالية = 0   ← إلزامي
+      #  التطوير : تقرير فقط              ← لا يحجب الدمج
+      - name: بوابة السياسة الأمنية
+        env:
+          P_CRIT: ${{ steps.audit.outputs.prod_critical }}
+          P_HIGH: ${{ steps.audit.outputs.prod_high }}
+          P_MOD: ${{ steps.audit.outputs.prod_moderate }}
+          A_CRIT: ${{ steps.audit.outputs.all_critical }}
+          A_HIGH: ${{ steps.audit.outputs.all_high }}
+        run: |
+          {
+            echo "### 📦 ثغرات التبعيات"
+            echo ""
+            echo "| النطاق | 🔴 حرجة | 🟠 عالية | 🟡 متوسطة | السياسة |"
+            echo "|---|---|---|---|---|"
+            echo "| **الإنتاج** (يصل للمستخدم) | $P_CRIT | $P_HIGH | $P_MOD | صارمة — تحجب الدمج |"
+            echo "| الكل (بما فيه أدوات التطوير) | $A_CRIT | $A_HIGH | — | تقرير فقط |"
+            echo ""
+            echo "> تبعيات التطوير لا تُشحن للمستخدم، فخطرها محصور في جهاز"
+            echo "> المطوّر والـ runner. تُتابَع عبر Dependabot لا عبر حجب الدمج."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          FAIL=0
+          if [ "${P_CRIT:-0}" -gt 0 ]; then
+            echo "::error::$P_CRIT ثغرة حرجة في تبعيات الإنتاج"
+            FAIL=1
+          fi
+          if [ "${P_HIGH:-0}" -gt 0 ]; then
+            echo "::error::$P_HIGH ثغرة عالية في تبعيات الإنتاج"
+            FAIL=1
+          fi
+
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$FAIL" -eq 1 ]; then
+            echo "❌ **البوابة**: ثغرات إنتاج تمنع الدمج. شغّل \`npm audit fix\` محلياً." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "✅ **البوابة**: تبعيات الإنتاج نظيفة." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: رفع تقارير SCA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sca-reports
+          path: |
+            npm-audit-all.json
+            npm-audit-prod.json
+            osv-report.json
+            snyk-report.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ═══════════════════════════════════════════════════════════
+  #  ③ SAST — تحليل ساكن لكودك أنت (Semgrep)
+  #     بديل مجاني لـ CodeQL على المستودعات الخاصة.
+  # ═══════════════════════════════════════════════════════════
+  sast:
+    name: 🔎 تحليل الكود الساكن (Semgrep)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: semgrep/semgrep:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تشغيل Semgrep
+        run: |
+          semgrep scan \
+            --config=p/typescript \
+            --config=p/react \
+            --config=p/javascript \
+            --config=p/secrets \
+            --config=p/owasp-top-ten \
+            --json --output=semgrep-report.json \
+            --metrics=off \
+            --error || true
+
+      - name: تلخيص النتائج
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, collections, os
+          try:
+              d = json.load(open('semgrep-report.json'))
+          except Exception:
+              print("### 🔎 Semgrep\nتعذّر قراءة التقرير."); raise SystemExit(0)
+
+          results = d.get('results', [])
+          sev = collections.Counter(r['extra']['metadata'].get('impact')
+                                    or r['extra'].get('severity','INFO') for r in results)
+          print("### 🔎 تحليل الكود الساكن (Semgrep)")
+          print(f"إجمالي النتائج: **{len(results)}**\n")
+          print("| الخطورة | العدد |")
+          print("|---|---|")
+          for k, v in sev.most_common():
+              print(f"| {k} | {v} |")
+
+          if results:
+              print("\n<details><summary>أهم 10 نتائج</summary>\n")
+              print("| الملف | السطر | القاعدة |")
+              print("|---|---|---|")
+              for r in results[:10]:
+                  print(f"| `{r['path']}` | {r['start']['line']} | {r['check_id'].split('.')[-1]} |")
+              print("\n</details>")
+
+          # بوابة: نتائج ERROR الحقيقية تُفشل البناء
+          errors = [r for r in results if r['extra'].get('severity') == 'ERROR']
+          if errors:
+              print(f"\n❌ **البوابة**: {len(errors)} نتيجة بخطورة ERROR.")
+              with open(os.environ['GITHUB_ENV'], 'a') as f:
+                  f.write("SEMGREP_ERRORS=1\n")
+          else:
+              print("\n✅ **البوابة**: لا نتائج بخطورة ERROR.")
+          PY
+
+      - name: بوابة Semgrep
+        run: |
+          if [ "${SEMGREP_ERRORS:-0}" = "1" ]; then
+            echo "::error::Semgrep وجد مشاكل بخطورة ERROR"
+            exit 1
+          fi
+
+      - name: رفع تقرير Semgrep
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: semgrep-report
+          path: semgrep-report.json
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # ═══════════════════════════════════════════════════════════
+  #  ④ سلسلة التوريد — Trivy + SBOM
+  # ═══════════════════════════════════════════════════════════
+  supply-chain:
+    name: 🔗 سلسلة التوريد (Trivy + SBOM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      # ─── Trivy: يفحص التبعيات + الإعدادات الخاطئة + الأسرار ───
+      - name: فحص Trivy لنظام الملفات
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '0' # تقرير فقط؛ البوابة الحقيقية في job التبعيات
+          ignore-unfixed: true
+
+      - name: فحص Trivy للإعدادات الخاطئة
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: '0'
+
+      # ─── SBOM: قائمة مكوّنات البرمجية ───
+      # صارت إلزامية تنظيمياً في أمريكا وأوروبا (Executive Order 14028,
+      # EU Cyber Resilience Act). تسمح بالإجابة خلال دقائق على سؤال:
+      # "هل نستخدم المكتبة المصابة بالثغرة الجديدة؟"
+      - name: توليد SBOM (CycloneDX)
+        run: npm run sbom
+
+      - name: ملخّص SBOM
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          d = json.load(open('sbom.json'))
+          comps = d.get('components', [])
+          print("### 🔗 قائمة مكوّنات البرمجية (SBOM)")
+          print(f"- الصيغة: CycloneDX {d.get('specVersion')}")
+          print(f"- عدد المكوّنات (إنتاج فقط): **{len(comps)}**")
+          licenses = {}
+          for c in comps:
+              for lic in c.get('licenses', []):
+                  name = (lic.get('license') or {}).get('id') or (lic.get('license') or {}).get('name') or 'غير محدد'
+                  licenses[name] = licenses.get(name, 0) + 1
+          if licenses:
+              print("\n| الترخيص | عدد الحزم |")
+              print("|---|---|")
+              for k, v in sorted(licenses.items(), key=lambda x: -x[1])[:10]:
+                  print(f"| {k} | {v} |")
+          PY
+
+      - name: رفع SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx
+          path: sbom.json
+          retention-days: 90
+
+  # ═══════════════════════════════════════════════════════════
+  #  ⑤ بوابة الأمن النهائية
+  # ═══════════════════════════════════════════════════════════
+  security-gate:
+    name: 🛡️ بوابة الأمن
+    runs-on: ubuntu-latest
+    needs: [secrets, dependencies, sast, supply-chain]
+    if: always()
+    steps:
+      - name: تجميع النتائج
+        env:
+          R_SECRETS: ${{ needs.secrets.result }}
+          R_DEPS: ${{ needs.dependencies.result }}
+          R_SAST: ${{ needs.sast.result }}
+          R_CHAIN: ${{ needs.supply-chain.result }}
+        run: |
+          {
+            echo "### 🛡️ بوابة الأمن"
+            echo "| الفحص | الفئة | الحالة |"
+            echo "|---|---|---|"
+            echo "| 🔐 Gitleaks | Secrets | $R_SECRETS |"
+            echo "| 📦 npm audit + OSV + Snyk | SCA | $R_DEPS |"
+            echo "| 🔎 Semgrep | SAST | $R_SAST |"
+            echo "| 🔗 Trivy + SBOM | Supply Chain | $R_CHAIN |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          FAILED=0
+          for r in "$R_SECRETS" "$R_DEPS" "$R_SAST" "$R_CHAIN"; do
+            if [ "$r" != "success" ]; then FAILED=1; fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ **فشل فحص أمني** — راجع التفاصيل أعلاه." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ **كل الفحوصات الأمنية نجحت.**" >> "$GITHUB_STEP_SUMMARY"

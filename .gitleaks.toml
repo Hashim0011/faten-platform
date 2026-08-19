@@ -1,0 +1,55 @@
+# ═══════════════════════════════════════════════════════════
+#  إعداد Gitleaks — فحص الأسرار
+#  https://github.com/gitleaks/gitleaks
+# ═══════════════════════════════════════════════════════════
+
+# نرث القواعد الافتراضية (أكثر من 150 نمطاً لمزوّدي الخدمات)
+[extend]
+useDefault = true
+
+# ─── قواعد مخصّصة لهذا المشروع ───
+
+[[rules]]
+id = "supabase-service-role-key"
+description = "مفتاح Supabase بصلاحية service_role (يتجاوز RLS بالكامل!)"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]*service_role[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{10,}'''
+tags = ["supabase", "critical"]
+
+[[rules]]
+id = "n8n-webhook-url"
+description = "عنوان webhook خاص بـ n8n"
+regex = '''https://[a-zA-Z0-9.-]+\.n8n\.cloud/webhook[a-zA-Z0-9/_-]*'''
+tags = ["webhook"]
+
+# ═══════════════════════════════════════════════════════════
+#  الاستثناءات (Allowlist)
+# ═══════════════════════════════════════════════════════════
+[allowlist]
+description = "ملفات وأنماط لا تُعتبر تسريباً"
+
+paths = [
+  # قوالب بلا قيم حقيقية
+  '''\.env\.example$''',
+  '''\.env\.test$''',
+  # ملفات القفل والتوثيق
+  '''package-lock\.json$''',
+  '''\.gitleaks\.toml$''',
+  # مخرجات مولّدة
+  '''^(dist|coverage|reports|node_modules)/''',
+  # ملفات الكتب PDF
+  '''^public/books/''',
+]
+
+regexes = [
+  # قيم نائبة صريحة
+  '''your[-_](api[-_])?key''',
+  '''your-supabase-anon-key''',
+  '''sk-your-openai-key''',
+  '''sk-proj-your-openai-key''',
+  '''test-anon-key-not-a-real-secret''',
+  '''test-openai-key-not-a-real-secret''',
+  # مفاتيح وهمية في الاختبارات
+  '''sk-proj-FAKE''',
+  '''AIzaSyFAKE''',
+  '''(?i)example|placeholder|dummy|xxxx+''',
+]

@@ -1,0 +1,328 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  CI — التكامل المستمر
+#
+#  يعمل على: كل Pull Request + كل دفعة إلى main
+#  الهدف: لا يصل إلى main أي كود يكسر البناء أو الأنواع أو الاختبارات.
+#
+#  بنية التنفيذ (المراحل المستقلة تعمل بالتوازي):
+#
+#    quality ─┐
+#    test ────┼──► build ──► e2e ──┐
+#    (متوازية)┘                    ├──► ci-gate ✅
+#                    sonarqube ────┘
+# ═══════════════════════════════════════════════════════════════════════
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # يسمح بالتشغيل اليدوي من واجهة GitHub — مفيد جداً للتجارب
+  workflow_dispatch:
+
+# ─── الصلاحيات: مبدأ الحد الأدنى (Least Privilege) ───
+# افتراضياً GITHUB_TOKEN له صلاحيات واسعة. نقلّصها للقراءة فقط
+# ونمنح الكتابة فقط للـ job الذي يحتاجها فعلاً.
+permissions:
+  contents: read
+
+# ─── إلغاء التشغيلات القديمة ───
+# لو دفعت 3 مرات متتالية، تُلغى أول تشغيلين تلقائياً.
+# يوفّر دقائق الـ runner ويعطيك نتيجة أسرع.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  # يُفعّل أوضاع CI في Vitest و Playwright (تقارير JUnit، إعادة محاولة…)
+  CI: true
+  NPM_CONFIG_FUND: false
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  #  ① الجودة الثابتة — لا تشغّل الكود، تقرأه فقط
+  #     الأسرع، لذا تعطي أسرع تغذية راجعة
+  # ═══════════════════════════════════════════════════════════
+  quality:
+    name: 🔍 الجودة الثابتة
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: فحص الأنواع (TypeScript)
+        run: npm run typecheck
+
+      - name: فحص ESLint (سقف 254 تحذيراً)
+        run: npm run lint
+
+      - name: فحص التنسيق (Prettier)
+        run: npm run format:check
+
+      # تقرير JSON لاستهلاكه في SonarQube لاحقاً
+      - name: توليد تقرير ESLint
+        if: always()
+        run: |
+          mkdir -p reports
+          npm run lint:report
+
+      - name: رفع تقرير ESLint
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: reports/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ═══════════════════════════════════════════════════════════
+  #  ② اختبارات الوحدة + التغطية
+  # ═══════════════════════════════════════════════════════════
+  test:
+    name: 🧪 اختبارات الوحدة
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write # لنشر نتائج الاختبارات كـ Check مستقل
+      pull-requests: write # للتعليق بملخّص التغطية على الـ PR
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: تشغيل الاختبارات مع التغطية
+        run: npm run test:coverage
+
+      # ينشر تقرير JUnit كـ Check مع تفاصيل كل اختبار فاشل
+      - name: نشر نتائج الاختبارات
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: نتائج اختبارات الوحدة
+          path: reports/junit.xml
+          reporter: java-junit
+          fail-on-error: false
+        continue-on-error: true
+
+      - name: تعليق ملخّص التغطية على الـ PR
+        if: github.event_name == 'pull_request'
+        uses: davelosert/vitest-coverage-report-action@v2
+        with:
+          json-summary-path: coverage/coverage-summary.json
+          json-final-path: coverage/coverage-final.json
+        continue-on-error: true
+
+      - name: رفع تقارير التغطية والاختبارات
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            coverage/
+            reports/
+          retention-days: 7
+          if-no-files-found: warn
+
+  # ═══════════════════════════════════════════════════════════
+  #  ③ البناء — يُنتج القطعة الأثرية (Artifact) التي ستُنشر
+  #     مبدأ ذهبي: ابنِ مرة واحدة، وانشر نفس القطعة في كل بيئة.
+  # ═══════════════════════════════════════════════════════════
+  build:
+    name: 📦 البناء
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: بناء الإنتاج
+        env:
+          # قيم البناء تأتي من GitHub Secrets — لا من ملف مرفوع
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
+        run: npm run build
+
+      - name: تحليل حجم الحزمة
+        run: |
+          {
+            echo "### 📦 حجم الحزمة"
+            echo '```'
+            du -sh dist
+            echo ""
+            ls -lhS dist/assets | head -12
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # ميزانية أداء: يفشل البناء لو تضخّمت الحزمة فجأة
+      - name: التحقق من ميزانية الحجم
+        run: |
+          MAX_KB=900
+          BIGGEST=$(du -k dist/assets/*.js | sort -rn | head -1 | cut -f1)
+          echo "أكبر ملف JS: ${BIGGEST}KB (الحد: ${MAX_KB}KB)"
+          if [ "$BIGGEST" -gt "$MAX_KB" ]; then
+            echo "::error::تجاوزت ميزانية الحجم: ${BIGGEST}KB > ${MAX_KB}KB"
+            exit 1
+          fi
+
+      - name: رفع قطعة البناء
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════
+  #  ④ اختبارات E2E — تعمل على قطعة البناء نفسها
+  # ═══════════════════════════════════════════════════════════
+  e2e:
+    name: 🎭 اختبارات E2E
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 25
+    strategy:
+      # fail-fast: false → لو فشل Firefox، نريد أن نعرف حالة Chromium أيضاً
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup
+
+      - name: تنزيل قطعة البناء
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      # الكاش يوفّر ~90 ثانية لكل تشغيل (المتصفحات ~300MB)
+      - name: استعادة كاش متصفحات Playwright
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: pw-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
+
+      - name: تثبيت المتصفح
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: تشغيل E2E
+        run: npx playwright test --project=${{ matrix.browser }}
+
+      - name: رفع تقرير Playwright
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # ═══════════════════════════════════════════════════════════
+  #  ⑤ SonarQube — بوابة الجودة
+  #     السيرفر يعمل كـ Service Container: يولد ويموت مع الـ job
+  # ═══════════════════════════════════════════════════════════
+  sonarqube:
+    name: 📊 بوابة جودة SonarQube
+    runs-on: ubuntu-latest
+    needs: [test, quality]
+    timeout-minutes: 30
+
+    services:
+      sonarqube:
+        image: sonarqube:10.7.0-community
+        ports:
+          - 9000:9000
+        env:
+          # Elasticsearch الداخلي يفشل في فحوص النواة داخل الحاويات
+          SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: 'true'
+        options: >-
+          --health-cmd "curl -sf http://localhost:9000/api/system/status || exit 1"
+          --health-interval 20s
+          --health-timeout 10s
+          --health-retries 30
+          --health-start-period 90s
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Sonar يحتاج التاريخ الكامل لحساب "الكود الجديد" بدقة
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      # نُنزّل تقارير التغطية بدل إعادة تشغيل الاختبارات — توفير وقت
+      - name: تنزيل تقارير الاختبارات
+        uses: actions/download-artifact@v4
+        with:
+          name: test-reports
+        continue-on-error: true
+
+      - name: تنزيل تقرير ESLint
+        uses: actions/download-artifact@v4
+        with:
+          name: eslint-report
+          path: reports/
+        continue-on-error: true
+
+      - name: التحليل والتحقق من بوابة الجودة
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+          # في push إلى main لا يوجد فرع مرجعي للمقارنة، فلا نُفشل البناء
+          SONAR_ENFORCE_GATE: ${{ github.event_name == 'pull_request' && 'true' || 'false' }}
+        run: npm run sonar
+
+  # ═══════════════════════════════════════════════════════════
+  #  ⑥ البوابة النهائية — نقطة واحدة تُربط بحماية الفرع
+  #
+  #  لماذا job منفصل؟ لأن حماية الفرع تتطلب أسماء فحوصات ثابتة.
+  #  لو ربطنا كل job على حدة، فإضافة job جديد تعني تعديل إعدادات
+  #  الحماية يدوياً في كل مرة. هنا نربط واحداً فقط.
+  # ═══════════════════════════════════════════════════════════
+  ci-gate:
+    name: ✅ بوابة CI
+    runs-on: ubuntu-latest
+    needs: [quality, test, build, e2e, sonarqube]
+    # if: always() ضرورية — بدونها يُتخطّى الـ job عند فشل أي تابع،
+    # ويظهر "skipped" الذي تعتبره حماية الفرع نجاحاً! فخ شائع جداً.
+    if: always()
+    steps:
+      - name: التحقق من نتائج كل المراحل
+        env:
+          R_QUALITY: ${{ needs.quality.result }}
+          R_TEST: ${{ needs.test.result }}
+          R_BUILD: ${{ needs.build.result }}
+          R_E2E: ${{ needs.e2e.result }}
+          R_SONAR: ${{ needs.sonarqube.result }}
+        run: |
+          {
+            echo "### النتيجة النهائية"
+            echo "| المرحلة | الحالة |"
+            echo "|---|---|"
+            echo "| 🔍 الجودة الثابتة | $R_QUALITY |"
+            echo "| 🧪 اختبارات الوحدة | $R_TEST |"
+            echo "| 📦 البناء | $R_BUILD |"
+            echo "| 🎭 اختبارات E2E | $R_E2E |"
+            echo "| 📊 SonarQube | $R_SONAR |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          FAILED=0
+          for r in "$R_QUALITY" "$R_TEST" "$R_BUILD" "$R_E2E" "$R_SONAR"; do
+            if [ "$r" != "success" ]; then FAILED=1; fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ **البايب لاين فشل** — راجع المراحل أعلاه." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "✅ **كل الفحوصات نجحت** — الكود جاهز للدمج." >> "$GITHUB_STEP_SUMMARY"
