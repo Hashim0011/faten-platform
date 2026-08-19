@@ -1,0 +1,28 @@
+name: 🐛 تقرير خطأ
+description: أبلغ عن خطأ في المنصة
+labels: [bug, triage]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: ماذا حدث؟
+      description: وصف واضح للخطأ
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: خطوات إعادة الإنتاج
+      placeholder: |
+        1. اذهب إلى...
+        2. اضغط على...
+        3. لاحظ الخطأ
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: الخطورة
+      options: [منخفضة, متوسطة, عالية, حرجة]
+    validations:
+      required: true

@@ -223,7 +223,7 @@ const ExpertDashboard = () => {
       console.log('📝 عدد الرسائل المراد حذفها:', userMessages.length);
 
       for (const message of userMessages) {
-        await deleteDiscussionMessage(message.id);
+        await deleteDiscussionMessage(String(message.id));
       }
 
       console.log('✅ تم حذف', userMessages.length, 'رسالة من قاعدة البيانات');
@@ -285,6 +285,7 @@ const ExpertDashboard = () => {
         content_type: 'article',
         description: '',
         image_url: '',
+        file_url: '',
       });
       alert('تم إضافة المحتوى بنجاح');
     } else {

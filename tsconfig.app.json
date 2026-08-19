@@ -14,11 +14,19 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
-    /* Linting */
+    /* ─── سلامة الأنواع: بوابة صارمة في CI عند صفر أخطاء ─── */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* ─── الكود الميت: يُدار عبر ESLint كتحذيرات بسقف متناقص ───
+       السبب: هذه ليست أخطاء سلامة أنواع، وتعطيلها هنا يمنع
+       حجب البايب لاين على دين تقني موروث. راجع eslint.config.js */
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    /* ─── أنواع الاختبارات ─── */
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }
