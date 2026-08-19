@@ -37,8 +37,7 @@ export default defineConfig(({ mode }) => {
         '/api/webhook': {
           target: env.VITE_N8N_PROXY_TARGET || 'http://localhost:5678',
           changeOrigin: true,
-          rewrite: (path) =>
-            path.replace(/^\/api\/webhook/, env.VITE_N8N_PROXY_PATH || '/webhook'),
+          rewrite: (path) => path.replace(/^\/api\/webhook/, env.VITE_N8N_PROXY_PATH || '/webhook'),
           secure: true,
         },
       },

@@ -34,13 +34,18 @@ export const useTheme = () => {
       }
 
       // Then check user settings from database
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         const settings = await getUserSettings(user.id);
         if (settings && settings.theme) {
-          const dbTheme = settings.theme === 'auto'
-            ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-            : settings.theme;
+          const dbTheme =
+            settings.theme === 'auto'
+              ? window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light'
+              : settings.theme;
           setTheme(dbTheme);
         }
       }
@@ -57,7 +62,9 @@ export const useTheme = () => {
 
     // Update in database if user is logged in
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await updateAppearanceSettings(user.id, { theme: newTheme });
       }
@@ -71,7 +78,9 @@ export const useTheme = () => {
 
     // Update in database if user is logged in
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (user) {
         await updateAppearanceSettings(user.id, { theme: newTheme });
       }

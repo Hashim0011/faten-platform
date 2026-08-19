@@ -5,7 +5,10 @@ import { supabase } from './supabase';
  */
 export async function likeContent(contentId: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -35,7 +38,10 @@ export async function likeContent(contentId: string) {
  */
 export async function unlikeContent(contentId: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -61,7 +67,10 @@ export async function unlikeContent(contentId: string) {
  */
 export async function isContentLiked(contentId: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { success: true, isLiked: false };
@@ -133,7 +142,10 @@ export async function getAllContentLikes(contentIds: string[]) {
  */
 export async function getUserLikesStatus(contentIds: string[]) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { success: true, likedContent: [] };
@@ -147,7 +159,7 @@ export async function getUserLikesStatus(contentIds: string[]) {
 
     if (error) throw error;
 
-    const likedContent = data?.map(like => like.content_id) || [];
+    const likedContent = data?.map((like) => like.content_id) || [];
 
     return { success: true, likedContent };
   } catch (error: any) {

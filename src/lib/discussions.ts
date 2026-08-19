@@ -5,7 +5,10 @@ import { supabase } from './supabase';
  */
 export async function createDiscussion(title: string, description?: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -52,26 +55,23 @@ async function createNotificationForAll(notification: {
   related_id?: string;
 }) {
   try {
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id');
+    const { data: users, error: usersError } = await supabase.from('users').select('id');
 
     if (usersError) throw usersError;
 
-    const notifications = users?.map(user => ({
-      user_id: user.id,
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      related_id: notification.related_id,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    })) || [];
+    const notifications =
+      users?.map((user) => ({
+        user_id: user.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        related_id: notification.related_id,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })) || [];
 
     if (notifications.length > 0) {
-      const { error: notifError } = await supabase
-        .from('notifications')
-        .insert(notifications);
+      const { error: notifError } = await supabase.from('notifications').insert(notifications);
 
       if (notifError) console.error('Notification error:', notifError);
     }
@@ -110,16 +110,16 @@ export async function getAllDiscussions() {
     }
 
     // جلب جميع المنشئين دفعة واحدة
-    const creatorIds = [...new Set(discussions.map(d => d.created_by))];
+    const creatorIds = [...new Set(discussions.map((d) => d.created_by))];
     const { data: creators } = await supabase
       .from('users')
       .select('id, full_name, role')
       .in('id', creatorIds);
 
-    const creatorsMap = new Map(creators?.map(c => [c.id, c]) || []);
+    const creatorsMap = new Map(creators?.map((c) => [c.id, c]) || []);
 
     // جلب كل الرسائل لجميع النقاشات دفعة واحدة
-    const discussionIds = discussions.map(d => d.id);
+    const discussionIds = discussions.map((d) => d.id);
     const { data: allMessages } = await supabase
       .from('messages')
       .select('*')
@@ -127,32 +127,35 @@ export async function getAllDiscussions() {
       .order('created_at', { ascending: true });
 
     // جلب جميع المرسلين دفعة واحدة
-    const senderIds = [...new Set(allMessages?.map(m => m.sender_id) || [])];
+    const senderIds = [...new Set(allMessages?.map((m) => m.sender_id) || [])];
     const { data: senders } = await supabase
       .from('users')
       .select('id, full_name, email, role')
       .in('id', senderIds);
 
-    const sendersMap = new Map(senders?.map(s => [s.id, s]) || []);
+    const sendersMap = new Map(senders?.map((s) => [s.id, s]) || []);
 
     // تجميع الرسائل حسب النقاش
     const messagesByDiscussion: Record<string, any[]> = {};
-    allMessages?.forEach(message => {
+    allMessages?.forEach((message) => {
       if (!messagesByDiscussion[message.discussion_id]) {
         messagesByDiscussion[message.discussion_id] = [];
       }
       messagesByDiscussion[message.discussion_id].push({
         ...message,
-        sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' }
+        sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' },
       });
     });
 
     // دمج البيانات
-    const discussionsWithDetails = discussions.map(discussion => ({
+    const discussionsWithDetails = discussions.map((discussion) => ({
       ...discussion,
-      creator: creatorsMap.get(discussion.created_by) || { full_name: 'مستخدم محذوف', role: 'user' },
+      creator: creatorsMap.get(discussion.created_by) || {
+        full_name: 'مستخدم محذوف',
+        role: 'user',
+      },
       messages: messagesByDiscussion[discussion.id] || [],
-      messageCount: (messagesByDiscussion[discussion.id] || []).length
+      messageCount: (messagesByDiscussion[discussion.id] || []).length,
     }));
 
     const endTime = Date.now();
@@ -197,24 +200,25 @@ export async function getDiscussion(id: string) {
       .order('created_at', { ascending: true });
 
     // جلب المرسلين دفعة واحدة
-    const senderIds = [...new Set(messages?.map(m => m.sender_id) || [])];
+    const senderIds = [...new Set(messages?.map((m) => m.sender_id) || [])];
     const { data: senders } = await supabase
       .from('users')
       .select('id, full_name, email, role')
       .in('id', senderIds);
 
-    const sendersMap = new Map(senders?.map(s => [s.id, s]) || []);
+    const sendersMap = new Map(senders?.map((s) => [s.id, s]) || []);
 
     // إضافة بيانات المرسل لكل رسالة
-    const messagesWithSender = messages?.map(message => ({
-      ...message,
-      sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' }
-    })) || [];
+    const messagesWithSender =
+      messages?.map((message) => ({
+        ...message,
+        sender: sendersMap.get(message.sender_id) || { full_name: 'مستخدم محذوف', role: 'user' },
+      })) || [];
 
     const discussionWithDetails = {
       ...discussion,
       creator: creator || { full_name: 'مستخدم محذوف', role: 'user' },
-      messages: messagesWithSender
+      messages: messagesWithSender,
     };
 
     const endTime = Date.now();
@@ -232,7 +236,10 @@ export async function getDiscussion(id: string) {
  */
 export async function addMessage(discussionId: string, content: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -261,7 +268,7 @@ export async function addMessage(discussionId: string, content: string) {
 
     const messageWithSender = {
       ...message,
-      sender: sender || { full_name: 'مستخدم', role: 'user' }
+      sender: sender || { full_name: 'مستخدم', role: 'user' },
     };
 
     // تحديث وقت آخر تعديل للنقاش
@@ -316,16 +323,10 @@ export async function deleteMessage(messageId: string) {
 export async function deleteDiscussion(discussionId: string) {
   try {
     // حذف جميع الرسائل أولاً
-    await supabase
-      .from('messages')
-      .delete()
-      .eq('discussion_id', discussionId);
+    await supabase.from('messages').delete().eq('discussion_id', discussionId);
 
     // حذف النقاش
-    const { error } = await supabase
-      .from('discussions')
-      .delete()
-      .eq('id', discussionId);
+    const { error } = await supabase.from('discussions').delete().eq('id', discussionId);
 
     if (error) throw error;
 

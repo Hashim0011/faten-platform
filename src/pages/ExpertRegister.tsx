@@ -59,7 +59,6 @@ export default function ExpertRegister() {
       console.log('📧 البريد:', formData.email);
       console.log('👤 الاسم:', formData.fullName);
       console.log('═══════════════════════════════════');
-
     } catch (error: any) {
       console.error('Registration error:', error);
       setError(error.message || 'حدث خطأ أثناء إنشاء الحساب');
@@ -69,31 +68,30 @@ export default function ExpertRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-purple-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="max-w-md w-full">
+    <div
+      className="flex min-h-screen items-center justify-center bg-gradient-to-br from-purple-50 via-white to-purple-50 p-4"
+      dir="rtl"
+    >
+      <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-700 rounded-2xl mb-4">
-            <Shield className="w-8 h-8 text-white" />
+        <div className="mb-8 text-center">
+          <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700">
+            <Shield className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            إنشاء حساب خبير
-          </h1>
-          <p className="text-gray-600">
-            صفحة خاصة لإنشاء حسابات الخبراء
-          </p>
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">إنشاء حساب خبير</h1>
+          <p className="text-gray-600">صفحة خاصة لإنشاء حسابات الخبراء</p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="rounded-2xl bg-white p-8 shadow-xl">
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+            <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-600">
               {success}
             </div>
           )}
@@ -101,17 +99,15 @@ export default function ExpertRegister() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                الاسم الكامل
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">الاسم الكامل</label>
               <div className="relative">
-                <User className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <User className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="text"
                   required
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="أدخل الاسم الكامل"
                 />
               </div>
@@ -119,17 +115,17 @@ export default function ExpertRegister() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 البريد الإلكتروني
               </label>
               <div className="relative">
-                <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Mail className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="example@domain.com"
                 />
               </div>
@@ -137,17 +133,15 @@ export default function ExpertRegister() {
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                رقم الجوال
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">رقم الجوال</label>
               <div className="relative">
-                <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Phone className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="tel"
                   required
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="05xxxxxxxx"
                 />
               </div>
@@ -155,17 +149,15 @@ export default function ExpertRegister() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                كلمة المرور
-              </label>
+              <label className="mb-2 block text-sm font-medium text-gray-700">كلمة المرور</label>
               <div className="relative">
-                <Lock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Lock className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 transform text-gray-400" />
                 <input
                   type="password"
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pr-12 pl-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-gray-300 py-3 pl-4 pr-12 focus:border-transparent focus:ring-2 focus:ring-purple-500"
                   placeholder="أدخل كلمة مرور قوية"
                   minLength={6}
                 />
@@ -176,7 +168,7 @@ export default function ExpertRegister() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-purple-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-3 font-semibold text-white transition-all hover:from-purple-700 hover:to-purple-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? 'جاري الإنشاء...' : 'إنشاء حساب الخبير'}
             </button>
@@ -185,7 +177,7 @@ export default function ExpertRegister() {
           {/* Back Button */}
           <button
             onClick={() => navigate('/')}
-            className="w-full mt-4 text-purple-600 hover:text-purple-700 font-medium"
+            className="mt-4 w-full font-medium text-purple-600 hover:text-purple-700"
           >
             العودة للصفحة الرئيسية
           </button>

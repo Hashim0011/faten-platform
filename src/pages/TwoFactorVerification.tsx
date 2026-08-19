@@ -94,7 +94,7 @@ const TwoFactorVerification = () => {
 
   const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) return;
-    
+
     const newCode = [...verificationCode];
     newCode[index] = value;
     setVerificationCode(newCode);
@@ -201,7 +201,6 @@ const TwoFactorVerification = () => {
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000);
-
     } catch (err: any) {
       console.error('❌ Verification error:', err);
       const errorMsg = err.message || 'رمز التحقق غير صحيح أو منتهي الصلاحية';
@@ -220,93 +219,125 @@ const TwoFactorVerification = () => {
   };
 
   return (
-    <div className="min-h-screen bg-pattern flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="bg-pattern relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       {/* Background decorative elements */}
-      <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-10 right-10 w-40 h-40 bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1.5s'}}></div>
-      
-      <div className="glass-effect p-8 sm:p-10 rounded-3xl max-w-lg w-full card-hover">
+      <div className="animate-pulse-slow absolute left-10 top-10 h-32 w-32 rounded-full bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 blur-3xl"></div>
+      <div
+        className="animate-pulse-slow absolute bottom-10 right-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 blur-3xl"
+        style={{ animationDelay: '1.5s' }}
+      ></div>
+
+      <div className="glass-effect card-hover w-full max-w-lg rounded-3xl p-8 sm:p-10">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Sparkles className="w-6 h-6 text-[#D4AF37] animate-pulse" />
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center">
-              <Shield className="w-8 h-8 text-white" />
+        <div className="mb-8 text-center">
+          <div className="mb-4 flex items-center justify-center gap-3">
+            <Sparkles className="h-6 w-6 animate-pulse text-[#D4AF37]" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#8B7355] to-[#654321]">
+              <Shield className="h-8 w-8 text-white" />
             </div>
-            <Sparkles className="w-6 h-6 text-[#D4AF37] animate-pulse" style={{animationDelay: '0.5s'}} />
+            <Sparkles
+              className="h-6 w-6 animate-pulse text-[#D4AF37]"
+              style={{ animationDelay: '0.5s' }}
+            />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold gradient-text mb-3">التحقق من الهوية</h1>
-          <p className="text-[#6B7280] text-sm sm:text-base">لحماية حسابك، يرجى اختيار طريقة التحقق المناسبة</p>
+          <h1 className="gradient-text mb-3 text-3xl font-bold sm:text-4xl">التحقق من الهوية</h1>
+          <p className="text-sm text-[#6B7280] sm:text-base">
+            لحماية حسابك، يرجى اختيار طريقة التحقق المناسبة
+          </p>
         </div>
 
         {!isCodeSent ? (
           <>
             {/* Method Selection */}
-            <div className="space-y-4 mb-8">
-              <h3 className="text-lg font-semibold text-[#2D2D2D] text-center mb-6">اختر طريقة التحقق</h3>
-              
+            <div className="mb-8 space-y-4">
+              <h3 className="mb-6 text-center text-lg font-semibold text-[#2D2D2D]">
+                اختر طريقة التحقق
+              </h3>
+
               <button
                 onClick={() => handleMethodSelect('email')}
-                className={`w-full p-6 rounded-2xl border-2 transition-all ${
+                className={`w-full rounded-2xl border-2 p-6 transition-all ${
                   selectedMethod === 'email'
                     ? 'border-[#8B7355] bg-[#8B7355]/5 shadow-lg'
                     : 'border-[#8B7355]/20 hover:border-[#8B7355]/40 hover:bg-[#8B7355]/5'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    selectedMethod === 'email' 
-                      ? 'bg-gradient-to-br from-[#10B981] to-[#059669]' 
-                      : 'bg-[#8B7355]/10'
-                  }`}>
-                    <Mail className={`w-6 h-6 ${selectedMethod === 'email' ? 'text-white' : 'text-[#8B7355]'}`} />
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                      selectedMethod === 'email'
+                        ? 'bg-gradient-to-br from-[#10B981] to-[#059669]'
+                        : 'bg-[#8B7355]/10'
+                    }`}
+                  >
+                    <Mail
+                      className={`h-6 w-6 ${selectedMethod === 'email' ? 'text-white' : 'text-[#8B7355]'}`}
+                    />
                   </div>
                   <div className="flex-1 text-right">
-                    <h4 className={`font-semibold text-lg ${selectedMethod === 'email' ? 'text-[#8B7355]' : 'text-[#2D2D2D]'}`}>
+                    <h4
+                      className={`text-lg font-semibold ${selectedMethod === 'email' ? 'text-[#8B7355]' : 'text-[#2D2D2D]'}`}
+                    >
                       البريد الإلكتروني
                     </h4>
-                    <p className="text-[#6B7280] text-sm">سنرسل رمز التحقق إلى بريدك الإلكتروني</p>
-                    <p className="text-[#8B7355] text-sm font-medium mt-1">{contact || 'user@example.com'}</p>
+                    <p className="text-sm text-[#6B7280]">سنرسل رمز التحقق إلى بريدك الإلكتروني</p>
+                    <p className="mt-1 text-sm font-medium text-[#8B7355]">
+                      {contact || 'user@example.com'}
+                    </p>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    selectedMethod === 'email' 
-                      ? 'border-[#8B7355] bg-[#8B7355]' 
-                      : 'border-[#8B7355]/30'
-                  }`}>
-                    {selectedMethod === 'email' && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                      selectedMethod === 'email'
+                        ? 'border-[#8B7355] bg-[#8B7355]'
+                        : 'border-[#8B7355]/30'
+                    }`}
+                  >
+                    {selectedMethod === 'email' && (
+                      <div className="h-3 w-3 rounded-full bg-white"></div>
+                    )}
                   </div>
                 </div>
               </button>
 
               <button
                 onClick={() => handleMethodSelect('phone')}
-                className={`w-full p-6 rounded-2xl border-2 transition-all ${
+                className={`w-full rounded-2xl border-2 p-6 transition-all ${
                   selectedMethod === 'phone'
                     ? 'border-[#8B7355] bg-[#8B7355]/5 shadow-lg'
                     : 'border-[#8B7355]/20 hover:border-[#8B7355]/40 hover:bg-[#8B7355]/5'
                 }`}
               >
                 <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                    selectedMethod === 'phone' 
-                      ? 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]' 
-                      : 'bg-[#8B7355]/10'
-                  }`}>
-                    <Phone className={`w-6 h-6 ${selectedMethod === 'phone' ? 'text-white' : 'text-[#8B7355]'}`} />
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                      selectedMethod === 'phone'
+                        ? 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]'
+                        : 'bg-[#8B7355]/10'
+                    }`}
+                  >
+                    <Phone
+                      className={`h-6 w-6 ${selectedMethod === 'phone' ? 'text-white' : 'text-[#8B7355]'}`}
+                    />
                   </div>
                   <div className="flex-1 text-right">
-                    <h4 className={`font-semibold text-lg ${selectedMethod === 'phone' ? 'text-[#8B7355]' : 'text-[#2D2D2D]'}`}>
+                    <h4
+                      className={`text-lg font-semibold ${selectedMethod === 'phone' ? 'text-[#8B7355]' : 'text-[#2D2D2D]'}`}
+                    >
                       رسالة نصية
                     </h4>
-                    <p className="text-[#6B7280] text-sm">سنرسل رمز التحقق إلى رقم جوالك</p>
-                    <p className="text-[#8B7355] text-sm font-medium mt-1">+966 *** *** **45</p>
+                    <p className="text-sm text-[#6B7280]">سنرسل رمز التحقق إلى رقم جوالك</p>
+                    <p className="mt-1 text-sm font-medium text-[#8B7355]">+966 *** *** **45</p>
                   </div>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    selectedMethod === 'phone' 
-                      ? 'border-[#8B7355] bg-[#8B7355]' 
-                      : 'border-[#8B7355]/30'
-                  }`}>
-                    {selectedMethod === 'phone' && <div className="w-3 h-3 bg-white rounded-full"></div>}
+                  <div
+                    className={`flex h-6 w-6 items-center justify-center rounded-full border-2 ${
+                      selectedMethod === 'phone'
+                        ? 'border-[#8B7355] bg-[#8B7355]'
+                        : 'border-[#8B7355]/30'
+                    }`}
+                  >
+                    {selectedMethod === 'phone' && (
+                      <div className="h-3 w-3 rounded-full bg-white"></div>
+                    )}
                   </div>
                 </div>
               </button>
@@ -314,48 +345,54 @@ const TwoFactorVerification = () => {
 
             <button
               onClick={handleSendCode}
-              className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3"
+              className="btn-primary flex w-full items-center justify-center gap-3 py-4 text-lg font-semibold"
             >
               <span>إرسال رمز التحقق</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="h-5 w-5" />
             </button>
           </>
         ) : (
           <>
             {/* Code Verification */}
-            <div className="text-center mb-8">
-              <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${
-                selectedMethod === 'email' 
-                  ? 'bg-gradient-to-br from-[#10B981] to-[#059669]' 
-                  : 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]'
-              }`}>
+            <div className="mb-8 text-center">
+              <div
+                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl ${
+                  selectedMethod === 'email'
+                    ? 'bg-gradient-to-br from-[#10B981] to-[#059669]'
+                    : 'bg-gradient-to-br from-[#8B5CF6] to-[#7C3AED]'
+                }`}
+              >
                 {selectedMethod === 'email' ? (
-                  <Mail className="w-8 h-8 text-white" />
+                  <Mail className="h-8 w-8 text-white" />
                 ) : (
-                  <Phone className="w-8 h-8 text-white" />
+                  <Phone className="h-8 w-8 text-white" />
                 )}
               </div>
-              <h3 className="text-xl font-bold text-[#2D2D2D] mb-2">أدخل رمز التحقق</h3>
-              <p className="text-[#6B7280] text-sm">
-                تم إرسال رمز التحقق إلى {selectedMethod === 'email' ? 'بريدك الإلكتروني' : 'رقم جوالك'}
+              <h3 className="mb-2 text-xl font-bold text-[#2D2D2D]">أدخل رمز التحقق</h3>
+              <p className="text-sm text-[#6B7280]">
+                تم إرسال رمز التحقق إلى{' '}
+                {selectedMethod === 'email' ? 'بريدك الإلكتروني' : 'رقم جوالك'}
               </p>
-              <p className="text-[#8B7355] text-sm font-medium mt-1">
+              <p className="mt-1 text-sm font-medium text-[#8B7355]">
                 {contact || 'user@example.com'}
               </p>
-              <p className="text-[#6B7280] text-xs mt-2">
+              <p className="mt-2 text-xs text-[#6B7280]">
                 أدخل الرمز من اليسار إلى اليمين كما هو في الإيميل
               </p>
             </div>
 
             <form onSubmit={handleVerify} className="space-y-8">
               {error && (
-                <div className="p-4 rounded-xl bg-red-50 border border-red-200">
-                  <p className="text-red-600 text-sm text-center">{error}</p>
+                <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+                  <p className="text-center text-sm text-red-600">{error}</p>
                 </div>
               )}
 
               {/* Code Input - من اليسار لليمين */}
-              <div className={`flex justify-center gap-3 ${inputError ? 'animate-shake' : ''}`} dir="ltr">
+              <div
+                className={`flex justify-center gap-3 ${inputError ? 'animate-shake' : ''}`}
+                dir="ltr"
+              >
                 {verificationCode.map((digit, index) => (
                   <input
                     key={index}
@@ -368,7 +405,7 @@ const TwoFactorVerification = () => {
                     value={digit}
                     onChange={(e) => handleCodeChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
-                    className={`w-12 h-12 sm:w-14 sm:h-14 text-center text-xl font-bold border-2 rounded-xl focus:outline-none focus:ring-4 transition-all ${
+                    className={`h-12 w-12 rounded-xl border-2 text-center text-xl font-bold transition-all focus:outline-none focus:ring-4 sm:h-14 sm:w-14 ${
                       inputError
                         ? 'border-red-500 bg-red-50'
                         : 'border-[#8B7355]/20 focus:border-[#8B7355] focus:ring-[#8B7355]/10'
@@ -382,8 +419,8 @@ const TwoFactorVerification = () => {
               {/* Countdown and Resend */}
               <div className="text-center">
                 {countdown > 0 ? (
-                  <div className="flex items-center justify-center gap-2 text-[#6B7280] text-sm">
-                    <Clock className="w-4 h-4" />
+                  <div className="flex items-center justify-center gap-2 text-sm text-[#6B7280]">
+                    <Clock className="h-4 w-4" />
                     <span>إعادة الإرسال خلال {countdown} ثانية</span>
                   </div>
                 ) : (
@@ -391,9 +428,9 @@ const TwoFactorVerification = () => {
                     type="button"
                     onClick={handleResendCode}
                     disabled={isResending}
-                    className="text-[#8B7355] hover:text-[#D4AF37] font-medium transition-colors flex items-center justify-center gap-2 mx-auto"
+                    className="mx-auto flex items-center justify-center gap-2 font-medium text-[#8B7355] transition-colors hover:text-[#D4AF37]"
                   >
-                    <RefreshCw className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-4 w-4 ${isResending ? 'animate-spin' : ''}`} />
                     <span>{isResending ? 'جاري الإرسال...' : 'إعادة إرسال الرمز'}</span>
                   </button>
                 )}
@@ -402,14 +439,14 @@ const TwoFactorVerification = () => {
               <button
                 type="submit"
                 disabled={verificationCode.join('').length !== 6 || isVerifying}
-                className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="btn-primary flex w-full items-center justify-center gap-3 py-4 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isVerifying ? (
                   <span>جاري التحقق...</span>
                 ) : (
                   <>
                     <span>تحقق والمتابعة</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </>
                 )}
               </button>
@@ -417,7 +454,7 @@ const TwoFactorVerification = () => {
 
             <button
               onClick={() => setIsCodeSent(false)}
-              className="w-full text-[#8B7355] hover:text-[#D4AF37] font-medium transition-colors mt-4"
+              className="mt-4 w-full font-medium text-[#8B7355] transition-colors hover:text-[#D4AF37]"
             >
               تغيير طريقة التحقق
             </button>

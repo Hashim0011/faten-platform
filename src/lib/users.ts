@@ -80,7 +80,7 @@ export async function updateUserRole(userId: string, newRole: UserRole) {
       .from('users')
       .update({
         role: newRole,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
       .select()
@@ -104,10 +104,7 @@ export async function deleteUser(userId: string) {
 
     // First, delete user's related data to avoid foreign key constraints
     // Delete user's messages
-    const { error: messagesError } = await supabase
-      .from('messages')
-      .delete()
-      .eq('user_id', userId);
+    const { error: messagesError } = await supabase.from('messages').delete().eq('user_id', userId);
 
     if (messagesError) {
       console.error('Error deleting user messages:', messagesError);
@@ -124,10 +121,7 @@ export async function deleteUser(userId: string) {
     }
 
     // Delete user's likes
-    const { error: likesError } = await supabase
-      .from('likes')
-      .delete()
-      .eq('user_id', userId);
+    const { error: likesError } = await supabase.from('likes').delete().eq('user_id', userId);
 
     if (likesError) {
       console.error('Error deleting user likes:', likesError);
@@ -144,20 +138,14 @@ export async function deleteUser(userId: string) {
     }
 
     // Delete user's bans
-    const { error: bansError } = await supabase
-      .from('banned_users')
-      .delete()
-      .eq('user_id', userId);
+    const { error: bansError } = await supabase.from('banned_users').delete().eq('user_id', userId);
 
     if (bansError) {
       console.error('Error deleting user bans:', bansError);
     }
 
     // Finally, delete the user
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', userId);
+    const { error } = await supabase.from('users').delete().eq('id', userId);
 
     if (error) {
       console.error('Error deleting user from users table:', error);
@@ -181,7 +169,7 @@ export async function updateUser(userId: string, userData: Partial<UserData>) {
       .from('users')
       .update({
         ...userData,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
       .select()

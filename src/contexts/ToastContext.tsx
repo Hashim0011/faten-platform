@@ -74,13 +74,13 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const getToastIcon = (type: ToastType) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-5 h-5" />;
+        return <CheckCircle className="h-5 w-5" />;
       case 'error':
-        return <XCircle className="w-5 h-5" />;
+        return <XCircle className="h-5 w-5" />;
       case 'warning':
-        return <AlertCircle className="w-5 h-5" />;
+        return <AlertCircle className="h-5 w-5" />;
       case 'info':
-        return <Info className="w-5 h-5" />;
+        return <Info className="h-5 w-5" />;
     }
   };
 
@@ -98,35 +98,29 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   return (
-    <ToastContext.Provider
-      value={{ showToast, showSuccess, showError, showWarning, showInfo }}
-    >
+    <ToastContext.Provider value={{ showToast, showSuccess, showError, showWarning, showInfo }}>
       {children}
 
       {/* Toast Container */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none" dir="rtl">
+      <div
+        className="pointer-events-none fixed left-1/2 top-4 z-50 flex -translate-x-1/2 transform flex-col gap-2"
+        dir="rtl"
+      >
         {toasts.map((toast) => (
           <div
             key={toast.id}
-            className={`
-              ${getToastStyles(toast.type)}
-              border-r-4 rounded-lg shadow-lg p-4 pr-3 min-w-[320px] max-w-md
-              flex items-center gap-3 animate-fade-in pointer-events-auto
-              transition-all duration-300 hover:scale-105
-            `}
+            className={` ${getToastStyles(toast.type)} animate-fade-in pointer-events-auto flex min-w-[320px] max-w-md items-center gap-3 rounded-lg border-r-4 p-4 pr-3 shadow-lg transition-all duration-300 hover:scale-105`}
             style={{
-              animation: 'slideInFromTop 0.3s ease-out, shake 0.5s ease-in-out'
+              animation: 'slideInFromTop 0.3s ease-out, shake 0.5s ease-in-out',
             }}
           >
-            <div className="flex-shrink-0">
-              {getToastIcon(toast.type)}
-            </div>
+            <div className="flex-shrink-0">{getToastIcon(toast.type)}</div>
             <p className="flex-1 text-sm font-medium">{toast.message}</p>
             <button
               onClick={() => removeToast(toast.id)}
-              className="flex-shrink-0 hover:opacity-70 transition-opacity"
+              className="flex-shrink-0 transition-opacity hover:opacity-70"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
         ))}

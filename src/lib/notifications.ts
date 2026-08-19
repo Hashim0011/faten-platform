@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 
-export type NotificationType = 'new_content' | 'new_discussion' | 'new_message' | 'new_event' | 'system';
+export type NotificationType =
+  'new_content' | 'new_discussion' | 'new_message' | 'new_event' | 'system';
 
 export interface NotificationData {
   user_id: string;
@@ -45,14 +46,12 @@ export async function createNotificationForAll(
 ) {
   try {
     // الحصول على جميع المستخدمين
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id');
+    const { data: users, error: usersError } = await supabase.from('users').select('id');
 
     if (usersError) throw usersError;
 
     // إنشاء إشعارات لجميع المستخدمين
-    const notifications = users.map(user => ({
+    const notifications = users.map((user) => ({
       user_id: user.id,
       type,
       title,
@@ -62,9 +61,7 @@ export async function createNotificationForAll(
       created_at: new Date().toISOString(),
     }));
 
-    const { error } = await supabase
-      .from('notifications')
-      .insert(notifications);
+    const { error } = await supabase.from('notifications').insert(notifications);
 
     if (error) throw error;
 
@@ -80,7 +77,10 @@ export async function createNotificationForAll(
  */
 export async function getMyNotifications() {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -107,7 +107,10 @@ export async function getMyNotifications() {
  */
 export async function getUnreadCount() {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       return { success: true, count: 0 };
@@ -152,7 +155,10 @@ export async function markAsRead(notificationId: string) {
  */
 export async function markAllAsRead() {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -178,10 +184,7 @@ export async function markAllAsRead() {
  */
 export async function deleteNotification(notificationId: string) {
   try {
-    const { error } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('id', notificationId);
+    const { error } = await supabase.from('notifications').delete().eq('id', notificationId);
 
     if (error) throw error;
 

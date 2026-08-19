@@ -69,9 +69,10 @@ const Register = () => {
 
       // الانتقال لصفحة التحقق
       setTimeout(() => {
-        navigate(`/two-factor-verification?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}`);
+        navigate(
+          `/two-factor-verification?email=${encodeURIComponent(email)}&name=${encodeURIComponent(fullName)}`
+        );
       }, 1500);
-
     } catch (error: any) {
       console.error('❌ Registration error:', error);
       const errorMsg = error.message || 'حدث خطأ أثناء التسجيل';
@@ -83,119 +84,122 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-pattern p-4 relative overflow-hidden">
+    <div className="bg-pattern relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       {/* Background decorative elements */}
-      <div className="absolute top-10 right-10 w-32 h-32 bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-10 left-10 w-40 h-40 bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '1s'}}></div>
+      <div className="animate-pulse-slow absolute right-10 top-10 h-32 w-32 rounded-full bg-gradient-to-br from-[#D4AF37]/10 to-[#8B7355]/10 blur-3xl"></div>
+      <div
+        className="animate-pulse-slow absolute bottom-10 left-10 h-40 w-40 rounded-full bg-gradient-to-br from-[#8B7355]/10 to-[#654321]/10 blur-3xl"
+        style={{ animationDelay: '1s' }}
+      ></div>
 
-      <div className="glass-effect p-10 rounded-3xl max-w-lg w-full card-hover">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold gradient-text mb-3">إنشاء حساب مستخدم</h1>
+      <div className="glass-effect card-hover w-full max-w-lg rounded-3xl p-10">
+        <div className="mb-8 text-center">
+          <h1 className="gradient-text mb-3 text-4xl font-bold">إنشاء حساب مستخدم</h1>
           <p className="text-[#6B7280]">انضم إلى مجتمع فطن وابدأ رحلتك التعليمية</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <User className="w-4 h-4 text-[#8B7355]" />
+            <label className="mb-3 block flex items-center gap-2 font-semibold text-[#2D2D2D]">
+              <User className="h-4 w-4 text-[#8B7355]" />
               الاسم الكامل
             </label>
             <div className="relative">
               <input
                 type="text"
                 name="fullName"
-                className="input-modern w-full has-right-icon"
+                className="input-modern has-right-icon w-full"
                 placeholder="أدخل اسمك الكامل"
                 required
               />
-              <User className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <User className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-[#8B7355]" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Mail className="w-4 h-4 text-[#8B7355]" />
+            <label className="mb-3 block flex items-center gap-2 font-semibold text-[#2D2D2D]">
+              <Mail className="h-4 w-4 text-[#8B7355]" />
               البريد الإلكتروني
             </label>
             <div className="relative">
               <input
                 type="email"
                 name="email"
-                className="input-modern w-full has-right-icon"
+                className="input-modern has-right-icon w-full"
                 placeholder="example@domain.com"
                 required
               />
-              <Mail className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Mail className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-[#8B7355]" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Phone className="w-4 h-4 text-[#8B7355]" />
+            <label className="mb-3 block flex items-center gap-2 font-semibold text-[#2D2D2D]">
+              <Phone className="h-4 w-4 text-[#8B7355]" />
               رقم الجوال
             </label>
             <div className="relative">
               <input
                 type="tel"
                 name="phone"
-                className="input-modern w-full has-right-icon"
+                className="input-modern has-right-icon w-full"
                 placeholder="+966 5X XXX XXXX"
                 required
               />
-              <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Phone className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-[#8B7355]" />
             </div>
           </div>
 
           <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[#8B7355]" />
+            <label className="mb-3 block flex items-center gap-2 font-semibold text-[#2D2D2D]">
+              <Lock className="h-4 w-4 text-[#8B7355]" />
               كلمة المرور
             </label>
             <div className="relative">
               <input
-                type={showPassword ? "text" : "password"}
+                type={showPassword ? 'text' : 'password'}
                 name="password"
-                className="input-modern w-full has-both-icons"
+                className="input-modern has-both-icons w-full"
                 placeholder="أدخل كلمة مرور قوية"
                 required
               />
-              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Lock className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-[#8B7355]" />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 transform text-[#8B7355] transition-colors hover:text-[#654321]"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-[#2D2D2D] font-semibold mb-3 flex items-center gap-2">
-              <Lock className="w-4 h-4 text-[#8B7355]" />
+            <label className="mb-3 block flex items-center gap-2 font-semibold text-[#2D2D2D]">
+              <Lock className="h-4 w-4 text-[#8B7355]" />
               تأكيد كلمة المرور
             </label>
             <div className="relative">
               <input
-                type={showConfirmPassword ? "text" : "password"}
+                type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
-                className="input-modern w-full has-both-icons"
+                className="input-modern has-both-icons w-full"
                 placeholder="أعد إدخال كلمة المرور"
                 required
               />
-              <Lock className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] w-5 h-5 pointer-events-none" />
+              <Lock className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 transform text-[#8B7355]" />
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#8B7355] hover:text-[#654321] transition-colors z-10"
+                className="absolute left-4 top-1/2 z-10 -translate-y-1/2 transform text-[#8B7355] transition-colors hover:text-[#654321]"
               >
-                {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
           {error && (
-            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
               {error}
             </div>
           )}
@@ -203,10 +207,10 @@ const Register = () => {
           <button
             type="submit"
             disabled={loading}
-            className="btn-primary w-full py-4 text-lg font-semibold flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary flex w-full items-center justify-center gap-3 py-4 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-50"
           >
             <span>{loading ? 'جاري التسجيل...' : 'إنشاء الحساب'}</span>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="h-5 w-5" />
           </button>
         </form>
 
@@ -216,7 +220,7 @@ const Register = () => {
           لديك حساب بالفعل؟{' '}
           <button
             onClick={() => navigate('/login')}
-            className="text-[#8B7355] hover:text-[#D4AF37] font-semibold transition-colors underline decoration-2 underline-offset-4"
+            className="font-semibold text-[#8B7355] underline decoration-2 underline-offset-4 transition-colors hover:text-[#D4AF37]"
           >
             تسجيل الدخول
           </button>

@@ -170,7 +170,10 @@ export async function logout() {
  */
 export async function getCurrentUser() {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
 
     if (error) throw error;
     if (!user) return null;
@@ -284,27 +287,24 @@ async function createNotificationForAll(notification: {
 }) {
   try {
     // جلب جميع المستخدمين
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id');
+    const { data: users, error: usersError } = await supabase.from('users').select('id');
 
     if (usersError) throw usersError;
 
     // إنشاء إشعار لكل مستخدم
-    const notifications = users?.map(user => ({
-      user_id: user.id,
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      related_id: notification.related_id,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    })) || [];
+    const notifications =
+      users?.map((user) => ({
+        user_id: user.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        related_id: notification.related_id,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })) || [];
 
     if (notifications.length > 0) {
-      const { error: notifError } = await supabase
-        .from('notifications')
-        .insert(notifications);
+      const { error: notifError } = await supabase.from('notifications').insert(notifications);
 
       if (notifError) throw notifError;
     }
