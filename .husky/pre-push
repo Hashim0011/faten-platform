@@ -1,0 +1,2 @@
+echo "🔒 فحص شامل قبل الدفع..."
+npm run typecheck && npm run test
