@@ -107,10 +107,9 @@ async function checkQualityGate(token) {
 
   for (let i = 0; i < 30; i++) {
     await sleep(4000);
-    const res = await fetch(
-      `${HOST}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}`,
-      { headers: { Authorization: auth } }
-    );
+    const res = await fetch(`${HOST}/api/qualitygates/project_status?projectKey=${PROJECT_KEY}`, {
+      headers: { Authorization: auth },
+    });
     if (!res.ok) continue;
 
     const { projectStatus } = await res.json();
@@ -122,7 +121,9 @@ async function checkQualityGate(token) {
 
     for (const c of projectStatus.conditions || []) {
       const icon = c.status === 'OK' ? '✅' : '❌';
-      console.log(`  ${icon} ${c.metricKey}: ${c.actualValue} (الحد: ${c.comparator} ${c.errorThreshold})`);
+      console.log(
+        `  ${icon} ${c.metricKey}: ${c.actualValue} (الحد: ${c.comparator} ${c.errorThreshold})`
+      );
     }
     console.log('═'.repeat(60));
     console.log(`  التقرير الكامل: ${HOST}/dashboard?id=${PROJECT_KEY}\n`);

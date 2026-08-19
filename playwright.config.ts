@@ -43,11 +43,19 @@ export default defineConfig({
   ],
 
   // ─── يشغّل التطبيق تلقائياً قبل الاختبارات ───
-  // في وضع النشر (E2E_BASE_URL مضبوط) نتخطّى تشغيل خادم محلي
+  //
+  //  ثلاثة سيناريوهات:
+  //   ① E2E_BASE_URL مضبوط  → نختبر نشراً حقيقياً (Deploy Preview) بلا خادم محلي
+  //   ② CI                   → نخدم قطعة dist المبنيّة مسبقاً فقط، بلا إعادة بناء
+  //   ③ محلياً                → نبني ثم نخدم (لأن dist قد لا تكون موجودة)
+  //
+  //  ⚠️ السيناريو ② حرج: إعادة البناء داخل job الاختبارات تُنتج نسخة
+  //  مختلفة عن التي ستُنشر (بأسرار مختلفة أو مفقودة)، وتخالف مبدأ
+  //  "ابنِ مرة واحدة وانشر نفس القطعة". نختبر ما سيُنشر بالضبط.
   webServer: process.env.E2E_BASE_URL
     ? undefined
     : {
-        command: 'npm run build && npm run preview',
+        command: process.env.CI ? 'npm run preview' : 'npm run build && npm run preview',
         url: 'http://localhost:4173',
         reuseExistingServer: !process.env.CI,
         timeout: 180_000,

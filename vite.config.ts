@@ -55,9 +55,7 @@ export default defineConfig(({ mode }) => {
       exclude: ['node_modules', 'dist', 'tests/e2e/**'],
 
       // تقارير: نص للمطوّر + JUnit XML للـ CI (نفس صيغة JUnit المعيارية)
-      reporters: process.env.CI
-        ? ['default', 'junit', 'vitest-sonar-reporter']
-        : ['default'],
+      reporters: process.env.CI ? ['default', 'junit', 'vitest-sonar-reporter'] : ['default'],
       outputFile: {
         junit: './reports/junit.xml',
         'vitest-sonar-reporter': './reports/sonar-tests.xml',
