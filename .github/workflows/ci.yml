@@ -140,13 +140,26 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      # ─────────────────────────────────────────────────────────
+      #  مبدأ: CI لا يحتاج أسرار الإنتاج.
+      #
+      #  هدف CI هو التحقق من أن الكود يُبنى ويعمل — لا الاتصال
+      #  بقاعدة بيانات حقيقية. الأسرار الحقيقية تُستخدم في CD فقط.
+      #
+      #  فائدتان:
+      #  ① أمنياً — لو اختُرق سطر في الـ workflow، لا يوجد ما يُسرَّب
+      #  ② عملياً — PRs من Dependabot و forks لا تصلها أسرار المستودع
+      #     (حماية مقصودة ضد هجمات سلسلة التوريد عبر postinstall).
+      #     بدون بديل، تفشل كل تحديثات التبعيات الآلية بشاشة بيضاء.
+      #
+      #  التعبير `secrets.X || 'قيمة'` يستخدم البديل عند غياب السر.
+      # ─────────────────────────────────────────────────────────
       - name: بناء الإنتاج
         env:
-          # قيم البناء تأتي من GitHub Secrets — لا من ملف مرفوع
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
-          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://ci-placeholder.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'ci-placeholder-anon-key-not-a-real-secret' }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY || 'ci-placeholder-openai-key-not-a-real-secret' }}
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL || 'https://ci-placeholder.invalid/webhook' }}
         run: npm run build
 
       - name: تحليل حجم الحزمة
