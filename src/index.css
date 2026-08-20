@@ -5,24 +5,24 @@
 @tailwind utilities;
 
 :root {
-  --primary-brown: #8B7355;
-  --light-brown: #D2B48C;
+  --primary-brown: #8b7355;
+  --light-brown: #d2b48c;
   --dark-brown: #654321;
-  --bg-cream: #F8F6F3;
-  --accent-gold: #D4AF37;
-  --text-primary: #2D2D2D;
-  --text-secondary: #6B7280;
+  --bg-cream: #f8f6f3;
+  --accent-gold: #d4af37;
+  --text-primary: #2d2d2d;
+  --text-secondary: #6b7280;
 }
 
 /* Dark Mode Variables */
 :root.dark {
-  --primary-brown: #A89379;
-  --light-brown: #C4A575;
-  --dark-brown: #7A5C3F;
-  --bg-cream: #1A1A1A;
-  --accent-gold: #E5C248;
-  --text-primary: #E5E5E5;
-  --text-secondary: #A0A0A0;
+  --primary-brown: #a89379;
+  --light-brown: #c4a575;
+  --dark-brown: #7a5c3f;
+  --bg-cream: #1a1a1a;
+  --accent-gold: #e5c248;
+  --text-primary: #e5e5e5;
+  --text-secondary: #a0a0a0;
 }
 
 * {
@@ -31,16 +31,20 @@
 
 body {
   font-family: 'Noto Kufi Arabic', sans-serif;
-  background: linear-gradient(135deg, #F8F6F3 0%, #F4EFE9 100%);
+  background: linear-gradient(135deg, #f8f6f3 0%, #f4efe9 100%);
   color: var(--text-primary);
   line-height: 1.6;
-  font-feature-settings: "liga" 1, "calt" 1;
+  font-feature-settings:
+    'liga' 1,
+    'calt' 1;
   text-rendering: optimizeLegibility;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }
 
 :root.dark body {
-  background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
 }
 
 .animate-marquee {
@@ -61,7 +65,8 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px);
   }
   50% {
@@ -74,7 +79,8 @@ body {
 }
 
 @keyframes pulse-slow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -104,19 +110,19 @@ body {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
   transform-style: preserve-3d;
   transform: perspective(500px) rotateY(15deg);
-  box-shadow: 
-    -8px 8px 20px rgba(0,0,0,0.15),
-    inset 3px -3px 8px rgba(255,255,255,0.3),
-    inset -3px 3px 8px rgba(0,0,0,0.2);
+  box-shadow:
+    -8px 8px 20px rgba(0, 0, 0, 0.15),
+    inset 3px -3px 8px rgba(255, 255, 255, 0.3),
+    inset -3px 3px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
 }
 
 .logo-shield:hover {
   transform: perspective(500px) rotateY(0deg) scale(1.05);
-  box-shadow: 
-    -12px 12px 30px rgba(0,0,0,0.2),
-    inset 3px -3px 8px rgba(255,255,255,0.4),
-    inset -3px 3px 8px rgba(0,0,0,0.3);
+  box-shadow:
+    -12px 12px 30px rgba(0, 0, 0, 0.2),
+    inset 3px -3px 8px rgba(255, 255, 255, 0.4),
+    inset -3px 3px 8px rgba(0, 0, 0, 0.3);
 }
 
 .logo-brain {
@@ -127,19 +133,19 @@ body {
   width: 60%;
   height: 60%;
   color: white;
-  filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.4));
+  filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.4));
   transition: all 0.3s ease;
 }
 
 .bg-pattern {
-  background: linear-gradient(135deg, #F8F6F3 0%, #F4EFE9 100%);
+  background: linear-gradient(135deg, #f8f6f3 0%, #f4efe9 100%);
   background-image:
     radial-gradient(circle at 25% 25%, rgba(139, 115, 85, 0.03) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(212, 175, 55, 0.03) 0%, transparent 50%);
 }
 
 :root.dark .bg-pattern {
-  background: linear-gradient(135deg, #1A1A1A 0%, #252525 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%);
   background-image:
     radial-gradient(circle at 25% 25%, rgba(168, 147, 121, 0.05) 0%, transparent 50%),
     radial-gradient(circle at 75% 75%, rgba(229, 194, 72, 0.05) 0%, transparent 50%);
@@ -237,12 +243,12 @@ body {
   box-shadow: 0 0 0 4px rgba(139, 115, 85, 0.1);
 }
 
-.input-modern[type="tel"] {
+.input-modern[type='tel'] {
   text-align: right;
   direction: ltr;
 }
 
-.input-modern[type="tel"]::placeholder {
+.input-modern[type='tel']::placeholder {
   text-align: right;
   direction: ltr;
 }
@@ -279,17 +285,17 @@ body {
 }
 
 .status-new {
-  background: linear-gradient(135deg, #10B981, #059669);
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
 }
 
 .status-popular {
-  background: linear-gradient(135deg, #F59E0B, #D97706);
+  background: linear-gradient(135deg, #f59e0b, #d97706);
   color: white;
 }
 
 .status-featured {
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   color: white;
 }
 
@@ -412,13 +418,21 @@ body {
 }
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
-  10%, 30%, 50%, 70%, 90% {
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
     transform: translateX(-5px);
   }
-  20%, 40%, 60%, 80% {
+  20%,
+  40%,
+  60%,
+  80% {
     transform: translateX(5px);
   }
 }
@@ -429,7 +443,8 @@ body {
 
 /* Input error animation */
 @keyframes input-error {
-  0%, 100% {
+  0%,
+  100% {
     border-color: #ef4444;
   }
   50% {
@@ -439,13 +454,16 @@ body {
 }
 
 .input-error {
-  animation: input-error 0.3s ease-in-out, shake 0.5s ease-in-out;
+  animation:
+    input-error 0.3s ease-in-out,
+    shake 0.5s ease-in-out;
   border-color: #ef4444 !important;
 }
 
 /* Success animation */
 @keyframes success-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
   }
   50% {
@@ -463,26 +481,26 @@ body {
     display: flex;
     flex-wrap: wrap;
   }
-  
+
   .lg\\:col-span-4 {
     flex: 0 0 33.333333%;
   }
-  
+
   .lg\\:col-span-8 {
     flex: 0 0 66.666667%;
   }
-  
+
   .xl\\:col-span-3 {
     flex: 0 0 25%;
   }
-  
+
   .xl\\:col-span-9 {
     flex: 0 0 75%;
   }
 }
 
 /* Ensure proper RTL layout */
-[dir="rtl"] .grid {
+[dir='rtl'] .grid {
   direction: rtl;
 }
 
@@ -491,12 +509,12 @@ body {
   .grid {
     display: -ms-grid;
   }
-  
+
   .lg\\:col-span-4 {
     -ms-grid-column: 1;
     -ms-grid-column-span: 4;
   }
-  
+
   .lg\\:col-span-8 {
     -ms-grid-column: 5;
     -ms-grid-column-span: 8;
@@ -565,10 +583,10 @@ body {
 
 /* منع التكبير عند التركيز على الإدخال في iOS */
 @media (max-width: 768px) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="tel"],
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='tel'],
   textarea {
     font-size: 16px !important;
   }

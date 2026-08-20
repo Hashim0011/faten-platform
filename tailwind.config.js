@@ -8,7 +8,7 @@ export default {
           DEFAULT: '#8B7355',
           light: '#D2B48C',
           dark: '#654321',
-        }
+        },
       },
     },
   },

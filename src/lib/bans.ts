@@ -5,7 +5,10 @@ import { supabase } from './supabase';
  */
 export async function banUserFromDiscussion(userId: string, discussionId: string, reason?: string) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -18,7 +21,10 @@ export async function banUserFromDiscussion(userId: string, discussionId: string
       .eq('id', user.id)
       .single();
 
-    if (!currentUserData || (currentUserData.role !== 'expert' && currentUserData.role !== 'admin')) {
+    if (
+      !currentUserData ||
+      (currentUserData.role !== 'expert' && currentUserData.role !== 'admin')
+    ) {
       throw new Error('ليس لديك صلاحية لحظر المستخدمين');
     }
 

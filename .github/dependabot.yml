@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════
+#  Dependabot — تحديث التبعيات تلقائياً
+#
+#  لماذا؟ لأن التبعيات القديمة هي المصدر الأول للثغرات.
+#  Dependabot يفتح PR تلقائياً عند صدور تحديث، والبايب لاين
+#  يفحصه — فلو نجحت كل الفحوصات تدمجه بثقة.
+#
+#  الحيلة المهمة: التجميع (groups). بدونه ستستيقظ على 30 PR
+#  كل أسبوع ولن تقرأ أياً منها. مع التجميع: 3-4 PRs مفهومة.
+# ═══════════════════════════════════════════════════════════
+version: 2
+
+updates:
+  # ─── حزم npm ───
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+      timezone: Asia/Riyadh
+    open-pull-requests-limit: 5
+
+    commit-message:
+      prefix: 'build(deps)'
+      prefix-development: 'build(deps-dev)'
+      include: scope
+
+    labels: [dependencies, automated]
+
+    groups:
+      # تحديثات الأمان أولاً وبمفردها — لتُدمج بسرعة
+      security-updates:
+        applies-to: security-updates
+        patterns: ['*']
+
+      # تحديثات صغيرة وترقيعية: آمنة، تُجمَّع في PR واحد
+      minor-and-patch:
+        applies-to: version-updates
+        update-types: [minor, patch]
+        patterns: ['*']
+        exclude-patterns: ['react', 'react-dom', 'vite', 'typescript']
+
+      # المكتبات الأساسية منفصلة — تحتاج مراجعة بشرية
+      core-frameworks:
+        applies-to: version-updates
+        patterns: ['react', 'react-dom', 'vite', 'typescript']
+
+    ignore:
+      # تحديثات major تُدار يدوياً — قد تكسر التطبيق
+      - dependency-name: '*'
+        update-types: [version-update:semver-major]
+
+  # ─── إجراءات GitHub Actions نفسها ───
+  # مهمّة أمنياً: action مخترق = تنفيذ كود عشوائي في بايب لاينك
+  - package-ecosystem: github-actions
+    directory: '/'
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Riyadh
+    commit-message:
+      prefix: 'ci(deps)'
+    labels: [ci, dependencies, automated]
+    groups:
+      actions:
+        patterns: ['*']

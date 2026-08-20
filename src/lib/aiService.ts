@@ -98,18 +98,20 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
       hasApiKey: !!apiKey,
       apiKeyPrefix: apiKey?.substring(0, 15) + '...',
       messageLength: request.message.length,
-      hasHistory: !!request.conversationHistory?.length
+      hasHistory: !!request.conversationHistory?.length,
     });
 
     if (!apiKey) {
       console.error('API key missing!');
-      throw new Error('OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your .env file.');
+      throw new Error(
+        'OpenAI API key not configured. Please add VITE_OPENAI_API_KEY to your .env file.'
+      );
     }
 
     // Initialize OpenAI client
     const openai = new OpenAI({
       apiKey: apiKey,
-      dangerouslyAllowBrowser: true // Required for client-side usage
+      dangerouslyAllowBrowser: true, // Required for client-side usage
     });
 
     // Check if this is the first message (no conversation history)
@@ -132,8 +134,8 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
       {
         role: 'system',
-        content: systemMessage
-      }
+        content: systemMessage,
+      },
     ];
 
     // Add conversation history
@@ -146,10 +148,10 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
         return true;
       });
 
-      filteredHistory.forEach(msg => {
+      filteredHistory.forEach((msg) => {
         messages.push({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         });
       });
     }
@@ -157,7 +159,7 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
     // Add current message
     messages.push({
       role: 'user',
-      content: request.message
+      content: request.message,
     });
 
     // Generate response using GPT-4
@@ -165,7 +167,7 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
       model: 'gpt-4o-mini', // or 'gpt-4' for better quality
       messages: messages,
       temperature: 0.7,
-      max_tokens: 1000
+      max_tokens: 1000,
     });
 
     const responseText = completion.choices[0]?.message?.content;
@@ -176,9 +178,8 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
 
     return {
       success: true,
-      response: responseText
+      response: responseText,
     };
-
   } catch (error: any) {
     console.error('AI Service Error:', error);
 
@@ -186,34 +187,41 @@ ${isFirstMessage ? '**تنبيه مهم:** هذه أول رسالة من الم�
     if (error.message?.includes('API key')) {
       return {
         success: false,
-        error: 'خطأ في إعداد المساعد الذكي. يرجى التواصل مع الدعم الفني.'
+        error: 'خطأ في إعداد المساعد الذكي. يرجى التواصل مع الدعم الفني.',
       };
     }
 
-    if (error.message?.includes('quota') || error.message?.includes('429') || error.status === 429) {
+    if (
+      error.message?.includes('quota') ||
+      error.message?.includes('429') ||
+      error.status === 429
+    ) {
       return {
         success: false,
-        error: 'عذراً، تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد قليل.'
+        error: 'عذراً، تم تجاوز الحد الأقصى للطلبات. يرجى المحاولة بعد قليل.',
       };
     }
 
-    if (error.message?.includes('Invalid API key') || error.message?.includes('Incorrect API key')) {
+    if (
+      error.message?.includes('Invalid API key') ||
+      error.message?.includes('Incorrect API key')
+    ) {
       return {
         success: false,
-        error: 'مفتاح API غير صالح. يرجى التحقق من الإعدادات.'
+        error: 'مفتاح API غير صالح. يرجى التحقق من الإعدادات.',
       };
     }
 
     if (error.message?.includes('404') || error.message?.includes('not found')) {
       return {
         success: false,
-        error: 'النموذج غير متوفر. يرجى التواصل مع الدعم الفني.'
+        error: 'النموذج غير متوفر. يرجى التواصل مع الدعم الفني.',
       };
     }
 
     return {
       success: false,
-      error: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.'
+      error: 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
     };
   }
 }
@@ -225,14 +233,14 @@ export function validateChatMessage(message: string): { valid: boolean; error?: 
   if (!message || message.trim().length === 0) {
     return {
       valid: false,
-      error: 'الرجاء إدخال رسالة'
+      error: 'الرجاء إدخال رسالة',
     };
   }
 
   if (message.length > 2000) {
     return {
       valid: false,
-      error: 'الرسالة طويلة جداً. الحد الأقصى 2000 حرف'
+      error: 'الرسالة طويلة جداً. الحد الأقصى 2000 حرف',
     };
   }
 

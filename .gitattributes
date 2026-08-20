@@ -1,0 +1,15 @@
+# توحيد نهايات الأسطر: Git يخزّن LF دائماً
+* text=auto eol=lf
+
+# ملفات ثنائية لا تُعدَّل
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+
+# استبعاد الملفات المولّدة من إحصائيات اللغات في GitHub
+package-lock.json linguist-generated=true

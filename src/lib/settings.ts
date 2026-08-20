@@ -149,10 +149,7 @@ export const resetToDefaultSettings = async (userId: string): Promise<UserSettin
  */
 export const deleteUserSettings = async (userId: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('user_settings')
-      .delete()
-      .eq('user_id', userId);
+    const { error } = await supabase.from('user_settings').delete().eq('user_id', userId);
 
     if (error) throw error;
 
@@ -168,7 +165,10 @@ export const deleteUserSettings = async (userId: string): Promise<boolean> => {
  */
 export const toggleSetting = async (
   userId: string,
-  settingKey: keyof Omit<UserSettings, 'user_id' | 'created_at' | 'updated_at' | 'language' | 'theme' | 'font_size'>
+  settingKey: keyof Omit<
+    UserSettings,
+    'user_id' | 'created_at' | 'updated_at' | 'language' | 'theme' | 'font_size'
+  >
 ): Promise<UserSettings | null> => {
   try {
     // Get current settings

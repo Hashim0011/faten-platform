@@ -1,0 +1,40 @@
+# ═══════════════════════════════════════════════════════════
+#  Composite Action: تهيئة بيئة Node موحّدة
+#
+#  لماذا؟ بدونها تُكرَّر نفس الخطوات في كل job. أي تغيير
+#  (ترقية Node مثلاً) يصير في مكان واحد بدل عشرة.
+#  هذا مبدأ DRY مطبَّقاً على البنية التحتية.
+# ═══════════════════════════════════════════════════════════
+name: 'Setup Node & Dependencies'
+description: 'تثبيت Node، استعادة الكاش، وتثبيت التبعيات بشكل قابل للتكرار'
+
+inputs:
+  node-version:
+    description: 'إصدار Node (الافتراضي من .nvmrc)'
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: تهيئة Node.js
+      uses: actions/setup-node@v4
+      with:
+        # node-version-file يضمن أن CI يستخدم نفس إصدار المطوّرين
+        node-version: ${{ inputs.node-version || '' }}
+        node-version-file: ${{ inputs.node-version == '' && '.nvmrc' || '' }}
+        # كاش مدمج لمجلد ~/.npm — يوفّر ~40 ثانية لكل job
+        cache: npm
+
+    - name: تثبيت التبعيات
+      shell: bash
+      # npm ci (وليس npm install): يثبّت من package-lock.json حرفياً،
+      # يفشل لو كان الملف غير متطابق، ولا يعدّله أبداً → بناء قابل للتكرار
+      run: npm ci --no-audit --no-fund
+
+    - name: عرض معلومات البيئة
+      shell: bash
+      run: |
+        echo "Node:  $(node -v)"
+        echo "npm:   $(npm -v)"
+        echo "OS:    $(uname -a)"

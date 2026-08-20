@@ -24,7 +24,10 @@ export interface EventData {
  */
 export async function addEvent(eventData: EventData) {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -58,13 +61,15 @@ export async function getAllEvents() {
   try {
     const { data, error } = await supabase
       .from('events')
-      .select(`
+      .select(
+        `
         *,
         creator:created_by (
           full_name,
           role
         )
-      `)
+      `
+      )
       .order('start_date', { ascending: true });
 
     if (error) throw error;
@@ -107,13 +112,15 @@ export async function getEvent(id: string) {
   try {
     const { data, error } = await supabase
       .from('events')
-      .select(`
+      .select(
+        `
         *,
         creator:created_by (
           full_name,
           role
         )
-      `)
+      `
+      )
       .eq('id', id)
       .single();
 
@@ -155,10 +162,7 @@ export async function updateEvent(id: string, eventData: Partial<EventData>) {
  */
 export async function deleteEvent(id: string) {
   try {
-    const { error } = await supabase
-      .from('events')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('events').delete().eq('id', id);
 
     if (error) throw error;
 

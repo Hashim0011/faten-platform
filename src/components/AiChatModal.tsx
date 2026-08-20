@@ -21,8 +21,8 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       id: 1,
       role: 'assistant',
       content: 'مرحباً بك في فطن! كيف يمكنني مساعدتك اليوم؟',
-      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
-    }
+      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+    },
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -67,9 +67,9 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         id: messages.length + 1,
         role: 'assistant',
         content: validation.error || 'خطأ في الرسالة',
-        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
       };
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
       return;
     }
 
@@ -77,11 +77,11 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
       id: messages.length + 1,
       role: 'user',
       content: newMessage,
-      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
     };
 
     // Add user message to chat
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     const currentMessage = newMessage;
     setNewMessage('');
     setIsLoading(true);
@@ -89,7 +89,9 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
     try {
       // Get current user from Supabase
       const { supabase } = await import('../lib/supabase');
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       if (!user) {
         throw new Error('يجب تسجيل الدخول لاستخدام المساعد الذكي');
@@ -103,9 +105,9 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         .single();
 
       // Prepare conversation history (last 10 messages for context)
-      const conversationHistory = messages.slice(-10).map(msg => ({
+      const conversationHistory = messages.slice(-10).map((msg) => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
       }));
 
       // Send message to AI service
@@ -114,9 +116,9 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         userContext: {
           userId: user.id,
           userEmail: userData?.email || user.email || '',
-          userName: userData?.full_name || 'مستخدم'
+          userName: userData?.full_name || 'مستخدم',
         },
-        conversationHistory
+        conversationHistory,
       });
 
       if (!result.success) {
@@ -128,10 +130,10 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         id: messages.length + 2,
         role: 'assistant',
         content: result.response || 'عذراً، لم أتمكن من معالجة الرد.',
-        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error: any) {
       console.error('Error sending message:', error);
 
@@ -140,10 +142,10 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
         id: messages.length + 2,
         role: 'assistant',
         content: error.message || 'عذراً، حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.',
-        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+        timestamp: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
       // Re-focus input after sending message
@@ -158,41 +160,42 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
   return (
     <>
       {/* Backdrop للإغلاق عند النقر خارج المساحة */}
-      <div
-        className="fixed inset-0 z-40"
-        onClick={handleBackdropClick}
-      />
+      <div className="fixed inset-0 z-40" onClick={handleBackdropClick} />
 
-      <div className={`fixed bottom-3 sm:bottom-6 left-3 right-3 sm:left-6 sm:right-auto w-auto sm:w-[420px] lg:w-[460px] z-50 transition-all duration-300 ${
-        isMinimized ? 'h-14 sm:h-16' : 'h-auto'
-      }`}>
-        <div className="glass-effect rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-[#8B7355]/20 backdrop-blur-xl">
+      <div
+        className={`fixed bottom-3 left-3 right-3 z-50 w-auto transition-all duration-300 sm:bottom-6 sm:left-6 sm:right-auto sm:w-[420px] lg:w-[460px] ${
+          isMinimized ? 'h-14 sm:h-16' : 'h-auto'
+        }`}
+      >
+        <div className="glass-effect overflow-hidden rounded-xl border border-[#8B7355]/20 shadow-2xl backdrop-blur-xl sm:rounded-2xl">
           {/* Header */}
-          <div className="p-3 sm:p-4 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 flex justify-between items-center border-b border-[#8B7355]/20">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] flex items-center justify-center relative shadow-lg flex-shrink-0">
-                <Brain className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <Sparkles className="w-2 h-2 sm:w-3 sm:h-3 text-[#D4AF37] absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 animate-pulse" />
+          <div className="flex items-center justify-between border-b border-[#8B7355]/20 bg-gradient-to-r from-[#8B7355]/10 to-[#D4AF37]/10 p-3 sm:p-4">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="relative flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#8B7355] to-[#654321] shadow-lg sm:h-10 sm:w-10">
+                <Brain className="h-4 w-4 text-white sm:h-5 sm:w-5" />
+                <Sparkles className="absolute -right-0.5 -top-0.5 h-2 w-2 animate-pulse text-[#D4AF37] sm:-right-1 sm:-top-1 sm:h-3 sm:w-3" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-bold text-sm sm:text-base text-[#2D2D2D] truncate">المساعد الذكي</h3>
-                <p className="text-[10px] sm:text-xs text-[#6B7280] truncate">متاح الآن للمساعدة</p>
+                <h3 className="truncate text-sm font-bold text-[#2D2D2D] sm:text-base">
+                  المساعد الذكي
+                </h3>
+                <p className="truncate text-[10px] text-[#6B7280] sm:text-xs">متاح الآن للمساعدة</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            <div className="flex flex-shrink-0 items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="p-1.5 sm:p-2 hover:bg-[#8B7355]/10 rounded-xl transition-colors"
-                title={isMinimized ? "توسيع" : "تصغير"}
+                className="rounded-xl p-1.5 transition-colors hover:bg-[#8B7355]/10 sm:p-2"
+                title={isMinimized ? 'توسيع' : 'تصغير'}
               >
-                <Minimize2 className="w-3 h-3 sm:w-4 sm:h-4 text-[#8B7355]" />
+                <Minimize2 className="h-3 w-3 text-[#8B7355] sm:h-4 sm:w-4" />
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 sm:p-2 hover:bg-red-100 hover:text-red-600 rounded-xl transition-colors"
+                className="rounded-xl p-1.5 transition-colors hover:bg-red-100 hover:text-red-600 sm:p-2"
                 title="إغلاق"
               >
-                <X className="w-3 h-3 sm:w-4 sm:h-4 text-[#8B7355]" />
+                <X className="h-3 w-3 text-[#8B7355] sm:h-4 sm:w-4" />
               </button>
             </div>
           </div>
@@ -200,17 +203,30 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
           {/* Messages Area - يظهر فقط عندما لا يكون مصغراً */}
           {!isMinimized && (
             <>
-              <div ref={messagesContainerRef} className="h-64 sm:h-80 lg:h-96 overflow-y-scroll p-3 sm:p-4 bg-gradient-to-b from-white/50 to-white/30" style={{ scrollbarWidth: 'thin', scrollbarColor: '#8B7355 transparent' }}>
+              <div
+                ref={messagesContainerRef}
+                className="h-64 overflow-y-scroll bg-gradient-to-b from-white/50 to-white/30 p-3 sm:h-80 sm:p-4 lg:h-96"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#8B7355 transparent' }}
+              >
                 <div className="space-y-3 sm:space-y-4">
                   {messages.map((message) => (
-                    <div key={message.id} className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-fade-in`}>
-                      <div className={`max-w-[90%] sm:max-w-[85%] rounded-xl sm:rounded-2xl p-3 sm:p-4 shadow-sm ${
-                        message.role === 'assistant'
-                          ? 'bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10 border border-[#8B7355]/20'
-                          : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
-                      }`}>
-                        <p className="text-xs sm:text-sm whitespace-pre-line leading-relaxed">{message.content}</p>
-                        <span className={`text-[10px] sm:text-xs mt-2 block ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}>
+                    <div
+                      key={message.id}
+                      className={`flex ${message.role === 'assistant' ? 'justify-start' : 'justify-end'} animate-fade-in`}
+                    >
+                      <div
+                        className={`max-w-[90%] rounded-xl p-3 shadow-sm sm:max-w-[85%] sm:rounded-2xl sm:p-4 ${
+                          message.role === 'assistant'
+                            ? 'border border-[#8B7355]/20 bg-gradient-to-br from-[#8B7355]/10 to-[#D4AF37]/10'
+                            : 'bg-gradient-to-br from-[#8B7355] to-[#654321] text-white shadow-lg'
+                        }`}
+                      >
+                        <p className="whitespace-pre-line text-xs leading-relaxed sm:text-sm">
+                          {message.content}
+                        </p>
+                        <span
+                          className={`mt-2 block text-[10px] sm:text-xs ${message.role === 'assistant' ? 'text-[#8B7355]' : 'text-white/70'}`}
+                        >
                           {message.timestamp}
                         </span>
                       </div>
@@ -222,7 +238,10 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {/* Input Form */}
-              <form onSubmit={handleSendMessage} className="p-3 sm:p-4 border-t border-[#8B7355]/10 bg-white/80">
+              <form
+                onSubmit={handleSendMessage}
+                className="border-t border-[#8B7355]/10 bg-white/80 p-3 sm:p-4"
+              >
                 <div className="flex gap-2 sm:gap-3">
                   <input
                     ref={inputRef}
@@ -230,19 +249,25 @@ const AiChatModal: React.FC<AiChatModalProps> = ({ isOpen, onClose }) => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="اكتب سؤالك هنا..."
-                    className="input-modern flex-1 text-xs sm:text-sm min-w-0"
-                    style={{ paddingTop: '0.625rem', paddingBottom: '0.625rem', paddingRight: '0.75rem', paddingLeft: '0.75rem', lineHeight: '1.5' }}
+                    className="input-modern min-w-0 flex-1 text-xs sm:text-sm"
+                    style={{
+                      paddingTop: '0.625rem',
+                      paddingBottom: '0.625rem',
+                      paddingRight: '0.75rem',
+                      paddingLeft: '0.75rem',
+                      lineHeight: '1.5',
+                    }}
                     disabled={isLoading}
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() || isLoading}
-                    className="btn-primary px-3 sm:px-4 py-2 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    className="btn-primary flex flex-shrink-0 items-center justify-center px-3 py-2 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
                   >
                     {isLoading ? (
-                      <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" />
                     ) : (
-                      <Send className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                     )}
                   </button>
                 </div>

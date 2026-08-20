@@ -19,7 +19,10 @@ export interface ContentData {
 export async function addContent(contentData: ContentData) {
   try {
     // الحصول على المستخدم الحالي
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');
@@ -70,9 +73,7 @@ async function createNotificationForAll(notification: {
     console.log('🔔 بدء إرسال إشعار:', notification.title);
 
     // جلب جميع المستخدمين
-    const { data: users, error: usersError } = await supabase
-      .from('users')
-      .select('id');
+    const { data: users, error: usersError } = await supabase.from('users').select('id');
 
     if (usersError) {
       console.error('❌ خطأ في جلب المستخدمين:', usersError);
@@ -82,15 +83,16 @@ async function createNotificationForAll(notification: {
     console.log(`✅ تم جلب ${users?.length || 0} مستخدم`);
 
     // إنشاء إشعار لكل مستخدم
-    const notifications = users?.map(user => ({
-      user_id: user.id,
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      related_id: notification.related_id,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    })) || [];
+    const notifications =
+      users?.map((user) => ({
+        user_id: user.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type,
+        related_id: notification.related_id,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })) || [];
 
     console.log(`📨 سيتم إرسال ${notifications.length} إشعار`);
 
@@ -139,11 +141,7 @@ export async function getPublishedContent() {
  */
 export async function getContent(id: string) {
   try {
-    const { data, error } = await supabase
-      .from('content')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const { data, error } = await supabase.from('content').select('*').eq('id', id).single();
 
     if (error) throw error;
 
@@ -183,10 +181,7 @@ export async function updateContent(id: string, contentData: Partial<ContentData
  */
 export async function deleteContent(id: string) {
   try {
-    const { error } = await supabase
-      .from('content')
-      .delete()
-      .eq('id', id);
+    const { error } = await supabase.from('content').delete().eq('id', id);
 
     if (error) throw error;
 
@@ -202,7 +197,10 @@ export async function deleteContent(id: string) {
  */
 export async function getMyContent() {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
     if (userError || !user) {
       throw new Error('يجب تسجيل الدخول أولاً');

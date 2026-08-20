@@ -1,0 +1,267 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  CD — التسليم/النشر المستمر
+#
+#  ⚠️ خامل حتى تُضاف أسرار Netlify. مرحلة preflight تتحقق من وجودها،
+#     وكل مراحل النشر مشروطة بها. بدونها يمر الـ workflow بلا نشر.
+#
+#  التفعيل:
+#     gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/Faten_Platform
+#     gh secret set NETLIFY_SITE_ID    --repo Hashim0011/Faten_Platform
+#
+#  ─────────────────────────────────────────────────────────────────────
+#  التدفّق:
+#
+#    Pull Request ──► Deploy Preview ──► Smoke Tests على الـ Preview
+#                     (رابط مؤقت لكل PR، يُعلَّق تلقائياً على الـ PR)
+#
+#    Merge to main ──► Deploy Staging ──► Smoke Tests
+#                              │
+#                       موافقة يدوية (GitHub Environment)
+#                              │
+#                      Deploy Production ──► Smoke Tests ──► تقرير
+#
+#  لماذا الموافقة اليدوية؟ لأن آخر خطوة قبل المستخدم يجب أن يقرّرها
+#  إنسان. هذا الفرق بين Continuous Delivery (جاهز للنشر بضغطة)
+#  و Continuous Deployment (ينشر تلقائياً). للفرق الناضجة الثانية،
+#  ولمن يبني ثقته بالبايب لاين الأولى.
+# ═══════════════════════════════════════════════════════════════════════
+name: CD
+
+on:
+  # يعمل فقط بعد نجاح CI كاملاً — لا ننشر كوداً لم يُفحص
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'البيئة الهدف'
+        required: true
+        default: staging
+        type: choice
+        options: [staging, production]
+
+permissions:
+  contents: read
+
+concurrency:
+  # لا نلغي عمليات نشر جارية — قد تترك البيئة في حالة نصفية
+  group: cd-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: true
+
+jobs:
+  # ═══════════════════════════════════════════════════════════
+  #  ⓪ preflight — هل الأسرار موجودة أصلاً؟
+  #     نمط مفيد: يجعل الـ workflow يمر بسلام بدل أن يفشل
+  #     بأخطاء مصادقة غامضة عند غياب الإعداد.
+  # ═══════════════════════════════════════════════════════════
+  preflight:
+    name: 🔎 التحقق من الإعداد
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - name: فحص أسرار Netlify
+        id: check
+        env:
+          TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          SITE: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -n "$TOKEN" ] && [ -n "$SITE" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "✅ أسرار Netlify موجودة — النشر مفعّل" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### ⏸️ النشر غير مفعّل"
+              echo ""
+              echo "أسرار Netlify غير مضبوطة، لذا تُخطّى كل مراحل النشر."
+              echo ""
+              echo '```bash'
+              echo "gh secret set NETLIFY_AUTH_TOKEN --repo ${{ github.repository }}"
+              echo "gh secret set NETLIFY_SITE_ID    --repo ${{ github.repository }}"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  # ═══════════════════════════════════════════════════════════
+  #  ① بناء قطعة النشر
+  # ═══════════════════════════════════════════════════════════
+  build:
+    name: 📦 بناء قطعة النشر
+    runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.ready == 'true'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - name: البناء
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENAI_API_KEY: ${{ secrets.VITE_OPENAI_API_KEY }}
+          VITE_N8N_WEBHOOK_URL: ${{ secrets.VITE_N8N_WEBHOOK_URL }}
+        run: npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy-dist
+          path: dist/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════
+  #  ② Deploy Preview — رابط مؤقت لكل PR
+  #     أقوى ميزة في CD الحديث: المراجع يفتح الرابط ويجرّب
+  #     التغيير بيده قبل الموافقة، بدل قراءة الكود فقط.
+  # ═══════════════════════════════════════════════════════════
+  deploy-preview:
+    name: 🔍 نشر معاينة
+    runs-on: ubuntu-latest
+    needs: [preflight, build]
+    if: needs.preflight.outputs.ready == 'true' && github.event_name == 'pull_request'
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: deploy-dist
+          path: dist/
+
+      - name: النشر إلى Netlify (معاينة)
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          OUT=$(npx --yes netlify-cli@17 deploy \
+            --dir=dist \
+            --message "PR #${{ github.event.pull_request.number }} — ${{ github.sha }}" \
+            --json)
+          echo "$OUT"
+          URL=$(echo "$OUT" | python3 -c "import json,sys;print(json.load(sys.stdin)['deploy_url'])")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "🔗 رابط المعاينة: $URL" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: تعليق الرابط على الـ PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: deploy-preview
+          message: |
+            ### 🔍 معاينة النشر جاهزة
+
+            | | |
+            |---|---|
+            | 🔗 الرابط | ${{ steps.deploy.outputs.url }} |
+            | 📦 الإصدار | `${{ github.sha }}` |
+            | 🕐 وقت النشر | ${{ github.event.pull_request.updated_at }} |
+
+            > جرّب التغيير بنفسك قبل الموافقة على الدمج.
+        continue-on-error: true
+
+  # ═══════════════════════════════════════════════════════════
+  #  ③ اختبارات دخان على المعاينة
+  #     نفس اختبارات E2E لكن مقابل نشر حقيقي على الإنترنت،
+  #     لا خادم محلي. يكشف مشاكل الإعداد و CDN والتوجيه.
+  # ═══════════════════════════════════════════════════════════
+  smoke-preview:
+    name: 💨 دخان على المعاينة
+    runs-on: ubuntu-latest
+    needs: [preflight, deploy-preview]
+    if: needs.preflight.outputs.ready == 'true' && github.event_name == 'pull_request'
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+
+      - run: npx playwright install --with-deps chromium
+
+      - name: تشغيل الدخان على الرابط المنشور
+        env:
+          E2E_BASE_URL: ${{ needs.deploy-preview.outputs.url }}
+        run: npx playwright test tests/e2e/smoke.spec.ts --project=chromium
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-preview-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════
+  #  ④ نشر الإنتاج — بموافقة يدوية عبر GitHub Environment
+  #
+  #  الإعداد لمرة واحدة:
+  #    Settings → Environments → New environment → "production"
+  #    → Required reviewers → أضف نفسك
+  #  عندها يتوقف الـ job وينتظر ضغطك على "Approve".
+  # ═══════════════════════════════════════════════════════════
+  deploy-production:
+    name: 🚀 نشر الإنتاج
+    runs-on: ubuntu-latest
+    needs: [preflight, build]
+    if: >-
+      needs.preflight.outputs.ready == 'true' &&
+      ((github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'production'))
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: deploy-dist
+          path: dist/
+
+      - name: النشر إلى الإنتاج
+        id: deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          OUT=$(npx --yes netlify-cli@17 deploy \
+            --dir=dist \
+            --prod \
+            --message "الإنتاج — ${{ github.sha }}" \
+            --json)
+          echo "$OUT"
+          URL=$(echo "$OUT" | python3 -c "import json,sys;d=json.load(sys.stdin);print(d.get('url') or d['deploy_url'])")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+
+      - name: دخان على الإنتاج
+        env:
+          E2E_BASE_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/smoke.spec.ts --project=chromium
+
+      - name: ملخّص النشر
+        if: always()
+        run: |
+          {
+            echo "### 🚀 نشر الإنتاج"
+            echo "| | |"
+            echo "|---|---|"
+            echo "| الرابط | ${{ steps.deploy.outputs.url }} |"
+            echo "| الإصدار | \`${{ github.sha }}\` |"
+            echo "| الحالة | ${{ job.status }} |"
+            echo ""
+            echo "**التراجع عند مشكلة:** Netlify → Deploys → اختر نشراً سابقاً → Publish deploy"
+          } >> "$GITHUB_STEP_SUMMARY"
