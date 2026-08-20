@@ -1,0 +1,73 @@
+{
+  "branches": ["main"],
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "preset": "conventionalcommits",
+        "releaseRules": [
+          { "type": "feat", "release": "minor" },
+          { "type": "fix", "release": "patch" },
+          { "type": "perf", "release": "patch" },
+          { "type": "refactor", "release": "patch" },
+          { "type": "revert", "release": "patch" },
+          { "type": "docs", "release": false },
+          { "type": "style", "release": false },
+          { "type": "test", "release": false },
+          { "type": "build", "release": "patch" },
+          { "type": "ci", "release": false },
+          { "type": "chore", "release": false }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "types": [
+            { "type": "feat", "section": "✨ ميزات جديدة" },
+            { "type": "fix", "section": "🐛 إصلاحات" },
+            { "type": "perf", "section": "⚡ تحسينات أداء" },
+            { "type": "refactor", "section": "♻️ إعادة هيكلة" },
+            { "type": "revert", "section": "⏪ تراجعات" },
+            { "type": "build", "section": "📦 البناء والتبعيات" },
+            { "type": "ci", "section": "🔧 البايب لاين", "hidden": false },
+            { "type": "docs", "section": "📝 توثيق", "hidden": false },
+            { "type": "test", "section": "🧪 اختبارات", "hidden": true },
+            { "type": "style", "section": "💄 تنسيق", "hidden": true },
+            { "type": "chore", "section": "🧹 صيانة", "hidden": true }
+          ]
+        }
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md",
+        "changelogTitle": "# سجل التغييرات\n\nيُولَّد هذا الملف تلقائياً من رسائل الـ commit — لا تعدّله يدوياً."
+      }
+    ],
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/github",
+      {
+        "successComment": "🎉 صدر هذا التغيير في الإصدار ${nextRelease.version}",
+        "failComment": false,
+        "labels": false
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["CHANGELOG.md", "package.json", "package-lock.json"],
+        "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+      }
+    ]
+  ]
+}

@@ -21,6 +21,16 @@ updates:
       timezone: Asia/Riyadh
     open-pull-requests-limit: 5
 
+    # ─── فترة تهدئة (Cooldown) ───
+    #  لا نقبل إصداراً نُشر للتو. نمط هجوم شائع: يُخترق حساب ناشر،
+    #  فيُرفع إصدار خبيث، ويُكتشف ويُسحب خلال ساعات. الانتظار بضعة
+    #  أيام يجعل المجتمع يكتشفه قبلنا. (حادثة event-stream و ua-parser-js)
+    cooldown:
+      default-days: 5
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 3
+
     commit-message:
       prefix: 'build(deps)'
       prefix-development: 'build(deps-dev)'
@@ -59,6 +69,14 @@ updates:
       interval: weekly
       day: monday
       timezone: Asia/Riyadh
+
+    # ─── فترة تهدئة (Cooldown) ───
+    #  لا نقبل إصداراً نُشر للتو. نمط هجوم شائع: يُخترق حساب ناشر،
+    #  فيُرفع إصدار خبيث، ويُكتشف ويُسحب خلال ساعات. الانتظار بضعة
+    #  أيام يجعل المجتمع يكتشفه قبلنا. (حادثة event-stream و ua-parser-js)
+    cooldown:
+      # منظومة github-actions تدعم default-days فقط — لا مفاتيح semver
+      default-days: 5
     commit-message:
       prefix: 'ci(deps)'
     labels: [ci, dependencies, automated]

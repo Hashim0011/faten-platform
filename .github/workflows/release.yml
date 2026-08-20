@@ -1,0 +1,79 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Release — أتمتة الإصدارات
+#
+#  يقرأ رسائل الـ commit منذ آخر إصدار، ويحدّد رقم النسخة التالية
+#  حسب Semantic Versioning، ثم:
+#    • يحدّث CHANGELOG.md و package.json
+#    • ينشئ وسم Git و GitHub Release بملاحظات مولّدة
+#    • يعلّق على الـ PRs التي شُملت في الإصدار
+#
+#  ─────────────────────────────────────────────────────────────────────
+#  كيف يُحدَّد الرقم؟   MAJOR.MINOR.PATCH
+#
+#    fix:              → PATCH   1.0.0 → 1.0.1
+#    feat:             → MINOR   1.0.0 → 1.1.0
+#    BREAKING CHANGE:  → MAJOR   1.0.0 → 2.0.0
+#    docs/style/test/ci/chore → لا إصدار
+#
+#  هذا هو العائد الحقيقي من الانضباط في Conventional Commits:
+#  لا نقاش حول رقم النسخة، ولا ملاحظات إصدار مكتوبة يدوياً.
+# ═══════════════════════════════════════════════════════════════════════
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # لا نلغي إصداراً جارياً — قد يترك وسماً بلا release
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 🏷️ إصدار
+    runs-on: ubuntu-latest
+    # لا نُصدر إلا بعد نجاح CI كاملاً
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    timeout-minutes: 15
+    permissions:
+      contents: write # لإنشاء الوسوم والـ releases ودفع CHANGELOG
+      issues: write # للتعليق على المشاكل المرتبطة
+      pull-requests: write # للتعليق على الـ PRs المشمولة
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # semantic-release يحتاج التاريخ الكامل والوسوم لمعرفة آخر إصدار
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - name: تنفيذ الإصدار
+        env:
+          # GITHUB_TOKEN المدمج يكفي لإنشاء الوسوم والـ releases
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: ملخّص
+        if: always()
+        run: |
+          {
+            echo "### 🏷️ الإصدار"
+            echo ""
+            LATEST=$(git describe --tags --abbrev=0 2>/dev/null || echo "لا يوجد بعد")
+            echo "| | |"
+            echo "|---|---|"
+            echo "| آخر وسم | \`$LATEST\` |"
+            echo "| الحالة | ${{ job.status }} |"
+            echo ""
+            echo "> لا إصدار جديد إن لم تتضمن التغييرات \`feat\` أو \`fix\` أو \`perf\`."
+          } >> "$GITHUB_STEP_SUMMARY"
