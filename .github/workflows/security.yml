@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # التاريخ الكامل مطلوب: السر قد يكون في commit قديم
           fetch-depth: 0
@@ -103,7 +103,7 @@ jobs:
 
       - name: رفع تقارير Gitleaks
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gitleaks-reports
           path: |
@@ -125,7 +125,7 @@ jobs:
       # (متغيّر معرّف داخل خطوة لا يكون مرئياً لشرط if الخاص بها)
       SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
@@ -222,7 +222,7 @@ jobs:
 
       - name: رفع تقارير SCA
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sca-reports
           path: |
@@ -244,7 +244,7 @@ jobs:
     container:
       image: semgrep/semgrep:latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: تشغيل Semgrep
         run: |
@@ -304,7 +304,7 @@ jobs:
 
       - name: رفع تقرير Semgrep
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: semgrep-report
           path: semgrep-report.json
@@ -319,13 +319,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
       # ─── Trivy: يفحص التبعيات + الإعدادات الخاطئة + الأسرار ───
       - name: فحص Trivy لنظام الملفات
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -335,7 +335,7 @@ jobs:
           ignore-unfixed: true
 
       - name: فحص Trivy للإعدادات الخاطئة
-        uses: aquasecurity/trivy-action@0.35.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: .
@@ -372,7 +372,7 @@ jobs:
           PY
 
       - name: رفع SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom-cyclonedx
           path: sbom.json

@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
@@ -71,7 +71,7 @@ jobs:
 
       - name: رفع تقرير ESLint
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: eslint-report
           path: reports/
@@ -90,7 +90,7 @@ jobs:
       checks: write # لنشر نتائج الاختبارات كـ Check مستقل
       pull-requests: write # للتعليق بملخّص التغطية على الـ PR
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
@@ -100,7 +100,7 @@ jobs:
       # ينشر تقرير JUnit كـ Check مع تفاصيل كل اختبار فاشل
       - name: نشر نتائج الاختبارات
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: نتائج اختبارات الوحدة
           path: reports/junit.xml
@@ -118,7 +118,7 @@ jobs:
 
       - name: رفع تقارير التغطية والاختبارات
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-reports
           path: |
@@ -136,7 +136,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
@@ -185,7 +185,7 @@ jobs:
           fi
 
       - name: رفع قطعة البناء
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dist
           path: dist/
@@ -205,19 +205,19 @@ jobs:
       matrix:
         browser: [chromium, firefox]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup
 
       - name: تنزيل قطعة البناء
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
 
       # الكاش يوفّر ~90 ثانية لكل تشغيل (المتصفحات ~300MB)
       - name: استعادة كاش متصفحات Playwright
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: pw-${{ runner.os }}-${{ matrix.browser }}-${{ hashFiles('package-lock.json') }}
@@ -230,7 +230,7 @@ jobs:
 
       - name: رفع تقرير Playwright
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report-${{ matrix.browser }}
           path: |
@@ -265,7 +265,7 @@ jobs:
           --health-start-period 90s
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Sonar يحتاج التاريخ الكامل لحساب "الكود الجديد" بدقة
           fetch-depth: 0
@@ -274,13 +274,13 @@ jobs:
 
       # نُنزّل تقارير التغطية بدل إعادة تشغيل الاختبارات — توفير وقت
       - name: تنزيل تقارير الاختبارات
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: test-reports
         continue-on-error: true
 
       - name: تنزيل تقرير ESLint
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: eslint-report
           path: reports/
