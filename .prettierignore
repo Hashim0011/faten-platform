@@ -8,3 +8,8 @@ public/books
 reports
 playwright-report
 test-results
+
+# ملفات مولّدة آلياً — لا تُنسَّق يدوياً
+# CHANGELOG يعيد semantic-release إنتاجه كاملاً مع كل إصدار،
+# فأي تنسيق نطبّقه يُمحى في الإصدار التالي ويعود الفحص للفشل.
+CHANGELOG.md
