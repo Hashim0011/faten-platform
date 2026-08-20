@@ -2,6 +2,16 @@
 
 يُولَّد هذا الملف تلقائياً من رسائل الـ commit — لا تعدّله يدوياً.
 
+## [1.0.1](https://github.com/Hashim0011/Faten_Platform/compare/v1.0.0...v1.0.1) (2026-08-20)
+
+### 🐛 إصلاحات
+
+* **ci:** استثناء CHANGELOG المولّد من فحص Prettier ([#10](https://github.com/Hashim0011/Faten_Platform/issues/10)) ([632975a](https://github.com/Hashim0011/Faten_Platform/commit/632975aa2a41b474b4ffaab7debd5c2e4d6764d5))
+
+### 📝 توثيق
+
+* **ci:** توثيق دروس التحصين والأخطاء المكشوفة في التطبيق ([#9](https://github.com/Hashim0011/Faten_Platform/issues/9)) ([acb50e4](https://github.com/Hashim0011/Faten_Platform/commit/acb50e46af04edf5c23c0268018a164ba04d897c))
+
 ## 1.0.0 (2026-08-20)
 
 ### ✨ ميزات جديدة
