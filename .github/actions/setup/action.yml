@@ -26,6 +26,15 @@ runs:
         # كاش مدمج لمجلد ~/.npm — يوفّر ~40 ثانية لكل job
         cache: npm
 
+    # ─── تعطيل خطافات Git في CI ───
+    #  npm ci يشغّل سكربت prepare فيثبّت husky على الـ runner.
+    #  عندها يفشل أي `git commit` آلي (semantic-release مثلاً) على
+    #  خطاف commit-msg. الخطافات للمطوّرين البشر؛ CI يشغّل فحوصاته
+    #  الخاصة أصلاً، فتشغيلها هنا تكرار في أحسن الأحوال وتعطيل في أسوئها.
+    - name: تعطيل خطافات Git في بيئة CI
+      shell: bash
+      run: echo "HUSKY=0" >> "$GITHUB_ENV"
+
     - name: تثبيت التبعيات
       shell: bash
       # npm ci (وليس npm install): يثبّت من package-lock.json حرفياً،

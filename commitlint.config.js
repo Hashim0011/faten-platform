@@ -22,6 +22,10 @@ export default {
     // مُعطَّلة: العناوين بالعربية لا تنطبق عليها قواعد حالة الأحرف
     'subject-case': [0],
     'header-max-length': [2, 'always', 100],
+    // العنوان وحده محدود الطول. الجسم والتذييل بلا حد لأن ملاحظات
+    // الإصدار المولّدة آلياً تحتوي روابط commits طويلة تتجاوز أي حد.
     'body-max-line-length': [0],
+    'footer-max-line-length': [0],
+    'footer-leading-blank': [0],
   },
 };

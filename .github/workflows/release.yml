@@ -30,6 +30,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # حزام وحمّالة: الخطافات معطّلة أيضاً في Composite Action المشترك
+  HUSKY: 0
+
 concurrency:
   # لا نلغي إصداراً جارياً — قد يترك وسماً بلا release
   group: release
