@@ -14,7 +14,6 @@
 
 <sub>Graduation Project — Software Engineering</sub>
 
-
 <img src="docs/preview.webp" alt="Faten platform preview" width="820" />
 
 </div>
@@ -29,26 +28,26 @@ Faten is a full-stack web platform built around three roles — **User**, **Expe
 
 ## Features
 
-| Users | Experts | Admins |
-| --- | --- | --- |
-| Library of books, articles & videos | Publish and manage content | User & role management |
-| Weekly community discussions | Create and moderate discussions | Platform-wide dashboard |
-| AI assistant chat | Delete messages & ban users | Event management |
-| Notifications, likes, dark mode | Activity tracking | Full system control |
+| Users                               | Experts                         | Admins                  |
+| ----------------------------------- | ------------------------------- | ----------------------- |
+| Library of books, articles & videos | Publish and manage content      | User & role management  |
+| Weekly community discussions        | Create and moderate discussions | Platform-wide dashboard |
+| AI assistant chat                   | Delete messages & ban users     | Event management        |
+| Notifications, likes, dark mode     | Activity tracking               | Full system control     |
 
 **Platform-wide:** Supabase authentication with OTP two-factor verification · role-based access · real-time data · fully RTL Arabic interface · responsive on every device.
 
 ## Tech Stack
 
-| Layer | Technology |
-| --- | --- |
-| Frontend | React 18, TypeScript, Vite, React Router v6 |
-| Styling | Tailwind CSS |
-| Backend | Supabase (PostgreSQL, Auth, Storage) |
-| AI & Automation | LLM chat assistant, n8n workflows |
-| Testing | Vitest, Testing Library, Playwright (E2E) |
-| Quality | ESLint, Prettier, Husky, Commitlint, SonarQube, Lighthouse CI |
-| Delivery | GitHub Actions (CI / CD / Security), semantic-release, Netlify |
+| Layer           | Technology                                                     |
+| --------------- | -------------------------------------------------------------- |
+| Frontend        | React 18, TypeScript, Vite, React Router v6                    |
+| Styling         | Tailwind CSS                                                   |
+| Backend         | Supabase (PostgreSQL, Auth, Storage)                           |
+| AI & Automation | LLM chat assistant, n8n workflows                              |
+| Testing         | Vitest, Testing Library, Playwright (E2E)                      |
+| Quality         | ESLint, Prettier, Husky, Commitlint, SonarQube, Lighthouse CI  |
+| Delivery        | GitHub Actions (CI / CD / Security), semantic-release, Netlify |
 
 ## Engineering Practices
 
@@ -73,23 +72,23 @@ npm run dev            # http://localhost:5173
 
 ### Environment Variables
 
-| Variable | Description |
-| --- | --- |
-| `VITE_SUPABASE_URL` | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous (public) key |
-| `VITE_OPENAI_API_KEY` | Key for the AI assistant |
-| `VITE_N8N_WEBHOOK_URL` | n8n webhook for chatbot workflows |
+| Variable                 | Description                       |
+| ------------------------ | --------------------------------- |
+| `VITE_SUPABASE_URL`      | Supabase project URL              |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous (public) key   |
+| `VITE_OPENAI_API_KEY`    | Key for the AI assistant          |
+| `VITE_N8N_WEBHOOK_URL`   | n8n webhook for chatbot workflows |
 
 ### Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the development server |
-| `npm run build` | Production build |
-| `npm run validate` | Typecheck, lint, format check, and unit tests |
-| `npm test` | Run unit tests |
-| `npm run test:e2e` | Run Playwright end-to-end tests |
-| `npm run test:coverage` | Unit tests with coverage report |
+| Command                 | Description                                   |
+| ----------------------- | --------------------------------------------- |
+| `npm run dev`           | Start the development server                  |
+| `npm run build`         | Production build                              |
+| `npm run validate`      | Typecheck, lint, format check, and unit tests |
+| `npm test`              | Run unit tests                                |
+| `npm run test:e2e`      | Run Playwright end-to-end tests               |
+| `npm run test:coverage` | Unit tests with coverage report               |
 
 ## Project Structure
 
@@ -108,13 +107,13 @@ docs/               # CI/CD documentation
 
 ## Roles & Routes
 
-| Route | Page |
-| --- | --- |
-| `/` | Role selection |
+| Route                                       | Page             |
+| ------------------------------------------- | ---------------- |
+| `/`                                         | Role selection   |
 | `/login` · `/expert-login` · `/admin-login` | Sign in per role |
-| `/dashboard` | User dashboard |
-| `/expert-dashboard` | Expert dashboard |
-| `/admin-dashboard` | Admin dashboard |
+| `/dashboard`                                | User dashboard   |
+| `/expert-dashboard`                         | Expert dashboard |
+| `/admin-dashboard`                          | Admin dashboard  |
 
 ## Team
 
