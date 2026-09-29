@@ -4,6 +4,7 @@
 
 **An interactive awareness platform that promotes intellectual security through curated educational content, weekly community discussions, and an AI assistant.**
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Hashim0011/faten-platform/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/Hashim0011/faten-platform/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Hashim0011/faten-platform?style=flat-square&color=0F766E)](https://github.com/Hashim0011/faten-platform/releases)
 ![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
