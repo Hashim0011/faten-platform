@@ -5,8 +5,8 @@
 #     وكل مراحل النشر مشروطة بها. بدونها يمر الـ workflow بلا نشر.
 #
 #  التفعيل:
-#     gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/Faten_Platform
-#     gh secret set NETLIFY_SITE_ID    --repo Hashim0011/Faten_Platform
+#     gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/faten-platform
+#     gh secret set NETLIFY_SITE_ID    --repo Hashim0011/faten-platform
 #
 #  ─────────────────────────────────────────────────────────────────────
 #  التدفّق:

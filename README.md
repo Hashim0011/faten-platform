@@ -1,155 +1,123 @@
-# فطن - منصة الأمن الفكري
+<div align="center">
 
-منصة تفاعلية لتعزيز الأمن الفكري والتوعية من خلال المحتوى التعليمي والنقاشات المجتمعية.
+# Faten — Intellectual Security Platform
 
-## 🎯 المميزات
+**An interactive awareness platform that promotes intellectual security through curated educational content, weekly community discussions, and an AI assistant.**
 
-### للمستخدمين
+[![Release](https://img.shields.io/github/v/release/Hashim0011/faten-platform?style=flat-square&color=0F766E)](https://github.com/Hashim0011/faten-platform/releases)
+![React](https://img.shields.io/badge/React_18-20232A?style=flat-square&logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
 
-- 📚 الوصول إلى مكتبة شاملة من المحتوى التعليمي (كتب، مقالات، فيديوهات)
-- 💬 المشاركة في النقاشات الأسبوعية
-- 🔔 نظام إشعارات ذكي
-- 🌙 دعم الوضع الليلي
-- 📱 تصميم متجاوب يعمل على جميع الأجهزة
+<sub>Graduation Project — Software Engineering</sub>
 
-### للخبراء
+</div>
 
-- ➕ إضافة وإدارة المحتوى التعليمي
-- 🗣️ إنشاء وإدارة النقاشات الأسبوعية
-- 🔨 أدوات إشراف متقدمة (حذف، حظر)
-- 📊 متابعة النشاطات والمشاركات
+---
 
-### للمشرفين
+> **فطن — منصة الأمن الفكري:** منصة تفاعلية لتعزيز الأمن الفكري والتوعية من خلال مكتبة محتوى تعليمي، ونقاشات أسبوعية، ومساعد ذكي، مع ثلاثة أدوار (مستخدم، خبير، مشرف) ولوحة تحكم لكل دور.
 
-- 👥 إدارة المستخدمين والصلاحيات
-- 📈 لوحة تحكم شاملة
-- 🎯 إدارة الفعاليات
-- 🔐 التحكم الكامل في المنصة
+## Overview
 
-## 🚀 التقنيات المستخدمة
+Faten is a full-stack web platform built around three roles — **User**, **Expert**, and **Admin** — each with its own dashboard and permissions. Experts publish educational content and moderate weekly discussions, admins manage users and events, and users learn, discuss, and ask an integrated AI assistant for guidance.
 
-- **Frontend**: React 18 + TypeScript + Vite
-- **Styling**: Tailwind CSS
-- **Backend**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **Routing**: React Router v6
-- **Deployment**: Netlify
+## Features
 
-## 📦 التثبيت والتشغيل
+| Users | Experts | Admins |
+| --- | --- | --- |
+| Library of books, articles & videos | Publish and manage content | User & role management |
+| Weekly community discussions | Create and moderate discussions | Platform-wide dashboard |
+| AI assistant chat | Delete messages & ban users | Event management |
+| Notifications, likes, dark mode | Activity tracking | Full system control |
 
-### المتطلبات
+**Platform-wide:** Supabase authentication with OTP two-factor verification · role-based access · real-time data · fully RTL Arabic interface · responsive on every device.
 
-- Node.js 18+
-- npm أو yarn
+## Tech Stack
 
-### خطوات التشغيل
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 18, TypeScript, Vite, React Router v6 |
+| Styling | Tailwind CSS |
+| Backend | Supabase (PostgreSQL, Auth, Storage) |
+| AI & Automation | LLM chat assistant, n8n workflows |
+| Testing | Vitest, Testing Library, Playwright (E2E) |
+| Quality | ESLint, Prettier, Husky, Commitlint, SonarQube, Lighthouse CI |
+| Delivery | GitHub Actions (CI / CD / Security), semantic-release, Netlify |
 
-1. استنساخ المشروع:
+## Engineering Practices
+
+- **CI pipeline** — static checks, unit tests with coverage across a Node matrix, production build, and bundle-size analysis on every pull request.
+- **Security** — secret scanning (Gitleaks + pre-commit hook), dependency audit, Dependabot updates.
+- **Conventional commits** enforced by Commitlint, with automated versioning and changelog via semantic-release.
+- **Branch protection** and code owners for reviewed merges.
+
+See [`docs/CICD.md`](docs/CICD.md) for the full pipeline documentation.
+
+## Getting Started
+
+**Prerequisites:** Node.js 18+ and a Supabase project.
 
 ```bash
-git clone https://github.com/Hashim0011/Faten-copy.git
-cd Faten-copy
-```
-
-2. تثبيت المكتبات:
-
-```bash
+git clone https://github.com/Hashim0011/faten-platform.git
+cd faten-platform
 npm install
+cp .env.example .env   # then fill in your own keys
+npm run dev            # http://localhost:5173
 ```
 
-3. إعداد متغيرات البيئة:
-   - انسخ ملف `.env` وتأكد من إعداد المفاتيح الصحيحة
+### Environment Variables
 
-4. تشغيل المشروع:
+| Variable | Description |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anonymous (public) key |
+| `VITE_OPENAI_API_KEY` | Key for the AI assistant |
+| `VITE_N8N_WEBHOOK_URL` | n8n webhook for chatbot workflows |
 
-```bash
-npm run dev
-```
+### Scripts
 
-5. افتح المتصفح على: `http://localhost:5173`
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Production build |
+| `npm run validate` | Typecheck, lint, format check, and unit tests |
+| `npm test` | Run unit tests |
+| `npm run test:e2e` | Run Playwright end-to-end tests |
+| `npm run test:coverage` | Unit tests with coverage report |
 
-## 🏗️ البناء والنشر
-
-### بناء المشروع:
-
-```bash
-npm run build
-```
-
-### معاينة البناء:
-
-```bash
-npm run preview
-```
-
-### النشر على Netlify:
-
-1. ارفع المشروع إلى GitHub
-2. اربط المستودع مع Netlify
-3. حدد الأمر: `npm run build`
-4. حدد مجلد النشر: `dist`
-
-## 📁 هيكل المشروع
+## Project Structure
 
 ```
 src/
-├── components/     # المكونات المشتركة
-├── pages/         # صفحات التطبيق
-├── lib/           # وظائف مساعدة وتكامل مع Supabase
-├── contexts/      # Context API
-└── assets/        # الصور والملفات الثابتة
-
-public/
-└── books/         # ملفات PDF للكتب
+├── pages/          # Role selection, auth, and User / Expert / Admin dashboards
+├── components/     # Modals: AI chat, content details, discussions, notifications
+├── lib/            # Supabase data layer: auth, OTP, content, discussions, likes, bans…
+├── contexts/       # Toast notifications
+└── hooks/          # Theme handling
+tests/
+├── unit/           # Vitest + Testing Library
+└── e2e/            # Playwright
+docs/               # CI/CD documentation
 ```
 
-## 🔐 الأدوار والصلاحيات
+## Roles & Routes
 
-### مستخدم (User)
+| Route | Page |
+| --- | --- |
+| `/` | Role selection |
+| `/login` · `/expert-login` · `/admin-login` | Sign in per role |
+| `/dashboard` | User dashboard |
+| `/expert-dashboard` | Expert dashboard |
+| `/admin-dashboard` | Admin dashboard |
 
-- تصفح المحتوى
-- المشاركة في النقاشات
-- تلقي الإشعارات
+## Team
 
-### خبير (Expert)
+- **Hashim Al Masaabi** — [@Hashim0011](https://github.com/Hashim0011)
+- **Omar** — [@ommdh98-hub](https://github.com/ommdh98-hub)
 
-- جميع صلاحيات المستخدم
-- إضافة وحذف المحتوى
-- إدارة النقاشات
-- حذف وحظر الرسائل
+## License
 
-### مشرف (Admin)
-
-- جميع الصلاحيات
-- إدارة المستخدمين
-- إدارة الفعاليات
-- الوصول الكامل للنظام
-
-## 📱 الواجهات الرئيسية
-
-- `/` - اختيار الدور (مستخدم/خبير/مشرف)
-- `/login` - تسجيل الدخول للمستخدمين
-- `/expert-login` - تسجيل الدخول للخبراء
-- `/admin-login` - تسجيل الدخول للمشرفين
-- `/dashboard` - لوحة المستخدم
-- `/expert-dashboard` - لوحة الخبير
-- `/admin-dashboard` - لوحة المشرف
-
-## 🛠️ التطوير
-
-### الأوامر المتاحة:
-
-```bash
-npm run dev      # تشغيل بيئة التطوير
-npm run build    # بناء المشروع
-npm run preview  # معاينة البناء
-npm run lint     # فحص الكود
-```
-
-## 📄 الترخيص
-
-جميع الحقوق محفوظة © 2024
-
-## 📞 التواصل
-
-للاستفسارات والدعم الفني، يرجى التواصل عبر المستودع.
+© 2025 Faten. All rights reserved.

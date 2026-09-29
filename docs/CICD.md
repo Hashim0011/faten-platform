@@ -258,7 +258,7 @@ services:
 | `SNYK_TOKEN`             | اختياري — فحص SCA إضافي |
 
 ```bash
-gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/Faten_Platform
+gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/faten-platform
 ```
 
 **قواعد:**
@@ -280,7 +280,7 @@ gh secret set NETLIFY_AUTH_TOKEN --repo Hashim0011/Faten_Platform
 `.github/branch-protection.json`:
 
 ```bash
-gh api -X POST repos/Hashim0011/Faten_Platform/rulesets \
+gh api -X POST repos/Hashim0011/faten-platform/rulesets \
   --input .github/branch-protection.json
 ```
 
