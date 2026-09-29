@@ -14,6 +14,9 @@
 
 <sub>Graduation Project — Software Engineering</sub>
 
+
+<img src="docs/preview.webp" alt="Faten platform preview" width="820" />
+
 </div>
 
 ---
